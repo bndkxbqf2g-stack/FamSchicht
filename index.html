@@ -17,6 +17,7 @@
 <button id="retry" type="button" onclick="location.reload()">Erneut laden</button>
 </div>
 <section id="auth" aria-label="Anmeldung"></section>
+<section id="household" class="panel" aria-label="Familienhaushalt"></section>
 <main id="app"></main>
 <script>
 (function(){
@@ -30,6 +31,7 @@ window.__famschichtReady=function(){var el=document.getElementById('startup');if
 })();
 </script>
 <script type="module" src="./src/auth-ui.js"></script>
+<script type="module" src="./src/household-ui.js"></script>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
