@@ -32,3 +32,17 @@ jobs:
           path: dist
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify published app
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --location --silent --show-error "$PAGE_URL" -o /tmp/famschicht.html && grep -Eq '/FamSchicht/assets/index-[^" ]+\.js' /tmp/famschicht.html; then
+              echo 'Published Vite app is reachable and references bundled JavaScript.'
+              exit 0
+            fi
+            echo "Published app not ready (attempt $attempt); retrying..."
+            sleep 10
+          done
+          echo 'Published page missing or serving unbuilt source.' >&2
+          exit 1
