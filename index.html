@@ -1,1 +1,35 @@
-<!doctype html><html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#176b58"><title>FamSchicht</title></head><body><section id="auth" aria-label="Anmeldung"></section><main id="app"></main><script type="module" src="./src/auth-ui.js"></script><script type="module" src="./src/main.js"></script></body></html>
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#176b58">
+<title>FamSchicht</title>
+<style>
+#startup{max-width:720px;margin:36px auto;padding:22px;font:16px system-ui,sans-serif;color:#163d32;background:#e9f5ef;border-radius:14px}
+#startup code{overflow-wrap:anywhere}#startup button{padding:10px;border-radius:8px}
+</style>
+</head>
+<body>
+<div id="startup" role="status" aria-live="polite">
+<strong>FamSchicht wird geladen …</strong>
+<p id="startup-detail">Falls diese Meldung stehen bleibt, werden die App-Dateien nicht korrekt geladen.</p>
+<button id="retry" type="button" onclick="location.reload()">Erneut laden</button>
+</div>
+<section id="auth" aria-label="Anmeldung"></section>
+<main id="app"></main>
+<script>
+(function(){
+function report(message){
+ var el=document.getElementById('startup'),detail=document.getElementById('startup-detail');
+ if(el&&detail){el.style.display='block';detail.textContent='Startfehler: '+message;}
+}
+window.addEventListener('error',function(e){report(e.message||'Eine App-Datei konnte nicht geladen werden.');});
+window.addEventListener('unhandledrejection',function(e){report(e.reason&&e.reason.message||'Ein Modul konnte nicht gestartet werden.');});
+window.__famschichtReady=function(){var el=document.getElementById('startup');if(el)el.style.display='none';};
+})();
+</script>
+<script type="module" src="./src/auth-ui.js"></script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
