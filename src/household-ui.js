@@ -54,6 +54,7 @@ async function refresh(user) {
       button.disabled = false;
       return;
     }
+    window.dispatchEvent(new CustomEvent('famschicht:household-created'));
     refresh(user);
   };
 }
