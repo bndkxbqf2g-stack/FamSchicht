@@ -235,8 +235,8 @@ function shiftCaptureMarkup() {
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner"><button data-owner="Martin" class="' + (shiftOwner === 'Martin' ? 'selected' : '') + '">Martin</button>' +
     '<button data-owner="Steffi" class="' + (shiftOwner === 'Steffi' ? 'selected' : '') + '">Steffi</button></div>' +
     '<div class="shift-buttons">' +
-    '<button data-shift="Frühdienst">Früh</button><button data-shift="Spätdienst">Spät</button>' +
-    '<button data-shift="Nachtdienst">Nacht</button><button data-shift="skip">Frei</button>' +
+    '<button data-shift="Frühdienst"' + (shiftSavePending ? ' disabled' : '') + '>Früh</button><button data-shift="Spätdienst"' + (shiftSavePending ? ' disabled' : '') + '>Spät</button>' +
+    '<button data-shift="Nachtdienst"' + (shiftSavePending ? ' disabled' : '') + '>Nacht</button><button data-shift="skip"' + (shiftSavePending ? ' disabled' : '') + '>Frei</button>' +
     '<button data-shift="close">Beenden</button></div></section>';
 }
 
