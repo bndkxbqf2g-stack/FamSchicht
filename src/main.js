@@ -71,7 +71,7 @@ function render() {
       ? '<div class="day ' + (day === dateKey(new Date()) ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         entries.filter(e => e.date === day && canSee(e, view))
-          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'Martin').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Martin') + ': ' + e.title : e.title) + '">' + h(e.title) +
+          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '">' + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
           .join('') +
         '</div>'
