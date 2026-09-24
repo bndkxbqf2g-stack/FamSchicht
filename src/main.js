@@ -1,5 +1,5 @@
 import {load, save} from './storage.js';
-import {dateKey, calendarDays, shiftTimes} from './dates.js';
+import {dateKey, calendarDays, shiftTimes, nextShiftCaptureDate} from './dates.js';
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
@@ -263,9 +263,7 @@ function handleShiftChoice(choice) {
 }
 
 function advanceShiftCapture() {
-  const next = new Date(shiftCaptureDate + 'T12:00:00');
-  next.setDate(next.getDate() + 1);
-  shiftCaptureDate = dateKey(next);
+  shiftCaptureDate = nextShiftCaptureDate(shiftCaptureDate, month);
   render();
 }
 
