@@ -24,3 +24,12 @@ test('maps database row back to calendar shape', () => {
   assert.equal(item.type,'family');
   assert.equal(item.source,'supabase');
 });
+
+
+test('custody metadata survives database round trip', () => {
+  const row=toDatabaseEvent({id:'4',type:'family',title:'Kinder bei Papa',date:'2026-09-24',start:'',end:'',source:'custody',anchor:'2026-09-24'},'h1','u1');
+  assert.deepEqual(row.metadata,{source:'custody',anchor:'2026-09-24'});
+  const item=fromDatabaseEvent({...row,starts_at:row.starts_at,ends_at:row.ends_at});
+  assert.equal(item.source,'custody');
+  assert.equal(item.anchor,'2026-09-24');
+});
