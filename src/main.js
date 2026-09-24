@@ -15,6 +15,8 @@ let entries = load();
 let month = new Date();
 let view = 'all';
 let cloud = null;
+let selectedDate = null;
+let shiftCaptureDate = null;
 month.setDate(1);
 
 const app = document.querySelector('#app');
@@ -65,7 +67,7 @@ function render() {
     '</h2><button id="next">›</button></div><div class="calendar">' +
     ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => '<b>' + d + '</b>').join('') +
     days.map(day => day
-      ? '<div class="day ' + (day === dateKey(new Date()) ? 'today' : '') + '"><b>' +
+      ? '<div class="day ' + (day === dateKey(new Date()) ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         entries.filter(e => e.date === day && canSee(e, view))
           .map(e => '<div class="entry ' + h(e.type) + '">' + h(e.title) +
@@ -76,12 +78,7 @@ function render() {
       : '<div></div>')
       .join('') +
     '</div></section>' +
-    '<section class="panel"><h2>Neuer Eintrag</h2><form id="entry-form">' +
-    '<label>Kalender<select name="type" id="type"><option value="family">Familie</option><option value="shift">Schichten</option></select></label>' +
-    '<label>Datum<input type="date" name="date" value="' + dateKey(new Date()) + '" required></label>' +
-    '<label class="wide">Termin oder Schicht<input name="title" id="title" required placeholder="z. B. Fußball Levin"></label>' +
-    '<label>Beginn<input type="time" name="start"></label><label>Ende<input type="time" name="end"></label>' +
-    '<button class="primary wide">Speichern</button></form></section>' +
+    '<section class="panel"><div class="quick-actions"><button id="shift-capture" class="primary">Dienstplan schnell eintragen</button></div><p class="note">Für einen normalen Termin direkt auf den gewünschten Kalendertag tippen.</p></section>' +
     '<section class="panel"><h2>Umgangsrhythmus</h2>' +
     '<p>Wähle den ersten Donnerstag, an dem die Kinder bei dir sind. Der Kalender erzeugt dann für 12 Monate jeden zweiten Donnerstag bis Sonntag einen Eintrag. Prüfe die Vorschau vor dem Speichern.</p>' +
     '<form id="custody-form"><label>Erster Donnerstag<input name="anchor" type="date" required></label>' +
@@ -107,6 +104,14 @@ function bindControls() {
       render();
     };
   });
+  app.querySelectorAll('[data-day]').forEach(day => {
+    day.onclick = event => {
+      if (event.target.closest('[data-remove]')) return;
+      openDayDialog(day.dataset.day);
+    };
+  });
+  app.querySelector('#shift-capture').onclick = startShiftCapture;
+
   app.querySelectorAll('[data-remove]').forEach(button => {
     button.onclick = async () => {
       if (!confirm('Eintrag löschen?')) return;
@@ -121,24 +126,6 @@ function bindControls() {
       }
     };
   });
-
-  app.querySelector('#type').onchange = event => {
-    const form = app.querySelector('#entry-form');
-    if (event.target.value === 'shift') {
-      form.querySelector('#title').outerHTML =
-        '<select name="title" id="title">' +
-        Object.keys({Frühdienst: 1, Spätdienst: 1, Nachtdienst: 1})
-          .map(name => '<option>' + name + '</option>').join('') +
-        '</select>';
-      form.querySelector('#title').onchange = () => fill(form);
-      fill(form);
-    } else {
-      form.querySelector('#title').outerHTML =
-        '<input name="title" id="title" required placeholder="z. B. Fußball Levin">';
-      form.elements.start.value = '';
-      form.elements.end.value = '';
-    }
-  };
 
   app.querySelector('#custody-form').onsubmit = handleCustodySubmit;
   app.querySelector('#entry-form').onsubmit = handleEntrySubmit;
@@ -192,19 +179,49 @@ async function handleCustodySubmit(event) {
   render();
 }
 
-async function handleEntrySubmit(event) {
-  event.preventDefault();
-  const formData = new FormData(event.currentTarget);
-  const item = Object.fromEntries(formData);
-  item.id = crypto.randomUUID();
+function openDayDialog(date) {
+  selectedDate = date;
+  const title = prompt('Termin am ' + new Date(date + 'T12:00:00').toLocaleDateString('de-DE') + ':');
+  if (!title?.trim()) return;
+  void saveEntry({id: crypto.randomUUID(), type: 'family', title: title.trim(), date, start: '', end: ''});
+}
 
+function startShiftCapture() {
+  shiftCaptureDate = dateKey(new Date(month.getFullYear(), month.getMonth(), 1, 12));
+  showShiftCapture();
+}
+
+function showShiftCapture() {
+  if (!shiftCaptureDate) return;
+  const current = new Date(shiftCaptureDate + 'T12:00:00');
+  if (current.getMonth() !== month.getMonth()) { shiftCaptureDate = null; render(); return; }
+  const label = current.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'});
+  const choice = prompt(label + ' – F = Früh, S = Spät, N = Nacht, X = frei/überspringen');
+  if (choice == null) { shiftCaptureDate = null; return; }
+  const names = {f: 'Frühdienst', s: 'Spätdienst', n: 'Nachtdienst'};
+  const name = names[choice.trim().toLowerCase()];
+  if (name) {
+    const [start, end] = shiftTimes(name);
+    void saveEntry({id: crypto.randomUUID(), type: 'shift', title: name, date: shiftCaptureDate, start, end}, advanceShiftCapture);
+  } else {
+    advanceShiftCapture();
+  }
+}
+
+function advanceShiftCapture() {
+  const next = new Date(shiftCaptureDate + 'T12:00:00');
+  next.setDate(next.getDate() + 1);
+  shiftCaptureDate = dateKey(next);
+  showShiftCapture();
+}
+
+async function saveEntry(item, afterSave) {
   try {
     if (cloud) await saveOwnerEvent(supabase, item, cloud.householdId, cloud.userId);
     entries.push(item);
     if (!cloud) save(entries);
-    month = new Date(item.date + 'T12:00:00');
-    month.setDate(1);
     render();
+    afterSave?.();
   } catch (err) {
     alert('Speichern fehlgeschlagen: ' + err.message);
   }
