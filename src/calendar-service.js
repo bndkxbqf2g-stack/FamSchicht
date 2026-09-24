@@ -31,7 +31,7 @@ export function fromDatabaseEvent(row) {
     end: hasMeaningfulTime(end) ? localTime(end) : '',
     source: row.metadata?.source || 'supabase',
     anchor: row.metadata?.anchor || undefined,
-    owner: row.category === 'shift' ? (row.metadata?.owner || 'Martin') : undefined,
+    owner: row.category === 'shift' ? (row.metadata?.owner || undefined) : undefined,
   };
 }
 
