@@ -39,6 +39,14 @@ export async function loadOwnerEvents(supabase, householdId) {
   return (data || []).map(fromDatabaseEvent);
 }
 
+export async function saveOwnerEvents(supabase, events, householdId, userId) {
+  if (!events.length) return [];
+  const payload = events.map(event => toDatabaseEvent(event, householdId, userId));
+  const {error} = await supabase.from('calendar_events').insert(payload);
+  if (error) throw error;
+  return events;
+}
+
 export async function saveOwnerEvent(supabase, event, householdId, userId) {
   const payload = toDatabaseEvent(event, householdId, userId);
   const {error} = await supabase.from('calendar_events').insert(payload);
