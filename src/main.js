@@ -240,6 +240,8 @@ function shiftCaptureMarkup() {
     '<button data-shift="close">Beenden</button></div></section>';
 }
 
+let shiftSavePending = false;
+
 function handleShiftChoice(choice) {
   if (choice === 'close') {
     shiftCaptureDate = null;
@@ -250,6 +252,9 @@ function handleShiftChoice(choice) {
     advanceShiftCapture();
     return;
   }
+  if (shiftSavePending) return;
+  shiftSavePending = true;
+  render();
   const [start, end] = shiftTimes(choice);
   void saveEntry({
     id: crypto.randomUUID(),
@@ -259,7 +264,13 @@ function handleShiftChoice(choice) {
     start,
     end,
     owner: shiftOwner,
-  }, advanceShiftCapture);
+  }, () => {
+    shiftSavePending = false;
+    advanceShiftCapture();
+  }, () => {
+    shiftSavePending = false;
+    render();
+  });
 }
 
 function advanceShiftCapture() {
@@ -267,7 +278,7 @@ function advanceShiftCapture() {
   render();
 }
 
-async function saveEntry(item, afterSave) {
+async function saveEntry(item, afterSave, afterError) {
   try {
     if (cloud) await saveOwnerEvent(supabase, item, cloud.householdId, cloud.userId);
     entries.push(item);
@@ -275,6 +286,7 @@ async function saveEntry(item, afterSave) {
     render();
     afterSave?.();
   } catch (err) {
+    afterError?.();
     alert('Speichern fehlgeschlagen: ' + err.message);
   }
 }
