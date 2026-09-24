@@ -57,9 +57,9 @@ async function connectCloud() {
 function render() {
   const days = calendarDays(month);
   app.innerHTML =
-    '<header><h1>FamSchicht</h1><p>Familie und Uni im Blick</p></header>' +
+    '<header><h1>FamSchicht</h1><p>Familie und Dienste auf einen Blick</p></header>' +
     '<nav>' +
-    [['all', 'Gesamt'], ['family', 'Familie'], ['shift', 'Schichten']]
+    [['all', 'Kalender'], ['family', 'Familie'], ['shift', 'Dienste']]
       .map(([id, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '">' + label + '</button>')
       .join('') +
     '</nav>' +
