@@ -15,7 +15,6 @@ let entries = load();
 let month = new Date();
 let view = 'all';
 let cloud = null;
-let selectedDate = null;
 let shiftCaptureDate = null;
 month.setDate(1);
 
@@ -128,7 +127,6 @@ function bindControls() {
   });
 
   app.querySelector('#custody-form').onsubmit = handleCustodySubmit;
-  app.querySelector('#entry-form').onsubmit = handleEntrySubmit;
 }
 
 async function handleCustodySubmit(event) {
@@ -180,7 +178,6 @@ async function handleCustodySubmit(event) {
 }
 
 function openDayDialog(date) {
-  selectedDate = date;
   const title = prompt('Termin am ' + new Date(date + 'T12:00:00').toLocaleDateString('de-DE') + ':');
   if (!title?.trim()) return;
   void saveEntry({id: crypto.randomUUID(), type: 'family', title: title.trim(), date, start: '', end: ''});
@@ -225,12 +222,6 @@ async function saveEntry(item, afterSave) {
   } catch (err) {
     alert('Speichern fehlgeschlagen: ' + err.message);
   }
-}
-
-function fill(form) {
-  const [start, end] = shiftTimes(form.elements.title.value);
-  form.elements.start.value = start;
-  form.elements.end.value = end;
 }
 
 render();
