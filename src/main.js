@@ -1,7 +1,7 @@
 import {load, save} from './storage.js';
 import {dateKey, calendarDays, shiftTimes} from './dates.js';
 import {escapeHtml as h, canSee} from './security.js';
-import {generateCustodyDates} from './custody.js';
+import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
 import {
   loadOwnerEvents,
@@ -164,13 +164,7 @@ async function handleCustodySubmit(event) {
 
   if (!confirm(dates.length + ' Umgangstage in den nächsten 12 Monaten eintragen?')) return;
 
-  const existing = new Set(
-    entries
-      .filter(entry => entry.source === 'custody' && entry.anchor === anchor)
-      .map(entry => entry.date),
-  );
-  const added = dates
-    .filter(date => !existing.has(date))
+  const added = missingCustodyDates(entries, anchor, dates)
     .map(date => ({
       id: crypto.randomUUID(),
       type: 'family',
