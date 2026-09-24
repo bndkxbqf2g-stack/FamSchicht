@@ -16,6 +16,7 @@ let month = new Date();
 let view = 'all';
 let cloud = null;
 let shiftCaptureDate = null;
+let dayDialogDate = null;
 month.setDate(1);
 
 const app = document.querySelector('#app');
@@ -79,6 +80,7 @@ function render() {
     '</div></section>' +
     '<section class="panel"><div class="quick-actions"><button id="shift-capture" class="primary">Dienstplan schnell eintragen</button></div><p class="note">Für einen normalen Termin direkt auf den gewünschten Kalendertag tippen.</p></section>' +
     (shiftCaptureDate ? shiftCaptureMarkup() : '') +
+    (dayDialogDate ? dayDialogMarkup() : '') +
     '<section class="panel"><h2>Umgangsrhythmus</h2>' +
     '<p>Wähle den ersten Donnerstag, an dem die Kinder bei dir sind. Der Kalender erzeugt dann für 12 Monate jeden zweiten Donnerstag bis Sonntag einen Eintrag. Prüfe die Vorschau vor dem Speichern.</p>' +
     '<form id="custody-form"><label>Erster Donnerstag<input name="anchor" type="date" required></label>' +
@@ -114,6 +116,9 @@ function bindControls() {
   app.querySelectorAll('[data-shift]').forEach(button => {
     button.onclick = () => handleShiftChoice(button.dataset.shift);
   });
+
+  app.querySelector('#day-dialog-form')?.addEventListener('submit', handleDayDialogSubmit);
+  app.querySelector('#day-dialog-cancel')?.addEventListener('click', () => { dayDialogDate = null; render(); });
 
   app.querySelectorAll('[data-remove]').forEach(button => {
     button.onclick = async () => {
@@ -182,9 +187,36 @@ async function handleCustodySubmit(event) {
 }
 
 function openDayDialog(date) {
-  const title = prompt('Termin am ' + new Date(date + 'T12:00:00').toLocaleDateString('de-DE') + ':');
-  if (!title?.trim()) return;
-  void saveEntry({id: crypto.randomUUID(), type: 'family', title: title.trim(), date, start: '', end: ''});
+  dayDialogDate = date;
+  render();
+}
+
+function dayDialogMarkup() {
+  const label = new Date(dayDialogDate + 'T12:00:00').toLocaleDateString(
+    'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
+  );
+  return '<div class="dialog-backdrop"><section class="day-dialog panel">' +
+    '<h2>' + label + '</h2><form id="day-dialog-form">' +
+    '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend"></label>' +
+    '<label>Beginn<input name="start" type="time"></label><label>Ende<input name="end" type="time"></label>' +
+    '<div class="wide dialog-actions"><button type="button" id="day-dialog-cancel">Abbrechen</button>' +
+    '<button class="primary">Speichern</button></div></form></section></div>';
+}
+
+function handleDayDialogSubmit(event) {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  const item = {
+    id: crypto.randomUUID(),
+    type: 'family',
+    title: String(data.get('title') || '').trim(),
+    date: dayDialogDate,
+    start: String(data.get('start') || ''),
+    end: String(data.get('end') || ''),
+  };
+  if (!item.title) return;
+  dayDialogDate = null;
+  void saveEntry(item);
 }
 
 function startShiftCapture() {
