@@ -221,4 +221,7 @@ void connectCloud();
 supabase.auth.onAuthStateChange(() => {
   void connectCloud();
 });
+window.addEventListener('famschicht:household-created', () => {
+  void connectCloud();
+});
 window.__famschichtReady?.();
