@@ -78,6 +78,7 @@ function render() {
       .join('') +
     '</div></section>' +
     '<section class="panel"><div class="quick-actions"><button id="shift-capture" class="primary">Dienstplan schnell eintragen</button></div><p class="note">Für einen normalen Termin direkt auf den gewünschten Kalendertag tippen.</p></section>' +
+    (shiftCaptureDate ? shiftCaptureMarkup() : '') +
     '<section class="panel"><h2>Umgangsrhythmus</h2>' +
     '<p>Wähle den ersten Donnerstag, an dem die Kinder bei dir sind. Der Kalender erzeugt dann für 12 Monate jeden zweiten Donnerstag bis Sonntag einen Eintrag. Prüfe die Vorschau vor dem Speichern.</p>' +
     '<form id="custody-form"><label>Erster Donnerstag<input name="anchor" type="date" required></label>' +
@@ -110,6 +111,9 @@ function bindControls() {
     };
   });
   app.querySelector('#shift-capture').onclick = startShiftCapture;
+  app.querySelectorAll('[data-shift]').forEach(button => {
+    button.onclick = () => handleShiftChoice(button.dataset.shift);
+  });
 
   app.querySelectorAll('[data-remove]').forEach(button => {
     button.onclick = async () => {
@@ -185,31 +189,46 @@ function openDayDialog(date) {
 
 function startShiftCapture() {
   shiftCaptureDate = dateKey(new Date(month.getFullYear(), month.getMonth(), 1, 12));
-  showShiftCapture();
+  render();
 }
 
-function showShiftCapture() {
-  if (!shiftCaptureDate) return;
+function shiftCaptureMarkup() {
   const current = new Date(shiftCaptureDate + 'T12:00:00');
-  if (current.getMonth() !== month.getMonth()) { shiftCaptureDate = null; render(); return; }
-  const label = current.toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'});
-  const choice = prompt(label + ' – F = Früh, S = Spät, N = Nacht, X = frei/überspringen');
-  if (choice == null) { shiftCaptureDate = null; return; }
-  const names = {f: 'Frühdienst', s: 'Spätdienst', n: 'Nachtdienst'};
-  const name = names[choice.trim().toLowerCase()];
-  if (name) {
-    const [start, end] = shiftTimes(name);
-    void saveEntry({id: crypto.randomUUID(), type: 'shift', title: name, date: shiftCaptureDate, start, end}, advanceShiftCapture);
-  } else {
-    advanceShiftCapture();
+  const label = current.toLocaleDateString('de-DE', {weekday: 'long', day: '2-digit', month: '2-digit'});
+  return '<section class="panel shift-capture"><h2>' + label + '</h2>' +
+    '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag.</p>' +
+    '<div class="shift-buttons">' +
+    '<button data-shift="Frühdienst">Früh</button><button data-shift="Spätdienst">Spät</button>' +
+    '<button data-shift="Nachtdienst">Nacht</button><button data-shift="skip">Frei</button>' +
+    '<button data-shift="close">Beenden</button></div></section>';
+}
+
+function handleShiftChoice(choice) {
+  if (choice === 'close') {
+    shiftCaptureDate = null;
+    render();
+    return;
   }
+  if (choice === 'skip') {
+    advanceShiftCapture();
+    return;
+  }
+  const [start, end] = shiftTimes(choice);
+  void saveEntry({
+    id: crypto.randomUUID(),
+    type: 'shift',
+    title: choice,
+    date: shiftCaptureDate,
+    start,
+    end,
+  }, advanceShiftCapture);
 }
 
 function advanceShiftCapture() {
   const next = new Date(shiftCaptureDate + 'T12:00:00');
   next.setDate(next.getDate() + 1);
   shiftCaptureDate = dateKey(next);
-  showShiftCapture();
+  render();
 }
 
 async function saveEntry(item, afterSave) {
