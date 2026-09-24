@@ -11,6 +11,7 @@ export function toDatabaseEvent(event, householdId, userId) {
     ends_at: endsAt.toISOString(),
     category: event.type === 'shift' ? 'shift' : 'family',
     visibility: event.type === 'shift' ? 'self' : 'home',
+    metadata: event.source === 'custody' ? {source: 'custody', anchor: event.anchor || null} : {},
   };
 }
 
@@ -24,13 +25,14 @@ export function fromDatabaseEvent(row) {
     date: localDateKey(start),
     start: hasMeaningfulTime(start) ? localTime(start) : '',
     end: hasMeaningfulTime(end) ? localTime(end) : '',
-    source: 'supabase',
+    source: row.metadata?.source || 'supabase',
+    anchor: row.metadata?.anchor || undefined,
   };
 }
 
 export async function loadOwnerEvents(supabase, householdId) {
   const {data, error} = await supabase.from('calendar_events')
-    .select('id,title,starts_at,ends_at,category,visibility')
+    .select('id,title,starts_at,ends_at,category,visibility,metadata')
     .eq('household_id', householdId)
     .order('starts_at');
   if (error) throw error;
