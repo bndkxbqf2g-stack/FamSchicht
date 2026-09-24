@@ -61,3 +61,8 @@ test('rapid shift entry stops after last day of displayed month', () => {
   assert.equal(nextShiftCaptureDate('2026-09-29', new Date(2026,8,1)), '2026-09-30');
   assert.equal(nextShiftCaptureDate('2026-09-30', new Date(2026,8,1)), null);
 });
+
+test('legacy shift without owner stays unassigned', () => {
+  const item=fromDatabaseEvent({id:'legacy',title:'Frühdienst',starts_at:'2026-09-24T06:00:00.000Z',ends_at:'2026-09-24T14:12:00.000Z',category:'shift',metadata:{}});
+  assert.equal(item.owner, undefined);
+});
