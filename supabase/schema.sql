@@ -24,6 +24,7 @@ create table if not exists public.calendar_events (
   ends_at timestamptz not null,
   category text not null check(category in ('kids','family','shift','private')),
   visibility text not null check(visibility in ('all','home','self')),
+  metadata jsonb not null default '{}'::jsonb,
   check (ends_at > starts_at),
   check (category not in ('shift','private') or visibility <> 'all')
 );
@@ -76,3 +77,6 @@ with check (creator_id=(select auth.uid()) and public.is_household_member(househ
 and (visibility <> 'home' or exists(select 1 from public.memberships m where m.household_id=calendar_events.household_id and m.user_id=(select auth.uid()) and m.role in ('owner','partner'))));
 create policy events_delete on public.calendar_events for delete to authenticated
 using (creator_id=(select auth.uid()) and public.is_household_member(household_id));
+
+-- Backfill for projects created before custody sync metadata was introduced.
+alter table public.calendar_events add column if not exists metadata jsonb not null default '{}'::jsonb;
