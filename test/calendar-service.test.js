@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {toDatabaseEvent, fromDatabaseEvent} from '../src/calendar-service.js';
+import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents} from '../src/calendar-service.js';
 
 test('maps family event to owner-safe database payload', () => {
   const row=toDatabaseEvent({id:'1',type:'family',title:'Elternabend',date:'2026-09-24',start:'18:00',end:'19:00'},'h1','u1');
@@ -32,4 +32,18 @@ test('custody metadata survives database round trip', () => {
   const item=fromDatabaseEvent({...row,starts_at:row.starts_at,ends_at:row.ends_at});
   assert.equal(item.source,'custody');
   assert.equal(item.anchor,'2026-09-24');
+});
+
+
+test('batch save inserts custody schedule in one request', async () => {
+  let inserted;
+  const supabase={from:()=>({insert:async payload=>{inserted=payload;return {error:null};}})};
+  const events=[
+    {id:'5',type:'family',title:'Kinder bei Papa',date:'2026-09-24',source:'custody',anchor:'2026-09-24'},
+    {id:'6',type:'family',title:'Kinder bei Papa',date:'2026-09-25',source:'custody',anchor:'2026-09-24'},
+  ];
+  await saveOwnerEvents(supabase,events,'h1','u1');
+  assert.equal(inserted.length,2);
+  assert.equal(inserted[0].metadata.source,'custody');
+  assert.equal(inserted[1].metadata.anchor,'2026-09-24');
 });
