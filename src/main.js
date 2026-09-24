@@ -231,7 +231,7 @@ function shiftCaptureMarkup() {
   const current = new Date(shiftCaptureDate + 'T12:00:00');
   const label = current.toLocaleDateString('de-DE', {weekday: 'long', day: '2-digit', month: '2-digit'});
   return '<section class="panel shift-capture"><h2>' + label + '</h2>' +
-    '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag.</p>' +
+    '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner"><button data-owner="Martin" class="' + (shiftOwner === 'Martin' ? 'selected' : '') + '">Martin</button>' +
     '<button data-owner="Steffi" class="' + (shiftOwner === 'Steffi' ? 'selected' : '') + '">Steffi</button></div>' +
     '<div class="shift-buttons">' +
