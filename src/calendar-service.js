@@ -11,7 +11,11 @@ export function toDatabaseEvent(event, householdId, userId) {
     ends_at: endsAt.toISOString(),
     category: event.type === 'shift' ? 'shift' : 'family',
     visibility: event.type === 'shift' ? 'self' : 'home',
-    metadata: event.source === 'custody' ? {source: 'custody', anchor: event.anchor || null} : {},
+    metadata: event.source === 'custody'
+      ? {source: 'custody', anchor: event.anchor || null}
+      : event.type === 'shift'
+        ? {owner: event.owner || 'Martin'}
+        : {},
   };
 }
 
@@ -27,6 +31,7 @@ export function fromDatabaseEvent(row) {
     end: hasMeaningfulTime(end) ? localTime(end) : '',
     source: row.metadata?.source || 'supabase',
     anchor: row.metadata?.anchor || undefined,
+    owner: row.category === 'shift' ? (row.metadata?.owner || 'Martin') : undefined,
   };
 }
 
