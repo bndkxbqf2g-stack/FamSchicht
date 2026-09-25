@@ -47,6 +47,7 @@ export async function loadOwnerEvents(supabase, householdId) {
 
 export async function saveOwnerEvents(supabase, events, householdId, userId) {
   if (!events.length) return [];
+  if (!householdId) throw new Error('householdId is required for cloud saving');
   const payload = events.map(event => toDatabaseEvent(event, householdId, userId));
   const {error} = await supabase.from('calendar_events').insert(payload);
   if (error) throw error;
