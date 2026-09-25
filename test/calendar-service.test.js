@@ -121,3 +121,9 @@ test('loading events is scoped to the active household', async () => {
   await loadOwnerEvents(supabase,'house-2');
   assert.deepEqual(filters,[['household_id','house-2']]);
 });
+
+
+test('cloud deletion refuses missing household scope', async () => {
+  const supabase={from:()=>{throw new Error('database must not be called');}};
+  await assert.rejects(() => deleteOwnerEvent(supabase,'event-1'), /householdId is required/);
+});
