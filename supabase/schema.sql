@@ -15,6 +15,17 @@ create table if not exists public.memberships (
   role text not null check (role in ('owner','partner','coparent')),
   primary key (household_id,user_id)
 );
+create table if not exists public.household_members (
+  household_id uuid not null references public.households(id) on delete cascade,
+  member_key text not null check (length(member_key) between 1 and 64),
+  name text not null check (length(name) between 1 and 80),
+  member_type text not null check (member_type in ('adult','child','guest')),
+  color_key text not null check (length(color_key) between 1 and 64),
+  shift_eligible boolean not null default false,
+  sort_order integer not null default 0 check (sort_order >= 0),
+  created_at timestamptz not null default now(),
+  primary key (household_id, member_key)
+);
 create table if not exists public.calendar_events (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
@@ -51,23 +62,39 @@ grant execute on function public.is_household_member(uuid),public.is_household_o
 
 alter table public.households enable row level security;
 alter table public.memberships enable row level security;
+alter table public.household_members enable row level security;
 alter table public.calendar_events enable row level security;
 
 -- Keep the public Data API surface minimal. Anonymous users never need direct
 -- table access; authenticated users receive only the operations backed by RLS.
 revoke all on table public.households from anon;
 revoke all on table public.memberships from anon;
+revoke all on table public.household_members from anon;
 revoke all on table public.calendar_events from anon;
 revoke all on table public.households from authenticated;
 revoke all on table public.memberships from authenticated;
+revoke all on table public.household_members from authenticated;
 revoke all on table public.calendar_events from authenticated;
 grant select, insert, update on table public.households to authenticated;
 grant select on table public.memberships to authenticated;
+grant select, insert, update, delete on table public.household_members to authenticated;
 grant select, insert, update, delete on table public.calendar_events to authenticated;
 
 create policy households_read on public.households for select to authenticated using (public.is_household_member(id));
 create policy households_create on public.households for insert to authenticated with check (owner_id=(select auth.uid()));
 create policy memberships_read on public.memberships for select to authenticated using (public.is_household_member(household_id));
+
+-- Calendar-domain people are distinct from authenticated memberships and stay
+-- owner-only until the invitation and multi-account RLS matrix are ready.
+create policy household_members_owner_read on public.household_members for select to authenticated
+using (public.is_household_owner(household_id));
+create policy household_members_owner_insert on public.household_members for insert to authenticated
+with check (public.is_household_owner(household_id));
+create policy household_members_owner_update on public.household_members for update to authenticated
+using (public.is_household_owner(household_id))
+with check (public.is_household_owner(household_id));
+create policy household_members_owner_delete on public.household_members for delete to authenticated
+using (public.is_household_owner(household_id));
 -- A trigger creates owner membership; no client membership writes.
 create or replace function public.add_household_owner()
 returns trigger language plpgsql security definer set search_path = '' as $$
