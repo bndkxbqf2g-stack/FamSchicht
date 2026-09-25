@@ -19,6 +19,8 @@ import {
   filterCalendarEntries,
   monthSummary,
   shiftCalendarDate,
+  shiftOwnerDisplayName,
+  shiftOwnerStyleKey,
 } from './calendar-overview.js';
 import {
   loadOwnerEvents,
@@ -156,7 +158,7 @@ function render() {
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
-          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
+          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(e, householdMemberNames)) : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (e.type === 'family' ? ' data-edit="' + h(e.id) + '"' : '') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
@@ -201,10 +203,10 @@ function todayOverviewMarkup(today) {
     '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
     '<div class="today-list">' +
     (items.length
-      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(entry.owner || 'unknown').toLowerCase() : '') + '"' +
+      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(entry, householdMemberNames)) : '') + '"' +
           (entry.type === 'family' ? ' data-edit="' + h(entry.id) + '"' : '') + '>' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
-          h(entry.type === 'shift' ? (entry.owner || 'Nicht zugeordnet') : 'Familie') +
+          h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
           '</small></div><button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button></article>').join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin oder Dienst direkt hinzufügen.</span></div>') +
     '</div></section>';
