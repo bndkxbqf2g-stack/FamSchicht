@@ -59,8 +59,10 @@ export async function saveOwnerEvent(supabase, event, householdId, userId) {
   return event;
 }
 
-export async function deleteOwnerEvent(supabase, eventId) {
-  const {error} = await supabase.from('calendar_events').delete().eq('id', eventId);
+export async function deleteOwnerEvent(supabase, eventId, householdId) {
+  let query = supabase.from('calendar_events').delete().eq('id', eventId);
+  if (householdId) query = query.eq('household_id', householdId);
+  const {error} = await query;
   if (error) throw error;
 }
 
