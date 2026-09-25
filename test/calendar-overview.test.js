@@ -100,6 +100,15 @@ test('event time label keeps all-day events calm and compact', () => {
   assert.equal(eventTimeLabel({start: '09:30', end: ''}), '09:30');
 });
 
+test('month summary includes recurring events after their anchor month', () => {
+  const summary = monthSummary([
+    {date: '2026-01-15', type: 'family', recurrence: 'monthly'},
+    {date: '2025-09-25', type: 'family', recurrence: 'yearly', eventKind: 'birthday'},
+  ], new Date(2026, 8, 1));
+
+  assert.deepEqual(summary, {total: 2, shifts: 0, family: 2});
+});
+
 test('month summary separates shifts from family events', () => {
   const summary = monthSummary([
     {date: '2026-09-01', type: 'shift'},
