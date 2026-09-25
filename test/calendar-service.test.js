@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, deleteOwnerEvent} from '../src/calendar-service.js';
+import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, deleteOwnerEvent, loadOwnerEvents} from '../src/calendar-service.js';
 import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
 
 test('all-day family event remains on the same calendar date after round trip', () => {
@@ -118,7 +118,6 @@ test('loading events is scoped to the active household', async () => {
   const filters=[];
   const query={select(){return this;},eq(key,value){filters.push([key,value]);return this;},order(){return Promise.resolve({data:[],error:null});}};
   const supabase={from:()=>query};
-  const {loadOwnerEvents}=await import('../src/calendar-service.js');
   await loadOwnerEvents(supabase,'house-2');
   assert.deepEqual(filters,[['household_id','house-2']]);
 });
