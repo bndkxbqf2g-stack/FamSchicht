@@ -71,6 +71,11 @@ test('rapid shift entry stops after last day of displayed month', () => {
   assert.equal(nextShiftCaptureDate('2026-02-28', new Date(2026,1,1)), null);
 });
 
+test('saving an unassigned legacy shift does not invent Martin ownership', () => {
+  const row=toDatabaseEvent({id:'legacy-save',type:'shift',title:'Frühdienst',date:'2026-09-24',start:'06:00',end:'14:12'},'h1','u1');
+  assert.deepEqual(row.metadata, {});
+});
+
 test('legacy shift without owner stays unassigned', () => {
   const item=fromDatabaseEvent({id:'legacy',title:'Frühdienst',starts_at:'2026-09-24T06:00:00.000Z',ends_at:'2026-09-24T14:12:00.000Z',category:'shift',metadata:{}});
   assert.equal(item.owner, undefined);
