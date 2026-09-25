@@ -278,7 +278,8 @@ function handleShiftChoice(choice) {
 }
 
 function advanceShiftCapture() {
-  shiftCaptureDate = nextShiftCaptureDate(shiftCaptureDate, month);
+  const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
+  shiftCaptureDate = nextDate;
   render();
 }
 
