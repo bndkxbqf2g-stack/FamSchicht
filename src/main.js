@@ -1,5 +1,5 @@
 import {load, save} from './storage.js';
-import {dateKey, calendarDays, shiftTimes, nextShiftCaptureDate} from './dates.js';
+import {dateKey, calendarDays, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate} from './dates.js';
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
@@ -239,8 +239,8 @@ function shiftCaptureMarkup() {
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner"><button data-owner="Martin" class="' + (shiftOwner === 'Martin' ? 'selected' : '') + '">Martin</button>' +
     '<button data-owner="Steffi" class="' + (shiftOwner === 'Steffi' ? 'selected' : '') + '">Steffi</button></div>' +
     '<div class="shift-buttons">' +
-    '<button data-shift="Frühdienst"' + (shiftSavePending ? ' disabled' : '') + '>Früh</button><button data-shift="Spätdienst"' + (shiftSavePending ? ' disabled' : '') + '>Spät</button>' +
-    '<button data-shift="Nachtdienst"' + (shiftSavePending ? ' disabled' : '') + '>Nacht</button><button data-shift="skip"' + (shiftSavePending ? ' disabled' : '') + '>Frei</button>' +
+    SHIFT_NAMES.map(name => '<button data-shift="' + name + '"' + (shiftSavePending ? ' disabled' : '') + '>' + name + '</button>').join('') +
+    '<button data-shift="skip"' + (shiftSavePending ? ' disabled' : '') + '>Frei</button>' +
     '<button data-shift="close">Beenden</button></div></section>';
 }
 
