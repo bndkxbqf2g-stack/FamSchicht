@@ -83,9 +83,17 @@ export function monthSummary(entries, monthDate) {
   const month = monthDate.getMonth();
   const monthStart = dateKey(new Date(year, month, 1, 12));
   const monthEnd = dateKey(new Date(year, month + 1, 0, 12));
-  const monthEntries = entries.filter(entry =>
-    entry.date <= monthEnd && (entry.endDate || entry.date) >= monthStart,
-  );
+  const monthEntries = entries.filter(entry => {
+    if (entry.recurrence && entry.recurrence !== 'none') {
+      for (let day = 1; day <= new Date(year, month + 1, 0).getDate(); day += 1) {
+        if (entryOccursOnDate(entry, dateKey(new Date(year, month, day, 12)))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return entry.date <= monthEnd && (entry.endDate || entry.date) >= monthStart;
+  });
   return {
     total: monthEntries.length,
     shifts: monthEntries.filter(entry => entry.type === 'shift').length,
