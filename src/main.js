@@ -3,7 +3,12 @@ import {dateKey, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate} from './dates.js
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
-import {bootstrapHouseholdMembers, memberFilterOptions, shiftEligibleMembers} from './household-members.js';
+import {
+  bootstrapHouseholdMembers,
+  memberFilterOptions,
+  memberNamesById,
+  shiftEligibleMembers,
+} from './household-members.js';
 import {
   calendarDates,
   calendarTitle,
@@ -36,7 +41,8 @@ let dayDialogDate = null;
 let dayDialogEventId = null;
 const householdMembers = bootstrapHouseholdMembers;
 const shiftMembers = shiftEligibleMembers(householdMembers);
-let shiftOwner = shiftMembers[0]?.name || '';
+const householdMemberNames = memberNamesById(householdMembers);
+let shiftOwnerId = shiftMembers[0]?.id || '';
 month.setDate(1);
 
 const app = document.querySelector('#app');
@@ -78,7 +84,11 @@ function render() {
   const today = dateKey(new Date());
   const visibleEntries = filterCalendarEntries(
     entries.filter(entry => canSee(entry, view)),
-    {person: personFilter, category: categoryFilter},
+    {
+      person: personFilter,
+      category: categoryFilter,
+      personNamesById: householdMemberNames,
+    },
   );
   const summary = monthSummary(visibleEntries, month);
   const monthLabel = calendarTitle(focusedDate, month, calendarMode);
@@ -236,7 +246,7 @@ function bindControls() {
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {
-    button.onclick = () => { shiftOwner = button.dataset.owner; render(); };
+    button.onclick = () => { shiftOwnerId = button.dataset.owner; render(); };
   });
   app.querySelectorAll('[data-shift]').forEach(button => {
     button.onclick = () => handleShiftChoice(button.dataset.shift);
@@ -414,8 +424,8 @@ function shiftCaptureMarkup() {
   return '<section class="panel shift-capture"><h2>' + label + '</h2>' +
     '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner">' +
-    shiftMembers.map(member => '<button data-owner="' + h(member.name) + '" class="' +
-      (shiftOwner === member.name ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
+    shiftMembers.map(member => '<button data-owner="' + h(member.id) + '" class="' +
+      (shiftOwnerId === member.id ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
     '</div>' +
     '<div class="shift-buttons">' +
     SHIFT_NAMES.map(name => '<button data-shift="' + name + '"' + (shiftSavePending ? ' disabled' : '') + '>' + name + '</button>').join('') +
@@ -439,6 +449,12 @@ function handleShiftChoice(choice) {
   shiftSavePending = true;
   render();
   const [start, end] = shiftTimes(choice);
+  const shiftOwner = shiftMembers.find(member => member.id === shiftOwnerId);
+  if (!shiftOwner) {
+    shiftSavePending = false;
+    render();
+    return;
+  }
   void saveEntry({
     id: crypto.randomUUID(),
     type: 'shift',
@@ -446,7 +462,8 @@ function handleShiftChoice(choice) {
     date: shiftCaptureDate,
     start,
     end,
-    owner: shiftOwner,
+    ownerId: shiftOwner.id,
+    owner: shiftOwner.name,
   }, () => {
     shiftSavePending = false;
     advanceShiftCapture();
