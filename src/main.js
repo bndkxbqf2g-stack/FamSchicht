@@ -16,6 +16,7 @@ import {
   loadOwnerEvents,
   saveOwnerEvent,
   saveOwnerEvents,
+  updateOwnerEvent,
   deleteOwnerEvent,
 } from './calendar-service.js';
 import './styles.css';
@@ -30,6 +31,7 @@ let categoryFilter = 'all';
 let cloud = null;
 let shiftCaptureDate = null;
 let dayDialogDate = null;
+let dayDialogEventId = null;
 let shiftOwner = 'Martin';
 month.setDate(1);
 
@@ -111,7 +113,8 @@ function render() {
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => e.date === day)
-          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '">' +
+          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
+            (e.type === 'family' ? ' data-edit="' + h(e.id) + '"' : '') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
           .join('') +
@@ -153,7 +156,8 @@ function todayOverviewMarkup(today) {
     '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
     '<div class="today-list">' +
     (items.length
-      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(entry.owner || 'unknown').toLowerCase() : '') + '">' +
+      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(entry.owner || 'unknown').toLowerCase() : '') + '"' +
+          (entry.type === 'family' ? ' data-edit="' + h(entry.id) + '"' : '') + '>' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (entry.owner || 'Nicht zugeordnet') : 'Familie') +
           '</small></div><button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button></article>').join('')
@@ -233,7 +237,20 @@ function bindControls() {
   });
 
   app.querySelector('#day-dialog-form')?.addEventListener('submit', handleDayDialogSubmit);
-  app.querySelector('#day-dialog-cancel')?.addEventListener('click', () => { dayDialogDate = null; render(); });
+  app.querySelector('#day-dialog-cancel')?.addEventListener('click', () => {
+    dayDialogDate = null;
+    dayDialogEventId = null;
+    render();
+  });
+
+  app.querySelectorAll('[data-edit]').forEach(element => {
+    element.onclick = event => {
+      if (event.target.closest('[data-remove]')) return;
+      event.stopPropagation();
+      const item = entries.find(entry => entry.id === element.dataset.edit);
+      if (item?.type === 'family') openDayDialog(item.date, item.id);
+    };
+  });
 
   app.querySelectorAll('[data-remove]').forEach(button => {
     button.onclick = async () => {
@@ -302,37 +319,52 @@ async function handleCustodySubmit(event) {
   render();
 }
 
-function openDayDialog(date) {
+function openDayDialog(date, eventId = null) {
   dayDialogDate = date;
+  dayDialogEventId = eventId;
   render();
 }
 
 function dayDialogMarkup() {
-  const label = new Date(dayDialogDate + 'T12:00:00').toLocaleDateString(
+  const existing = dayDialogEventId
+    ? entries.find(entry => entry.id === dayDialogEventId && entry.type === 'family')
+    : null;
+  const selectedDate = existing?.date || dayDialogDate;
+  const label = new Date(selectedDate + 'T12:00:00').toLocaleDateString(
     'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
   );
   return '<div class="dialog-backdrop"><section class="day-dialog panel">' +
-    '<h2>' + label + '</h2><form id="day-dialog-form">' +
-    '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend"></label>' +
-    '<label>Beginn<input name="start" type="time"></label><label>Ende<input name="end" type="time"></label>' +
+    '<h2>' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
+    '<p class="note">' + label + '</p><form id="day-dialog-form">' +
+    '<label class="wide">Datum<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
+    '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend" value="' +
+    h(existing?.title || '') + '"></label>' +
+    '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
+    '<label>Ende<input name="end" type="time" value="' + h(existing?.end || '') + '"></label>' +
     '<div class="wide dialog-actions"><button type="button" id="day-dialog-cancel">Abbrechen</button>' +
-    '<button class="primary">Speichern</button></div></form></section></div>';
+    '<button class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
 }
 
 function handleDayDialogSubmit(event) {
   event.preventDefault();
   const data = new FormData(event.currentTarget);
+  const existing = dayDialogEventId
+    ? entries.find(entry => entry.id === dayDialogEventId && entry.type === 'family')
+    : null;
   const item = {
-    id: crypto.randomUUID(),
+    ...(existing || {}),
+    id: existing?.id || crypto.randomUUID(),
     type: 'family',
     title: String(data.get('title') || '').trim(),
-    date: dayDialogDate,
+    date: String(data.get('date') || dayDialogDate),
     start: String(data.get('start') || ''),
     end: String(data.get('end') || ''),
   };
-  if (!item.title) return;
+  if (!item.title || !item.date) return;
   dayDialogDate = null;
-  void saveEntry(item);
+  dayDialogEventId = null;
+  if (existing) void updateEntry(item);
+  else void saveEntry(item);
 }
 
 function startShiftCapture() {
@@ -394,6 +426,26 @@ function advanceShiftCapture() {
   const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
   shiftCaptureDate = nextDate;
   render();
+}
+
+async function updateEntry(item) {
+  try {
+    if (cloud) {
+      await updateOwnerEvent(
+        supabase,
+        item,
+        cloud.householdId,
+        cloud.userId,
+      );
+    }
+    entries = entries.map(entry => entry.id === item.id ? item : entry);
+    if (!cloud) save(entries);
+    focusedDate = new Date(item.date + 'T12:00:00');
+    month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
+    render();
+  } catch (err) {
+    alert('Änderung konnte nicht gespeichert werden: ' + err.message);
+  }
 }
 
 async function saveEntry(item, afterSave, afterError) {
