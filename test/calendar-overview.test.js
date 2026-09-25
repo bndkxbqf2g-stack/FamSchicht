@@ -4,6 +4,7 @@ import {
   calendarDates,
   calendarTitle,
   entriesForDay,
+  entryOccursOnDate,
   eventTimeLabel,
   filterCalendarEntries,
   monthSummary,
@@ -43,6 +44,29 @@ test('day overview sorts timed entries before all-day entries', () => {
   ], '2026-09-25');
 
   assert.deepEqual(entries.map(entry => entry.title), ['Frühdienst', 'Spätdienst', 'Ohne Zeit']);
+});
+
+test('multi-day family event occurs on every date in its range', () => {
+  const event={
+    date:'2026-09-24',endDate:'2026-09-26',
+    type:'family',title:'Kurzurlaub',start:'',
+  };
+
+  assert.equal(entryOccursOnDate(event,'2026-09-23'),false);
+  assert.equal(entryOccursOnDate(event,'2026-09-24'),true);
+  assert.equal(entryOccursOnDate(event,'2026-09-25'),true);
+  assert.equal(entryOccursOnDate(event,'2026-09-26'),true);
+  assert.equal(entryOccursOnDate(event,'2026-09-27'),false);
+  assert.deepEqual(entriesForDay([event],'2026-09-25'),[event]);
+});
+
+test('month summary includes a multi-day event crossing into the month', () => {
+  const summary=monthSummary([
+    {date:'2026-08-30',endDate:'2026-09-02',type:'family'},
+    {date:'2026-10-01',type:'shift'},
+  ],new Date(2026,8,1));
+
+  assert.deepEqual(summary,{total:1,shifts:0,family:1});
 });
 
 test('calendar filters keep shared family events visible for a person', () => {
