@@ -3,6 +3,7 @@ import {dateKey, calendarDays, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate} fr
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
+import {entriesForDay, eventTimeLabel, monthSummary} from './calendar-overview.js';
 import {
   loadOwnerEvents,
   saveOwnerEvent,
@@ -56,39 +57,78 @@ async function connectCloud() {
 
 function render() {
   const days = calendarDays(month);
-  app.innerHTML =
-    '<header><h1>FamSchicht</h1><p>Familie und Dienste auf einen Blick</p></header>' +
-    '<nav>' +
-    [['all', 'Kalender'], ['family', 'Familie'], ['shift', 'Dienste']]
-      .map(([id, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '">' + label + '</button>')
-      .join('') +
-    '</nav>' +
-    '<section class="panel"><div class="month"><button id="prev">‹</button><h2>' +
-    month.toLocaleDateString('de-DE', {month: 'long', year: 'numeric'}) +
-    '</h2><button id="next">›</button></div><div class="calendar">' +
+  const today = dateKey(new Date());
+  const summary = monthSummary(entries, month);
+  const monthLabel = month.toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
+  const calendarMarkup =
+    '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
+    '<div class="month"><button id="prev" aria-label="Vorheriger Monat">‹</button><h2>' + monthLabel +
+    '</h2><button id="next" aria-label="Nächster Monat">›</button></div>' +
+    '<div class="calendar-actions"><button id="go-today">Heute</button><button id="shift-capture" class="primary">+ Dienstplan</button></div></div>' +
+    '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
+    '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
+    '<div class="calendar">' +
     ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => '<b>' + d + '</b>').join('') +
     days.map(day => day
-      ? '<div class="day ' + (day === dateKey(new Date()) ? 'today' : '') + '" data-day="' + day + '"><b>' +
+      ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         entries.filter(e => e.date === day && canSee(e, view))
-          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '">' + h(e.title) +
+          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '">' +
+            (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
           .join('') +
         '</div>'
-      : '<div></div>')
+      : '<div class="day empty" aria-hidden="true"></div>')
       .join('') +
-    '</div></section>' +
-    '<section class="panel"><div class="quick-actions"><button id="shift-capture" class="primary">Dienstplan schnell eintragen</button></div><p class="note">Für einen normalen Termin direkt auf den gewünschten Kalendertag tippen.</p></section>' +
+    '</div><p class="calendar-hint">Tag antippen, um einen Termin einzutragen.</p></section>';
+
+  const todayMarkup = todayOverviewMarkup(today);
+  const body = view === 'today' ? todayMarkup : calendarMarkup;
+
+  app.innerHTML =
+    '<div class="familycal-shell">' +
+    '<aside class="app-sidebar"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner</small></div></div>' +
+    '<nav class="side-nav">' +
+    [['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste']]
+      .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"><span>' + icon + '</span>' + label + '</button>')
+      .join('') +
+    '</nav><div class="sidebar-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' +
+    (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></aside>' +
+    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1>' +
+    (view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : 'Kalender') +
+    '</h1></div><div class="member-legend"><span class="member martin">Martin</span><span class="member steffi">Steffi</span></div></header>' +
+    body +
     (shiftCaptureDate ? shiftCaptureMarkup() : '') +
     (dayDialogDate ? dayDialogMarkup() : '') +
-    '<section class="panel"><h2>Umgangsrhythmus</h2>' +
-    '<p>Wähle den ersten Donnerstag, an dem die Kinder bei dir sind. Der Kalender erzeugt dann für 12 Monate jeden zweiten Donnerstag bis Sonntag einen Eintrag. Prüfe die Vorschau vor dem Speichern.</p>' +
-    '<form id="custody-form"><label>Erster Donnerstag<input name="anchor" type="date" required></label>' +
-    '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
-    '<button class="primary wide">Rhythmus eintragen</button></form></section>' +
-    '<section class="panel"><p class="note">Angemeldet werden Kalenderdaten synchronisiert. Ohne Anmeldung bleiben Einträge nur auf diesem Gerät.</p></section>';
+    (view === 'family' ? custodyMarkup() : '') +
+    '</section></div>';
 
   bindControls();
+}
+
+function todayOverviewMarkup(today) {
+  const items = entriesForDay(entries, today);
+  const label = new Date(today + 'T12:00:00').toLocaleDateString('de-DE', {
+    weekday: 'long', day: '2-digit', month: 'long',
+  });
+  return '<section class="today-board"><div class="today-hero"><div><p class="eyebrow">' + label + '</p><h2>Was steht heute an?</h2></div>' +
+    '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
+    '<div class="today-list">' +
+    (items.length
+      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(entry.owner || 'unknown').toLowerCase() : '') + '">' +
+          '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
+          h(entry.type === 'shift' ? (entry.owner || 'Nicht zugeordnet') : 'Familie') +
+          '</small></div><button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button></article>').join('')
+      : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin oder Dienst direkt hinzufügen.</span></div>') +
+    '</div></section>';
+}
+
+function custodyMarkup() {
+  return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
+    '<p>Ersten Donnerstag festlegen; FamSchicht trägt danach jeden zweiten Donnerstag bis Sonntag für 12 Monate ein.</p>' +
+    '<form id="custody-form"><label>Erster Donnerstag<input name="anchor" type="date" required></label>' +
+    '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
+    '<button class="primary wide">Rhythmus eintragen</button></form></section>';
 }
 
 function bindControls() {
