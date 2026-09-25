@@ -3,13 +3,12 @@
 Stand: 25.09.2026
 
 ## Aktive Reihenfolge
-1. Schicht-Persistenz vollständig auf stabile Mitglieder-ID ausrichten; Legacy-Namen nur als Migrationsfallback behalten.
-2. Sicheren Einladungs-/Beitrittsfluss für partner/coparent entwerfen.
-3. Mehrbenutzer-RLS ausschließlich mit getrennten Testkonten und Zugriffsmatrix vorbereiten.
-4. Erst danach Live-RLS für weitere Rollen erweitern.
-5. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
-6. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
-7. UI/UX weiter ausbauen; Drag/Move nur bei zuverlässigem Touch- und Desktop-Verhalten.
+1. Sicheren Einladungs-/Beitrittsfluss für partner/coparent entwerfen.
+2. Mehrbenutzer-RLS ausschließlich mit getrennten Testkonten und Zugriffsmatrix vorbereiten.
+3. Erst danach Live-RLS für weitere Rollen erweitern.
+4. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
+5. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
+6. UI/UX weiter ausbauen; Drag/Move nur bei zuverlässigem Touch- und Desktop-Verhalten.
 
 ## Qualitäts-Gates
 Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature-Reihenfolge.
@@ -38,3 +37,4 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Neue Schichten mit stabiler `ownerId` und Legacy-Fallback.
 - Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
 - Schichtfilter und Darstellung bevorzugen stabile `ownerId`; Legacy-Namen bleiben Fallback.
+- Schicht-Persistenz schreibt bei vorhandener `ownerId` keinen redundanten Anzeigenamen mehr.
