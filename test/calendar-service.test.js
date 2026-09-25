@@ -127,3 +127,9 @@ test('cloud deletion refuses missing household scope', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
   await assert.rejects(() => deleteOwnerEvent(supabase,'event-1'), /householdId is required/);
 });
+
+
+test('cloud loading refuses missing household scope', async () => {
+  const supabase={from:()=>{throw new Error('database must not be called');}};
+  await assert.rejects(() => loadOwnerEvents(supabase,''), /householdId is required/);
+});
