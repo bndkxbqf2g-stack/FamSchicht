@@ -3,7 +3,7 @@
 Stand: 2026-09-25
 
 ## Ziel
-FamSchicht wird zu einem eigenständigen Familien-Command-Center mit vergleichbarer Funktionsbreite und ähnlich ruhiger, großbildtauglicher Bedienlogik wie FamilyCal. Es werden keine fremden Quellcodes, Markenassets oder proprietären Grafiken kopiert. Funktionen, Informationsarchitektur und Interaktionsmuster werden eigenständig umgesetzt und an FamSchicht angepasst.
+FamSchicht wird zu einem eigenständigen Familien- und Schichtkalender mit ähnlich ruhiger, großbildtauglicher Bedienlogik wie FamilyCal. Der Fokus bleibt bewusst auf Kalender, Familie, Schichtplanung, Aufgaben/Routinen und externer Kalendersynchronisation. Es werden keine fremden Quellcodes, Markenassets oder proprietären Grafiken kopiert.
 
 ## Entwicklungsprinzip
 - Bestehende Kernfunktionen niemals zugunsten neuer Module brechen.
@@ -16,7 +16,7 @@ FamSchicht wird zu einem eigenständigen Familien-Command-Center mit vergleichba
 - Mobile, iPhone/PWA, Tablet und Wall-Display werden gleichwertig berücksichtigt.
 
 ## Definition „fertig“
-Das Projekt gilt erst als abgeschlossen, wenn alle Kernphasen 1–11 umgesetzt, getestet und dokumentiert sind, die Abschlussphase 12 grün ist und keine bekannten kritischen Fehler offen sind.
+Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, getestet und dokumentiert sind, die Abschlussphase 6 grün ist und keine bekannten kritischen Fehler offen sind.
 
 ## Roadmap
 
@@ -70,45 +70,7 @@ Das Projekt gilt erst als abgeschlossen, wenn alle Kernphasen 1–11 umgesetzt, 
 - [ ] optional Punkte-/Belohnungssystem für Kinder
 - [ ] Haushaltsroutinen
 
-### Phase 5 – Einkauf und Besorgungen
-- [ ] gemeinsame Echtzeit-Einkaufsliste
-- [ ] Kategorien
-- [ ] Mengen/Notizen
-- [ ] Zuweisung/Erledigt
-- [ ] mehrere Listen
-- [ ] zuletzt/häufig gekauft
-- [ ] Verbindung zu Aufgaben und Kalender
-- [ ] optionale Übergabe an SparzamApp statt doppelte Preislogik
-
-### Phase 6 – Schule und Kinder
-- [ ] Kinderprofile
-- [ ] Stundenplan
-- [ ] Tests/Arbeiten
-- [ ] Hausaufgaben
-- [ ] Schultermine
-- [ ] Fristen
-- [ ] Kurs-/Fachfarben
-- [ ] kompakte Wochenansicht pro Kind
-- [ ] Dokument-/Link-Verweise
-- [ ] Eltern-/Schulkorrespondenz als späteres Erweiterungsmodul
-
-### Phase 7 – Kontakte
-- [ ] gemeinsame Kontakte
-- [ ] Kategorien: Schule / Arzt / Verein / Betreuung / Familie
-- [ ] Telefon / Mail / Adresse / Notiz
-- [ ] Verknüpfung aus Termin oder Schulmodul
-- [ ] mobile Direktaktionen
-
-### Phase 8 – Rezepte und Essensplanung
-- [ ] Rezeptdatenbank
-- [ ] Zutaten und Schritte
-- [ ] Rezept-Link-Import als optionale Erweiterung
-- [ ] Wochen-Essensplan
-- [ ] Frühstück / Mittag / Abend
-- [ ] Zutaten an Einkauf/SparzamApp übergeben
-- [ ] Mahlzeiten optional im Kalender anzeigen
-
-### Phase 9 – Externe Kalender und Synchronisation
+### Phase 5 – Externe Kalender und Synchronisation
 - [ ] Google Calendar Architektur
 - [ ] Outlook/Microsoft Calendar Architektur
 - [ ] Kalenderquellen pro Mitglied
@@ -120,26 +82,7 @@ Das Projekt gilt erst als abgeschlossen, wenn alle Kernphasen 1–11 umgesetzt, 
 - [ ] Sync-Status und Fehleranzeige
 Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials außerhalb des Repositorys.
 
-### Phase 10 – Check-ins / Standort mit Privacy by Design
-- [ ] freiwilliger Check-in
-- [ ] letzter bekannter Check-in
-- [ ] Orte wie Zuhause / Schule / Arbeit als Labels
-- [ ] Kartenansicht nur mit Einwilligung
-- [ ] keine versteckte Dauerortung
-- [ ] Sichtbarkeit pro Mitglied
-- [ ] Lösch-/Ablaufregeln
-Hinweis: Hintergrundortung erfordert Plattformberechtigungen und wird nicht ohne explizite Freigabe aktiviert.
-
-### Phase 11 – Family Assistant / Sprache
-- [ ] natürlicher Schnellbefehl als Text zuerst
-- [ ] strukturierte Aktionen: Termin / Aufgabe / Einkauf / Kontakt / Check-in
-- [ ] Vorschau bei mehrdeutigen Befehlen
-- [ ] klare Befehle direkt ausführbar
-- [ ] Spracheingabe im Browser/PWA soweit Plattform unterstützt
-- [ ] optionaler KI-Dienst erst nach stabilen deterministischen Kernfunktionen
-- [ ] Audit-Log für KI-ausgelöste Änderungen
-
-### Phase 12 – Produktreife
+### Phase 6 – Produktreife
 - [ ] PWA installierbar
 - [ ] iPhone Home-Screen optimiert
 - [ ] Wall-/Tablet-Modus
@@ -189,7 +132,7 @@ Stop-Bedingungen:
 - `A`: maximaler FamSchicht-Autopilot innerhalb eines einzigen Chat-Turns
 
 ## Reihenfolge ab aktuellem Stand
-Phase 1 vollständig abschließen → Phase 2 → Phase 3 vervollständigen → Phase 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12.
+Phase 1 vollständig abschließen → Phase 2 → Phase 3 vervollständigen → Phase 4 → Phase 5 → Phase 6.
 
 ## Aktueller Ausgangspunkt
 Die FamilyCal-inspirierte App-Shell, Monatsansicht, Heute-Ansicht, mobile Navigation, Schicht-Schnellerfassung, Supabase-Persistenz, Haushalts-Scoping und zentrale Regressionstests sind vorhanden. Der nächste Autopilot-Block beginnt mit Wochen-/Tagesansicht, Personenfiltern und vollständigerem Termin-Editor.
