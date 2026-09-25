@@ -71,10 +71,15 @@ test('shift stays private and overnight end moves to next day', () => {
   assert.ok(new Date(row.ends_at) > new Date(row.starts_at));
 });
 
-test('Martin shift owner survives database round trip', () => {
-  const row=toDatabaseEvent({id:'martin',type:'shift',title:'Spätdienst',date:'2026-09-24',start:'13:30',end:'21:42',owner:'Martin'},'h1','u1');
-  assert.equal(row.metadata.owner,'Martin');
-  assert.equal(fromDatabaseEvent(row).owner,'Martin');
+test('Martin shift owner id survives database round trip', () => {
+  const row=toDatabaseEvent({
+    id:'martin',type:'shift',title:'Spätdienst',date:'2026-09-24',
+    start:'13:30',end:'21:42',ownerId:'martin',owner:'Martin',
+  },'h1','u1');
+  assert.deepEqual(row.metadata,{owner:'Martin',ownerId:'martin'});
+  const restored=fromDatabaseEvent(row);
+  assert.equal(restored.owner,'Martin');
+  assert.equal(restored.ownerId,'martin');
 });
 
 test('Steffi shift owner survives database round trip', () => {
@@ -145,6 +150,7 @@ test('saving an unassigned legacy shift does not invent Martin ownership', () =>
 test('legacy shift without owner stays unassigned', () => {
   const item=fromDatabaseEvent({id:'legacy',title:'Frühdienst',starts_at:'2026-09-24T06:00:00.000Z',ends_at:'2026-09-24T14:12:00.000Z',category:'shift',metadata:{}});
   assert.equal(item.owner, undefined);
+  assert.equal(item.ownerId, undefined);
 });
 
 
