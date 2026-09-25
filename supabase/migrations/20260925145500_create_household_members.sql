@@ -21,20 +21,40 @@ grant select, insert, update, delete on table public.household_members to authen
 create policy household_members_owner_read
 on public.household_members for select
 to authenticated
-using (public.is_household_owner(household_id));
+using (exists (
+  select 1 from public.households h
+  where h.id = household_members.household_id
+    and h.owner_id = (select auth.uid())
+));
 
 create policy household_members_owner_insert
 on public.household_members for insert
 to authenticated
-with check (public.is_household_owner(household_id));
+with check (exists (
+  select 1 from public.households h
+  where h.id = household_members.household_id
+    and h.owner_id = (select auth.uid())
+));
 
 create policy household_members_owner_update
 on public.household_members for update
 to authenticated
-using (public.is_household_owner(household_id))
-with check (public.is_household_owner(household_id));
+using (exists (
+  select 1 from public.households h
+  where h.id = household_members.household_id
+    and h.owner_id = (select auth.uid())
+))
+with check (exists (
+  select 1 from public.households h
+  where h.id = household_members.household_id
+    and h.owner_id = (select auth.uid())
+));
 
 create policy household_members_owner_delete
 on public.household_members for delete
 to authenticated
-using (public.is_household_owner(household_id));
+using (exists (
+  select 1 from public.households h
+  where h.id = household_members.household_id
+    and h.owner_id = (select auth.uid())
+));
