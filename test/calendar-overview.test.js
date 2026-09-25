@@ -5,6 +5,7 @@ import {
   calendarTitle,
   entriesForDay,
   eventTimeLabel,
+  filterCalendarEntries,
   monthSummary,
   shiftCalendarDate,
 } from '../src/calendar-overview.js';
@@ -43,6 +44,31 @@ test('day overview sorts timed entries before all-day entries', () => {
 
   assert.deepEqual(entries.map(entry => entry.title), ['Frühdienst', 'Spätdienst', 'Ohne Zeit']);
 });
+
+test('calendar filters keep shared family events visible for a person', () => {
+  const entries = [
+    {type: 'family', title: 'Elternabend'},
+    {type: 'shift', owner: 'Martin', title: 'Frühdienst'},
+    {type: 'shift', owner: 'Steffi', title: 'Spätdienst'},
+  ];
+
+  expectTitles(
+    filterCalendarEntries(entries, {person: 'Martin'}),
+    ['Elternabend', 'Frühdienst'],
+  );
+  expectTitles(
+    filterCalendarEntries(entries, {category: 'shift'}),
+    ['Frühdienst', 'Spätdienst'],
+  );
+  expectTitles(
+    filterCalendarEntries(entries, {person: 'Steffi', category: 'shift'}),
+    ['Spätdienst'],
+  );
+});
+
+function expectTitles(entries, expected) {
+  assert.deepEqual(entries.map(entry => entry.title), expected);
+}
 
 test('event time label keeps all-day events calm and compact', () => {
   assert.equal(eventTimeLabel({start: '', end: ''}), 'Ganztägig');
