@@ -32,7 +32,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Schnelltermin
 - [x] vollständiger Termin-Editor
 - [x] mehrtägige Termine
-- [ ] Wiederholungen: täglich / wöchentlich / monatlich / jährlich
+- [x] Wiederholungen: täglich / wöchentlich / monatlich / jährlich
 - [ ] Geburtstage und ganztägige Ereignisse
 - [ ] Drag/Move nur falls stabil auf Touch und Desktop
 
@@ -135,4 +135,4 @@ Die FamilyCal-inspirierte App-Shell, Monats-, Wochen- und Tagesansicht, Heute-An
 ## Wiedereinstieg nach dem aktuellen Entwicklungsblock
 Der vollständige Termin-Editor ist umgesetzt: bestehende Familientermine werden über die Supabase-Updateoperation geändert statt dupliziert. Mehrtägige Familientermine werden mit ihrem Datumsbereich persistiert, nach dem Cloud-Roundtrip erhalten und an allen betroffenen Kalendertagen dargestellt. Regressionstests decken Update und Mehrtagstermine ab.
 
-Der nächste sichere Phase-1-Schritt sind Wiederholungen (täglich / wöchentlich / monatlich / jährlich). Das bestehende Personenmodell bleibt dabei bewusst unverändert; Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
+Wiederholungen täglich, wöchentlich, monatlich und jährlich sind umgesetzt, werden in der Terminbearbeitung gewählt, über Metadaten cloudseitig erhalten und in den Kalenderansichten ohne duplizierte Persistenz als Vorkommen dargestellt. Der nächste sichere Phase-1-Schritt sind Geburtstage und ganztägige Ereignisse. Das bestehende Personenmodell bleibt dabei bewusst unverändert; Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
