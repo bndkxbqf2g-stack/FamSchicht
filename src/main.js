@@ -223,7 +223,11 @@ function handleDayDialogSubmit(event) {
 }
 
 function startShiftCapture() {
-  shiftCaptureDate = dateKey(new Date(month.getFullYear(), month.getMonth(), 1, 12));
+  const today = new Date();
+  const isCurrentMonth = today.getFullYear() === month.getFullYear() && today.getMonth() === month.getMonth();
+  shiftCaptureDate = dateKey(isCurrentMonth
+    ? new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12)
+    : new Date(month.getFullYear(), month.getMonth(), 1, 12));
   render();
 }
 
