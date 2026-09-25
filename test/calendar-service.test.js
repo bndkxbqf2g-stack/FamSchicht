@@ -20,6 +20,12 @@ test('shift stays private and overnight end moves to next day', () => {
   assert.ok(new Date(row.ends_at) > new Date(row.starts_at));
 });
 
+test('Martin shift owner survives database round trip', () => {
+  const row=toDatabaseEvent({id:'martin',type:'shift',title:'Spätdienst',date:'2026-09-24',start:'13:30',end:'21:42',owner:'Martin'},'h1','u1');
+  assert.equal(row.metadata.owner,'Martin');
+  assert.equal(fromDatabaseEvent(row).owner,'Martin');
+});
+
 test('Steffi shift owner survives database round trip', () => {
   const row=toDatabaseEvent({id:'s1',type:'shift',title:'Spätdienst',date:'2026-09-24',start:'13:30',end:'21:42',owner:'Steffi'},'h1','u1');
   assert.equal(row.metadata.owner,'Steffi');
