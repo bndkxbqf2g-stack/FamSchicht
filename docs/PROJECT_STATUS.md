@@ -24,14 +24,13 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Kindertermine, 
 Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach sicherem Einladungsfluss und Zugriffstests mit getrennten Konten erweitert. Keine service_role-/Secret-Schlüssel im Browser oder Repository.
 
 ## Bekannte Lücken
-- Schicht-Metadaten enthalten für neue Einträge derzeit zusätzlich zur stabilen `ownerId` noch den Anzeigenamen; der Name soll nur noch Legacy-/Migrationsfallback sein.
 - Sichere Einladung für Partner/coparent fehlt.
 - Live-RLS ist noch nicht für Mehrbenutzerbetrieb erweitert.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
 - Ein separates statisches Analyze/Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
 
 ## Nächster Schritt
-Schicht-Persistenz vollständig auf die stabile Mitglieder-ID konsolidieren, ohne Legacy-Daten unlesbar zu machen. Danach den sicheren Einladungs-/Beitrittsfluss und die getrennte RLS-Testmatrix entwerfen.
+Einen sicheren Einladungs-/Beitrittsfluss für `partner`/`coparent` als getrennten Auth-/Membership-Pfad entwerfen und testen. Live-RLS bleibt bis zur Zugriffsmatrix owner-only.
 
 ## Update 25.09.2026 – Owner-only Mitglieder-Persistenz
 - `household_members` ist als eigene Supabase-Tabelle installiert und durch vier owner-only RLS-Policies geschützt.
@@ -44,3 +43,10 @@ Schicht-Persistenz vollständig auf die stabile Mitglieder-ID konsolidieren, ohn
 - Personenfilter, Kalenderdarstellung und Heute-Ansicht verwenden bei Schichten vorrangig `ownerId`.
 - Ein veralteter gespeicherter Anzeigename kann damit nicht mehr die Personenzuordnung oder Farbklasse einer Schicht überschreiben.
 - Legacy-Schichten ohne `ownerId` bleiben über den bisherigen Namen lesbar.
+
+
+## Update 25.09.2026 – Schicht-Persistenz auf stabile Mitglieder-ID konsolidiert
+- Neue Schichten speichern in Supabase nur noch `ownerId`; ein parallel gespeicherter Anzeigename ist nicht mehr Teil neuer Schicht-Metadaten.
+- Vorhandene Legacy-Schichten, die nur `owner` enthalten, bleiben weiterhin lesbar.
+- Wird ein älterer Datensatz mit vorhandener `ownerId` erneut gespeichert, wird die redundante Namenskopie automatisch nicht mehr mitgeschrieben.
+- Filter, Anzeige und Farbzuordnung nutzen bereits die stabile ID. Damit ist die Schichtzuordnung durchgängig ID-basiert.
