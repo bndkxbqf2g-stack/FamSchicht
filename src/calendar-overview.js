@@ -7,6 +7,19 @@ export function entriesForDay(entries, date) {
     .sort((a, b) => (a.start || '99:99').localeCompare(b.start || '99:99') || a.title.localeCompare(b.title));
 }
 
+export function filterCalendarEntries(
+  entries,
+  {person = 'all', category = 'all'} = {},
+) {
+  return entries.filter(entry => {
+    if (category !== 'all' && entry.type !== category) return false;
+    if (person !== 'all' && entry.type === 'shift' && entry.owner !== person) {
+      return false;
+    }
+    return true;
+  });
+}
+
 export function calendarDates(referenceDate, monthDate, mode = 'month') {
   if (mode === 'month') return calendarDays(monthDate);
   const start = new Date(
