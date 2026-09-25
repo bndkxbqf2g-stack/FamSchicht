@@ -1,6 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {entriesForDay, eventTimeLabel, monthSummary} from '../src/calendar-overview.js';
+import {
+  calendarDates,
+  calendarTitle,
+  entriesForDay,
+  eventTimeLabel,
+  monthSummary,
+  shiftCalendarDate,
+} from '../src/calendar-overview.js';
+
+test('week view starts on Monday and crosses month and year boundaries', () => {
+  const days = calendarDates(new Date(2027, 0, 1, 12), new Date(2027, 0, 1), 'week');
+
+  assert.deepEqual(days, [
+    '2026-12-28', '2026-12-29', '2026-12-30', '2026-12-31',
+    '2027-01-01', '2027-01-02', '2027-01-03',
+  ]);
+  assert.equal(calendarTitle(new Date(2027, 0, 1, 12), new Date(2027, 0, 1), 'week'), '28. Dez.–03. Jan. 2027');
+});
+
+test('day view is a single local calendar date and advances across leap day', () => {
+  const leapDay = new Date(2028, 1, 29, 12);
+
+  assert.deepEqual(calendarDates(leapDay, leapDay, 'day'), ['2028-02-29']);
+  assert.equal(calendarDates(leapDay, leapDay, 'month').length, 30);
+  assert.equal(shiftCalendarDate(leapDay, 'day', 1).toISOString().slice(0, 10), '2028-03-01');
+});
+
+test('month navigation starts from the first day to avoid skipping short months', () => {
+  const january = new Date(2027, 0, 1, 12);
+
+  assert.equal(shiftCalendarDate(january, 'month', 1).toISOString().slice(0, 10), '2027-02-01');
+});
 
 test('day overview sorts timed entries before all-day entries', () => {
   const entries = entriesForDay([

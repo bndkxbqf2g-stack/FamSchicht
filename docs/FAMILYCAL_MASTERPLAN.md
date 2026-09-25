@@ -25,8 +25,8 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] responsive Desktop-/Mobilnavigation
 - [x] Monatsansicht
 - [x] Heute-Ansicht
-- [ ] Wochenansicht
-- [ ] Tagesansicht
+- [x] Wochenansicht
+- [x] Tagesansicht
 - [ ] Personenfilter direkt im Kalender
 - [ ] Kategorie-/Farbfilter
 - [ ] Schnelltermin
@@ -130,4 +130,7 @@ Nur **Status prüfen**. Keine neue Feature-Entwicklung und keine eigenständige 
 Phase 1 vollständig abschließen → Phase 2 → Phase 3 vervollständigen → Phase 4 → Phase 5 → Phase 6.
 
 ## Aktueller Ausgangspunkt
-Die FamilyCal-inspirierte App-Shell, Monatsansicht, Heute-Ansicht, mobile Navigation, Schicht-Schnellerfassung, Supabase-Persistenz, Haushalts-Scoping und zentrale Regressionstests sind vorhanden. Der nächste Autopilot-Block beginnt mit Wochen-/Tagesansicht, Personenfiltern und vollständigerem Termin-Editor.
+Die FamilyCal-inspirierte App-Shell, Monats-, Wochen- und Tagesansicht, Heute-Ansicht, mobile Navigation, Schicht-Schnellerfassung, Supabase-Persistenz, Haushalts-Scoping und zentrale Regressionstests sind vorhanden.
+
+## Wiedereinstieg nach dem aktuellen Entwicklungsblock
+Die Monatsansicht besitzt nun umschaltbare Wochen- und Tagesansichten mit passender Vor-/Zurück-Navigation und „Heute“-Sprung. Die nächste Arbeit in Phase 1: Personenfilter direkt im Kalender, Kategorie-/Farbfilter, Schnelltermin und vollständiger Termin-Editor.

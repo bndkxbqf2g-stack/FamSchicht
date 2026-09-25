@@ -1,9 +1,16 @@
 import {load, save} from './storage.js';
-import {dateKey, calendarDays, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate} from './dates.js';
+import {dateKey, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate} from './dates.js';
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
-import {entriesForDay, eventTimeLabel, monthSummary} from './calendar-overview.js';
+import {
+  calendarDates,
+  calendarTitle,
+  entriesForDay,
+  eventTimeLabel,
+  monthSummary,
+  shiftCalendarDate,
+} from './calendar-overview.js';
 import {
   loadOwnerEvents,
   saveOwnerEvent,
@@ -14,6 +21,8 @@ import './styles.css';
 
 let entries = load();
 let month = new Date();
+let focusedDate = new Date();
+let calendarMode = 'month';
 let view = 'all';
 let cloud = null;
 let shiftCaptureDate = null;
@@ -56,19 +65,33 @@ async function connectCloud() {
 }
 
 function render() {
-  const days = calendarDays(month);
+  const days = calendarDates(focusedDate, month, calendarMode);
   const today = dateKey(new Date());
   const summary = monthSummary(entries, month);
-  const monthLabel = month.toLocaleDateString('de-DE', {month: 'long', year: 'numeric'});
+  const monthLabel = calendarTitle(focusedDate, month, calendarMode);
+  const weekdayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   const calendarMarkup =
     '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
-    '<div class="month"><button id="prev" aria-label="Vorheriger Monat">‹</button><h2>' + monthLabel +
-    '</h2><button id="next" aria-label="Nächster Monat">›</button></div>' +
-    '<div class="calendar-actions"><button id="go-today">Heute</button><button id="shift-capture" class="primary">+ Dienstplan</button></div></div>' +
+    '<div class="month"><button id="prev" aria-label="Vorherige ' +
+    (calendarMode === 'month' ? 'Monat' : calendarMode === 'week' ? 'Woche' : 'Tag') + '">‹</button><h2>' + monthLabel +
+    '</h2><button id="next" aria-label="Nächste ' +
+    (calendarMode === 'month' ? 'Monat' : calendarMode === 'week' ? 'Woche' : 'Tag') + '">›</button></div>' +
+    '<div class="calendar-actions"><div class="calendar-modes" role="group" aria-label="Kalenderansicht">' +
+    [['day', 'Tag'], ['week', 'Woche'], ['month', 'Monat']]
+      .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
+        (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
+      .join('') +
+    '</div><button id="go-today">Heute</button><button id="shift-capture" class="primary">+ Dienstplan</button></div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
-    '<div class="calendar">' +
-    ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(d => '<b>' + d + '</b>').join('') +
+    '<div class="calendar ' + calendarMode + '-view">' +
+    (calendarMode === 'day' ? '' : calendarMode === 'month'
+      ? weekdayLabels.map(d => '<b>' + d + '</b>').join('')
+      : days.map(day => {
+        const date = new Date(day + 'T12:00:00');
+        return '<b>' + weekdayLabels[(date.getDay() + 6) % 7] +
+          (calendarMode === 'week' ? ' ' + date.getDate() : '') + '</b>';
+      }).join('')) +
     days.map(day => day
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
@@ -133,16 +156,19 @@ function custodyMarkup() {
 
 function bindControls() {
   app.querySelector('#prev')?.addEventListener('click', () => {
-    month.setMonth(month.getMonth() - 1);
+    focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, -1);
+    month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
   });
   app.querySelector('#next')?.addEventListener('click', () => {
-    month.setMonth(month.getMonth() + 1);
+    focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, 1);
+    month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
   });
   app.querySelector('#go-today')?.addEventListener('click', () => {
     const now = new Date();
     month = new Date(now.getFullYear(), now.getMonth(), 1, 12);
+    focusedDate = now;
     render();
   });
   app.querySelector('#add-today')?.addEventListener('click', () => {
@@ -154,9 +180,17 @@ function bindControls() {
       render();
     };
   });
+  app.querySelectorAll('[data-calendar-mode]').forEach(button => {
+    button.onclick = () => {
+      calendarMode = button.dataset.calendarMode;
+      render();
+    };
+  });
   app.querySelectorAll('[data-day]').forEach(day => {
     day.onclick = event => {
       if (event.target.closest('[data-remove]')) return;
+      focusedDate = new Date(day.dataset.day + 'T12:00:00');
+      month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
       openDayDialog(day.dataset.day);
     };
   });
@@ -233,6 +267,7 @@ async function handleCustodySubmit(event) {
 
   month = new Date(anchor + 'T12:00:00');
   month.setDate(1);
+  focusedDate = new Date(anchor + 'T12:00:00');
   view = 'family';
   render();
 }
