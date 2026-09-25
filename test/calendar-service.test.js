@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, deleteOwnerEvent, loadOwnerEvents} from '../src/calendar-service.js';
+import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, updateOwnerEvent, deleteOwnerEvent, loadOwnerEvents} from '../src/calendar-service.js';
 import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
 
 test('all-day family event remains on the same calendar date after round trip', () => {
@@ -104,6 +104,40 @@ test('legacy shift without owner stays unassigned', () => {
   assert.equal(item.owner, undefined);
 });
 
+
+test('cloud update is scoped and persists edited event fields', async () => {
+  const filters=[];
+  let updated;
+  const query={
+    eq(key,value){filters.push([key,value]);return this;},
+    then(resolve){resolve({error:null});},
+  };
+  const supabase={from:()=>({update:payload=>{updated=payload;return query;}})};
+  const event={
+    id:'event-1',type:'family',title:'Elternabend verschoben',
+    date:'2026-09-26',start:'19:00',end:'20:00',
+  };
+
+  await updateOwnerEvent(supabase,event,'house-1','user-1');
+
+  assert.equal(updated.title,'Elternabend verschoben');
+  assert.equal(updated.category,'family');
+  assert.equal(updated.household_id, undefined);
+  assert.deepEqual(filters,[['id','event-1'],['household_id','house-1']]);
+});
+
+test('cloud update refuses missing household scope', async () => {
+  const supabase={from:()=>{throw new Error('database must not be called');}};
+  await assert.rejects(
+    () => updateOwnerEvent(
+      supabase,
+      {id:'event-1',type:'family',title:'x',date:'2026-09-25'},
+      '',
+      'user-1',
+    ),
+    /householdId is required/,
+  );
+});
 
 test('cloud deletion is scoped to event id and household', async () => {
   const filters=[];
