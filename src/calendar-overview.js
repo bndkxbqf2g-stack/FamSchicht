@@ -1,8 +1,8 @@
 import {calendarDays, dateKey} from './dates.js';
+import {recurringEntryOccursOnDate} from './recurrence.js';
 
 export function entryOccursOnDate(entry, date) {
-  const endDate = entry.endDate || entry.date;
-  return entry.date <= date && date <= endDate;
+  return recurringEntryOccursOnDate(entry, date);
 }
 
 export function entriesForDay(entries, date) {
