@@ -25,4 +25,9 @@ Datenmodell, Rechte und Synchronisationslogik werden stabilisiert, bevor darauf 
 
 ## D-008 — Work gezielt einsetzen
 Kleine/mittlere Pakete bleiben im Projektchat. Repo-weite Audits, große Migrationen und Meilensteinprüfungen kommen in die WORK QUEUE.
-\n\n## D-009 — Kalender-Personen sind keine Auth-Memberships\n`household_members` speichert fachliche Personen für Filter, Farben und Schichtzuordnung. Diese Datensätze verleihen keinerlei Login- oder Haushaltszugriff. Authentifizierte Zugriffsrollen bleiben ausschließlich in `memberships` und werden erst über einen separat abgesicherten Einladungs-/Beitrittsfluss erweitert. Bis dahin darf nur der Haushalts-Owner `household_members` lesen oder verändern.\n
+
+
+## D-009 — Kalender-Personen sind keine Auth-Memberships\n`household_members` speichert fachliche Personen für Filter, Farben und Schichtzuordnung. Diese Datensätze verleihen keinerlei Login- oder Haushaltszugriff. Authentifizierte Zugriffsrollen bleiben ausschließlich in `memberships` und werden erst über einen separat abgesicherten Einladungs-/Beitrittsfluss erweitert. Bis dahin darf nur der Haushalts-Owner `household_members` lesen oder verändern.\n
+
+## D-010 — Einladungen sind serverseitig, gebunden und einmalig
+Der Browser erhält keine freien Schreibrechte auf `memberships`. Einladungen für `partner` und `coparent` werden serverseitig erzeugt und angenommen. Der rohe Einladungstoken wird nur an den Empfänger ausgegeben; gespeichert wird ausschließlich ein Hash. Annahme erfordert ein authentifiziertes Konto mit passender E-Mail und ist atomar, ablaufend, widerrufbar und einmalig. Mehrbenutzer-RLS wird erst nach erfolgreicher Zugriffsmatrix mit getrennten Testkonten aktiviert.
