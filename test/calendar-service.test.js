@@ -71,18 +71,18 @@ test('shift stays private and overnight end moves to next day', () => {
   assert.ok(new Date(row.ends_at) > new Date(row.starts_at));
 });
 
-test('Martin shift owner id survives database round trip', () => {
+test('stable shift owner id replaces duplicate display name in database metadata', () => {
   const row=toDatabaseEvent({
     id:'martin',type:'shift',title:'Spätdienst',date:'2026-09-24',
     start:'13:30',end:'21:42',ownerId:'martin',owner:'Martin',
   },'h1','u1');
-  assert.deepEqual(row.metadata,{owner:'Martin',ownerId:'martin'});
+  assert.deepEqual(row.metadata,{ownerId:'martin'});
   const restored=fromDatabaseEvent(row);
-  assert.equal(restored.owner,'Martin');
+  assert.equal(restored.owner, undefined);
   assert.equal(restored.ownerId,'martin');
 });
 
-test('Steffi shift owner survives database round trip', () => {
+test('legacy name-only shift owner remains readable as migration fallback', () => {
   const row=toDatabaseEvent({id:'s1',type:'shift',title:'Spätdienst',date:'2026-09-24',start:'13:30',end:'21:42',owner:'Steffi'},'h1','u1');
   assert.equal(row.metadata.owner,'Steffi');
   const item=fromDatabaseEvent(row);
