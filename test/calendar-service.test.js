@@ -158,3 +158,9 @@ test('single cloud save refuses missing user identity', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
   await assert.rejects(() => saveOwnerEvent(supabase,{id:'x',type:'family',title:'x',date:'2026-09-25'},'h1',''), /userId is required/);
 });
+
+
+test('batch cloud save refuses missing user identity', async () => {
+  const supabase={from:()=>{throw new Error('database must not be called');}};
+  await assert.rejects(() => saveOwnerEvents(supabase,[{id:'x',type:'family',title:'x',date:'2026-09-25'}],'h1',''), /userId is required/);
+});
