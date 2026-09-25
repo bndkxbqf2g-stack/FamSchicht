@@ -14,7 +14,7 @@ export function toDatabaseEvent(event, householdId, userId) {
     metadata: event.source === 'custody'
       ? {source: 'custody', anchor: event.anchor || null}
       : event.type === 'shift'
-        ? {owner: event.owner || 'Martin'}
+        ? (event.owner ? {owner: event.owner} : {})
         : {},
   };
 }
