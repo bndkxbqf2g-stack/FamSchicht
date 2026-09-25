@@ -7,6 +7,7 @@ import {
   calendarDates,
   calendarTitle,
   entriesForDay,
+  entryOccursOnDate,
   eventTimeLabel,
   filterCalendarEntries,
   monthSummary,
@@ -112,7 +113,7 @@ function render() {
     days.map(day => day
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
-        visibleEntries.filter(e => e.date === day)
+        visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (e.type === 'family' ? ' data-edit="' + h(e.id) + '"' : '') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
@@ -336,7 +337,8 @@ function dayDialogMarkup() {
   return '<div class="dialog-backdrop"><section class="day-dialog panel">' +
     '<h2>' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
     '<p class="note">' + label + '</p><form id="day-dialog-form">' +
-    '<label class="wide">Datum<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
+    '<label>Von<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
+    '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +
     '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend" value="' +
     h(existing?.title || '') + '"></label>' +
     '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
@@ -351,12 +353,19 @@ function handleDayDialogSubmit(event) {
   const existing = dayDialogEventId
     ? entries.find(entry => entry.id === dayDialogEventId && entry.type === 'family')
     : null;
+  const date = String(data.get('date') || dayDialogDate);
+  const rawEndDate = String(data.get('endDate') || date);
+  if (rawEndDate < date) {
+    alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
+    return;
+  }
   const item = {
     ...(existing || {}),
     id: existing?.id || crypto.randomUUID(),
     type: 'family',
     title: String(data.get('title') || '').trim(),
-    date: String(data.get('date') || dayDialogDate),
+    date,
+    endDate: rawEndDate === date ? undefined : rawEndDate,
     start: String(data.get('start') || ''),
     end: String(data.get('end') || ''),
   };
