@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents} from '../src/calendar-service.js';
-import {nextShiftCaptureDate} from '../src/dates.js';
+import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
 
 test('maps family event to owner-safe database payload', () => {
   const row=toDatabaseEvent({id:'1',type:'family',title:'Elternabend',date:'2026-09-24',start:'18:00',end:'19:00'},'h1','u1');
@@ -55,6 +55,13 @@ test('batch save inserts custody schedule in one request', async () => {
   assert.equal(inserted.length,2);
   assert.equal(inserted[0].metadata.source,'custody');
   assert.equal(inserted[1].metadata.anchor,'2026-09-24');
+});
+
+test('supported shifts keep full labels and configured UKW times', () => {
+  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Nachtdienst']);
+  assert.deepEqual(shiftTimes('Frühdienst'), ['06:00','14:12']);
+  assert.deepEqual(shiftTimes('Spätdienst'), ['13:30','21:42']);
+  assert.deepEqual(shiftTimes('Nachtdienst'), ['21:15','06:30']);
 });
 
 test('rapid shift entry stops after last day of displayed month', () => {
