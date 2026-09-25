@@ -20,10 +20,7 @@ export function toDatabaseEvent(event, householdId, userId) {
     metadata: event.source === 'custody'
       ? {source: 'custody', anchor: event.anchor || null}
       : event.type === 'shift'
-        ? {
-            ...(event.owner ? {owner: event.owner} : {}),
-            ...(event.ownerId ? {ownerId: event.ownerId} : {}),
-          }
+        ? shiftMetadata(event)
         : familyMetadata(event),
   };
 }
@@ -99,6 +96,11 @@ export async function deleteOwnerEvent(supabase, eventId, householdId) {
   const query = supabase.from('calendar_events').delete().eq('id', eventId).eq('household_id', householdId);
   const {error} = await query;
   if (error) throw error;
+}
+
+function shiftMetadata(event) {
+  if (event.ownerId) return {ownerId: event.ownerId};
+  return event.owner ? {owner: event.owner} : {};
 }
 
 function familyMetadata(event) {
