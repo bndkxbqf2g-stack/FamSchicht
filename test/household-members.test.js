@@ -5,6 +5,9 @@ import {
   createHouseholdMember,
   memberFilterOptions,
   memberNamesById,
+  householdMemberFromRecord,
+  householdMemberToRecord,
+  householdMembersFromRecords,
   shiftEligibleMembers,
 } from '../src/household-members.js';
 
@@ -45,4 +48,34 @@ test('bootstrap adults drive filters and shift selection centrally', () => {
     martin: 'Martin',
     steffi: 'Steffi',
   });
+});
+
+
+test('household member persistence mapping round-trips domain fields', () => {
+  const source = createHouseholdMember({
+    id: 'child-1',
+    name: 'Kind Eins',
+    type: 'child',
+    colorKey: 'kind-eins',
+    shiftEligible: false,
+  });
+  const record = householdMemberToRecord(source);
+  assert.deepEqual(record, {
+    id: 'child-1',
+    name: 'Kind Eins',
+    type: 'child',
+    colorKey: 'kind-eins',
+    shiftEligible: false,
+  });
+  assert.deepEqual(householdMemberFromRecord(record), source);
+});
+
+test('persisted household members reject duplicate ids', () => {
+  assert.throws(
+    () => householdMembersFromRecords([
+      {id: 'same', name: 'Erste Person', type: 'adult'},
+      {id: 'same', name: 'Zweite Person', type: 'guest'},
+    ]),
+    /duplicate member id/,
+  );
 });
