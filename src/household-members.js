@@ -48,6 +48,10 @@ export function shiftEligibleMembers(members = bootstrapHouseholdMembers) {
 export function memberFilterOptions(members = bootstrapHouseholdMembers) {
   return [
     ['all', 'Alle'],
-    ...members.map(member => [member.name, member.name]),
+    ...members.map(member => [member.id, member.name]),
   ];
+}
+
+export function memberNamesById(members = bootstrapHouseholdMembers) {
+  return Object.fromEntries(members.map(member => [member.id, member.name]));
 }
