@@ -60,8 +60,8 @@ export async function saveOwnerEvent(supabase, event, householdId, userId) {
 }
 
 export async function deleteOwnerEvent(supabase, eventId, householdId) {
-  let query = supabase.from('calendar_events').delete().eq('id', eventId);
-  if (householdId) query = query.eq('household_id', householdId);
+  if (!householdId) throw new Error('householdId is required for cloud deletion');
+  const query = supabase.from('calendar_events').delete().eq('id', eventId).eq('household_id', householdId);
   const {error} = await query;
   if (error) throw error;
 }
