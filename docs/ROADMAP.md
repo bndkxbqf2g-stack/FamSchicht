@@ -3,14 +3,13 @@
 Stand: 25.09.2026
 
 ## Aktive Reihenfolge
-1. Zentrales Haushaltsmitglieder-Modell weiter konsolidieren und persistenzfähig machen.
-2. Bestehende Schichtzuordnung vollständig auf stabile Mitglieder-ID ausrichten; Legacy-Namen nur als Migrationsfallback behalten.
-3. Sicheren Einladungs-/Beitrittsfluss für partner/coparent entwerfen.
-4. Mehrbenutzer-RLS ausschließlich mit getrennten Testkonten und Zugriffsmatrix prüfen.
-5. Erst danach Live-RLS für weitere Rollen erweitern.
-6. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
-7. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
-8. UI/UX weiter ausbauen; Drag/Move nur bei zuverlässigem Touch- und Desktop-Verhalten.
+1. Schicht-Persistenz vollständig auf stabile Mitglieder-ID ausrichten; Legacy-Namen nur als Migrationsfallback behalten.
+2. Sicheren Einladungs-/Beitrittsfluss für partner/coparent entwerfen.
+3. Mehrbenutzer-RLS ausschließlich mit getrennten Testkonten und Zugriffsmatrix vorbereiten.
+4. Erst danach Live-RLS für weitere Rollen erweitern.
+5. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
+6. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
+7. UI/UX weiter ausbauen; Drag/Move nur bei zuverlässigem Touch- und Desktop-Verhalten.
 
 ## Qualitäts-Gates
 Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature-Reihenfolge.
@@ -36,4 +35,6 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Data-API-Grants gehärtet.
 - Zentrales Haushaltsmitglieder-Domänenmodell.
 - Personenfilter und Schichtauswahl aus Mitglieder-Modell.
-- Neue Schichten mit stabiler `ownerId` und Legacy-Fallback.\n- Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
+- Neue Schichten mit stabiler `ownerId` und Legacy-Fallback.
+- Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
+- Schichtfilter und Darstellung bevorzugen stabile `ownerId`; Legacy-Namen bleiben Fallback.
