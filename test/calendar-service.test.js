@@ -21,7 +21,7 @@ test('maps family event to owner-safe database payload', () => {
 });
 
 test('shift stays private and overnight end moves to next day', () => {
-  const row=toDatabaseEvent({id:'2',type:'shift',title:'Nachtdienst',date:'2026-09-24',start:'21:15',end:'06:30'},'h1','u1');
+  const row=toDatabaseEvent({id:'2',type:'shift',title:'Nachtdienst',date:'2026-09-24',start:'21:15',end:'06:30',owner:'Martin'},'h1','u1');
   assert.equal(row.category,'shift');
   assert.equal(row.visibility,'self');
   assert.equal(row.metadata.owner,'Martin');
