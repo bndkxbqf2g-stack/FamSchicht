@@ -67,6 +67,8 @@ test('supported shifts keep full labels and configured UKW times', () => {
 test('rapid shift entry stops after last day of displayed month', () => {
   assert.equal(nextShiftCaptureDate('2026-09-29', new Date(2026,8,1)), '2026-09-30');
   assert.equal(nextShiftCaptureDate('2026-09-30', new Date(2026,8,1)), null);
+  assert.equal(nextShiftCaptureDate('2026-12-31', new Date(2026,11,1)), null);
+  assert.equal(nextShiftCaptureDate('2026-02-28', new Date(2026,1,1)), null);
 });
 
 test('legacy shift without owner stays unassigned', () => {
