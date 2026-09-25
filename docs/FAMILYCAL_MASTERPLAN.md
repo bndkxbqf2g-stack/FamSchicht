@@ -103,33 +103,28 @@ Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials au�
 ## Autopilot-Befehl
 
 ### `A`
-Wenn der Nutzer nur `A` sendet, arbeitet ChatGPT ausschließlich an FamSchicht und führt innerhalb des aktuellen Chat-Turns so viel sichere Arbeit wie möglich aus.
+Wenn der Nutzer nur `A` sendet, arbeitet ChatGPT im aktuellen Chat-Turn maximal selbstständig an **beiden aktiven Projekten**: FamSchicht und SparzamApp.
 
-Ablauf:
-1. Aktuellen `main`-Stand und neueste CI prüfen.
-2. Bei roter CI ausschließlich Ursache beheben, Tests ergänzen, erneut CI starten.
-3. Bei grüner CI den obersten noch offenen Roadmap-Punkt mit sinnvollem technischen Zusammenhang wählen.
-4. Bestehenden Datenfluss, Schema und angrenzende Tests vor Änderungen auditieren.
-5. Mehrere kleine Commits selbstständig umsetzen.
-6. Nach einem kohärenten Teilblock CI starten und Ergebnis prüfen.
-7. Solange CI grün ist und im aktuellen Turn noch sinnvoll weitergearbeitet werden kann, mit dem nächsten Teilblock derselben Phase fortfahren.
-8. Roadmap-Checkboxen erst nach belegter Umsetzung aktualisieren.
-9. Abschlussmeldung nur mit Ampelstatus, erledigtem Bereich und nächstem Roadmap-Punkt.
+Dabei gilt ausdrücklich auch für Problembehebung:
+1. CI und aktuellen Stand beider Projekte prüfen.
+2. Bei Fehlern nicht nur melden, sondern die Ursache selbstständig analysieren.
+3. Eindeutig belegte Fehler direkt korrigieren.
+4. Regressionstests ergänzen oder anpassen.
+5. Änderungen committen und pushen.
+6. CI erneut prüfen.
+7. Solange weitere sichere Korrekturen möglich sind, im selben Turn weiterarbeiten.
+8. Erst stoppen, wenn CI grün ist oder eine echte externe Grenze erreicht ist (z. B. fehlende Credentials, riskante Migration, Kostenfreigabe, Tool-/Turn-Grenze).
 
-Typischer Umfang pro `A`-Turn: deutlich größer als `N`; mehrere Entwicklungsblöcke und häufig etwa 10–25 kleine Änderungen/Commits, soweit Tool-Laufzeit, CI und Sicherheitsgrenzen dies erlauben. Die tatsächliche Zahl ist nicht garantiert.
+### `N`
+Normaler Entwicklungsblock für **beide aktiven Projekte** nach der bisherigen Regel: typischerweise bis zu 5 logisch zusammengehörige Schritte pro Projekt, danach relevante CI.
 
-Stop-Bedingungen:
-- rote CI, die erst analysiert werden muss
-- destructive oder schwer rückrollbare Datenmigration
-- fehlende externe Credentials/OAuth-Konfiguration
-- sicherheitsrelevante Entscheidung ohne klare bestehende Vorgabe
-- externe Kostenpflicht oder Veröffentlichung in fremden Stores
-- Tool-/Turn-Grenze
+### `U`
+Nur **Status prüfen**. Keine neue Feature-Entwicklung und keine eigenständige Problembehebung starten. Aktuellen CI-/Projektstatus beider aktiven Projekte kurz mit Ampel ausgeben.
 
-### Bestehende Kurzbefehle
-- `N`: normaler nächster 5-Schritte-Block nach bisheriger Regel
-- `U`: CI/aktuellen Block prüfen oder Fehler weiter beheben
-- `A`: maximaler FamSchicht-Autopilot innerhalb eines einzigen Chat-Turns
+## Bestehende Kurzbefehle
+- `A`: maximal selbstständige Umsetzung **und Problembehebung** in FamSchicht + SparzamApp
+- `N`: normaler Entwicklungsblock für beide aktiven Projekte
+- `U`: nur Status beider aktiven Projekte prüfen
 
 ## Reihenfolge ab aktuellem Stand
 Phase 1 vollständig abschließen → Phase 2 → Phase 3 vervollständigen → Phase 4 → Phase 5 → Phase 6.
