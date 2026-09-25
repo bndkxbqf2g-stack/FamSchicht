@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents} from '../src/calendar-service.js';
 import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
 
+test('all-day family event remains on the same calendar date after round trip', () => {
+  const row=toDatabaseEvent({id:'all-day',type:'family',title:'Ferien',date:'2026-09-24'},'h1','u1');
+  const restored=fromDatabaseEvent(row);
+  assert.equal(restored.date,'2026-09-24');
+  assert.equal(restored.start,'');
+  assert.equal(restored.title,'Ferien');
+});
+
 test('maps family event to owner-safe database payload', () => {
   const row=toDatabaseEvent({id:'1',type:'family',title:'Elternabend',date:'2026-09-24',start:'18:00',end:'19:00'},'h1','u1');
   assert.equal(row.household_id,'h1');
