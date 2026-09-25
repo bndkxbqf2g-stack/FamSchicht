@@ -72,12 +72,13 @@ test('month summary includes a multi-day event crossing into the month', () => {
 test('calendar filters keep shared family events visible for a person', () => {
   const entries = [
     {type: 'family', title: 'Elternabend'},
-    {type: 'shift', owner: 'Martin', title: 'Frühdienst'},
+    {type: 'shift', ownerId: 'martin', owner: 'Martin', title: 'Frühdienst'},
     {type: 'shift', owner: 'Steffi', title: 'Spätdienst'},
   ];
+  const personNamesById = {martin: 'Martin', steffi: 'Steffi'};
 
   expectTitles(
-    filterCalendarEntries(entries, {person: 'Martin'}),
+    filterCalendarEntries(entries, {person: 'martin', personNamesById}),
     ['Elternabend', 'Frühdienst'],
   );
   expectTitles(
@@ -85,7 +86,11 @@ test('calendar filters keep shared family events visible for a person', () => {
     ['Frühdienst', 'Spätdienst'],
   );
   expectTitles(
-    filterCalendarEntries(entries, {person: 'Steffi', category: 'shift'}),
+    filterCalendarEntries(entries, {
+      person: 'steffi',
+      category: 'shift',
+      personNamesById,
+    }),
     ['Spätdienst'],
   );
 });
