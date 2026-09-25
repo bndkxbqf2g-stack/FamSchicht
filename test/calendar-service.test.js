@@ -11,6 +11,28 @@ test('all-day family event remains on the same calendar date after round trip', 
   assert.equal(restored.title,'Ferien');
 });
 
+test('multi-day family event keeps its end date through database round trip', () => {
+  const row=toDatabaseEvent({
+    id:'trip',type:'family',title:'Kurzurlaub',
+    date:'2026-09-24',endDate:'2026-09-27',start:'',end:'',
+  },'h1','u1');
+  const restored=fromDatabaseEvent(row);
+
+  assert.equal(restored.date,'2026-09-24');
+  assert.equal(restored.endDate,'2026-09-27');
+  assert.equal(restored.start,'');
+});
+
+test('multi-day family event rejects an end before its start date', () => {
+  assert.throws(
+    () => toDatabaseEvent({
+      id:'bad-range',type:'family',title:'Fehler',
+      date:'2026-09-24',endDate:'2026-09-23',
+    },'h1','u1'),
+    /endDate must not be before date/,
+  );
+});
+
 test('maps family event to owner-safe database payload', () => {
   const row=toDatabaseEvent({id:'1',type:'family',title:'Elternabend',date:'2026-09-24',start:'18:00',end:'19:00'},'h1','u1');
   assert.equal(row.household_id,'h1');
