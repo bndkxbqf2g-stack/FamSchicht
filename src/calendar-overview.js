@@ -1,8 +1,13 @@
 import {calendarDays, dateKey} from './dates.js';
 
+export function entryOccursOnDate(entry, date) {
+  const endDate = entry.endDate || entry.date;
+  return entry.date <= date && date <= endDate;
+}
+
 export function entriesForDay(entries, date) {
   return entries
-    .filter(entry => entry.date === date)
+    .filter(entry => entryOccursOnDate(entry, date))
     .slice()
     .sort((a, b) => (a.start || '99:99').localeCompare(b.start || '99:99') || a.title.localeCompare(b.title));
 }
@@ -76,10 +81,11 @@ export function eventTimeLabel(entry) {
 export function monthSummary(entries, monthDate) {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
-  const monthEntries = entries.filter(entry => {
-    const date = new Date(entry.date + 'T12:00:00');
-    return date.getFullYear() === year && date.getMonth() === month;
-  });
+  const monthStart = dateKey(new Date(year, month, 1, 12));
+  const monthEnd = dateKey(new Date(year, month + 1, 0, 12));
+  const monthEntries = entries.filter(entry =>
+    entry.date <= monthEnd && (entry.endDate || entry.date) >= monthStart,
+  );
   return {
     total: monthEntries.length,
     shifts: monthEntries.filter(entry => entry.type === 'shift').length,
