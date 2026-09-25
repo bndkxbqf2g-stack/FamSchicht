@@ -170,3 +170,9 @@ test('cloud loading surfaces database failures', async () => {
   const query={select(){return this;},eq(){return this;},order(){return Promise.resolve({data:null,error:new Error('offline')});}};
   await assert.rejects(() => loadOwnerEvents({from:()=>query},'h1'), /offline/);
 });
+
+
+test('cloud deletion surfaces database failures', async () => {
+  const query={eq(){return this;},then(resolve){resolve({error:new Error('offline')});}};
+  await assert.rejects(() => deleteOwnerEvent({from:()=>({delete:()=>query})},'x','h1'), /offline/);
+});
