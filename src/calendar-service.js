@@ -20,7 +20,10 @@ export function toDatabaseEvent(event, householdId, userId) {
     metadata: event.source === 'custody'
       ? {source: 'custody', anchor: event.anchor || null}
       : event.type === 'shift'
-        ? (event.owner ? {owner: event.owner} : {})
+        ? {
+            ...(event.owner ? {owner: event.owner} : {}),
+            ...(event.ownerId ? {ownerId: event.ownerId} : {}),
+          }
         : familyMetadata(event),
   };
 }
@@ -41,6 +44,7 @@ export function fromDatabaseEvent(row) {
     source: row.metadata?.source || 'supabase',
     anchor: row.metadata?.anchor || undefined,
     owner: row.category === 'shift' ? (row.metadata?.owner || undefined) : undefined,
+    ownerId: row.category === 'shift' ? (row.metadata?.ownerId || undefined) : undefined,
     recurrence: row.category !== 'shift' && row.metadata?.recurrence
       ? row.metadata.recurrence
       : undefined,
