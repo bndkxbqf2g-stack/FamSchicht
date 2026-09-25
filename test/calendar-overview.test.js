@@ -95,6 +95,22 @@ test('calendar filters keep shared family events visible for a person', () => {
   );
 });
 
+test('stable shift owner id takes precedence over stale legacy owner name', () => {
+  const entries = [
+    {type: 'shift', ownerId: 'steffi', owner: 'Martin', title: 'Spätdienst'},
+  ];
+  const personNamesById = {martin: 'Martin', steffi: 'Steffi'};
+
+  expectTitles(
+    filterCalendarEntries(entries, {person: 'martin', personNamesById}),
+    [],
+  );
+  expectTitles(
+    filterCalendarEntries(entries, {person: 'steffi', personNamesById}),
+    ['Spätdienst'],
+  );
+});
+
 function expectTitles(entries, expected) {
   assert.deepEqual(entries.map(entry => entry.title), expected);
 }

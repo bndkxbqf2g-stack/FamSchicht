@@ -19,8 +19,12 @@ export function filterCalendarEntries(
   return entries.filter(entry => {
     if (category !== 'all' && entry.type !== category) return false;
     if (person !== 'all' && entry.type === 'shift') {
-      const legacyOwnerName = personNamesById[person];
-      if (entry.ownerId !== person && entry.owner !== legacyOwnerName) return false;
+      if (entry.ownerId) {
+        if (entry.ownerId !== person) return false;
+      } else {
+        const legacyOwnerName = personNamesById[person];
+        if (entry.owner !== legacyOwnerName) return false;
+      }
     }
     return true;
   });
