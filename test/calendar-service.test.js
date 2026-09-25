@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents} from '../src/calendar-service.js';
+import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, deleteOwnerEvent} from '../src/calendar-service.js';
 import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
 
 test('all-day family event remains on the same calendar date after round trip', () => {
@@ -102,4 +102,13 @@ test('saving an unassigned legacy shift does not invent Martin ownership', () =>
 test('legacy shift without owner stays unassigned', () => {
   const item=fromDatabaseEvent({id:'legacy',title:'Frühdienst',starts_at:'2026-09-24T06:00:00.000Z',ends_at:'2026-09-24T14:12:00.000Z',category:'shift',metadata:{}});
   assert.equal(item.owner, undefined);
+});
+
+
+test('cloud deletion is scoped to event id and household', async () => {
+  const filters=[];
+  const query={eq(key,value){filters.push([key,value]);return this;},then(resolve){resolve({error:null});}};
+  const supabase={from:()=>({delete:()=>query})};
+  await deleteOwnerEvent(supabase,'event-1','house-1');
+  assert.deepEqual(filters,[['id','event-1'],['household_id','house-1']]);
 });
