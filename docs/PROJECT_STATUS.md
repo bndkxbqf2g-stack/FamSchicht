@@ -10,43 +10,41 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Kindertermine, 
 - Monats-, Wochen-, Tages- und Heute-Ansicht.
 - Familien- und Schichttermine, mehrtägige Ereignisse, Geburtstage und Wiederholungen.
 - Schicht-Schnellerfassung mit Früh-/Spät-/Nachtdienst.
-- Zentrales Haushaltsmitglieder-Domänenmodell mit `id`, `name`, `type`, `colorKey` und `shiftEligible`.
-- Bootstrap-Mitglieder Martin und Steffi dienen als lokaler Fallback und initiale Seed-Daten; im Cloud-Modus werden Mitglieder aus `household_members` geladen.
+- Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen IDs.
 - Kalender-Personen werden owner-only in Supabase `household_members` persistiert und bleiben fachlich von Auth-`memberships` getrennt.
-- Neue Schichten speichern eine stabile `ownerId`; Filter, Anzeige und Farbschlüssel bevorzugen diese ID. Legacy-Einträge mit reinem Namen bleiben als Migrationsfallback kompatibel.
-- Supabase Magic-Link-Anmeldung ist implementiert.
-- Angemeldete Owner können einen privaten Haushalt anlegen bzw. laden.
-- Owner-Kalendereinträge werden über `calendar_events` aus Supabase geladen, erstellt, geändert und gelöscht.
-- Haushalts-, Membership-, Kalender- und `household_members`-Tabellen sind mit RLS geschützt.
-- Live-Data-API-Grants sind für `anon` entzogen und für `authenticated` auf die aktuell benötigten Operationen begrenzt.
+- Neue Schichten speichern serverseitig nur `ownerId`; Legacy-Namen bleiben ausschließlich als Migrationsfallback lesbar.
+- Supabase Magic-Link-Anmeldung und owner-only Haushalts-/Kalendersynchronisierung sind implementiert.
+- Öffentliche Tabellen sind RLS-geschützt; Browser-Grants bleiben minimal.
+- Ein getesteter Einladungs-Domänenvertrag erlaubt nur `partner` und `coparent`, normalisiert E-Mail-Adressen und behandelt Einladungs-Tokens als opake Bearer-Geheimnisse.
+- Live existiert `private.household_invitations` für gehashte, ablaufende, widerrufbare und einmalig annehmbare Einladungen. Browserrollen haben darauf keinen Schema-/Tabellenzugriff.
+- Fehlende FK-Indizes wurden live ergänzt und im Repository gespiegelt.
 
 ## Sicherheit
-Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach sicherem Einladungsfluss und Zugriffstests mit getrennten Konten erweitert. Keine service_role-/Secret-Schlüssel im Browser oder Repository.
+Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach serverseitigem Einladungs-/Annahmepfad und erfolgreicher Zugriffsmatrix mit getrennten Konten erweitert. Keine service_role-/Secret-Schlüssel im Browser oder Repository.
 
 ## Bekannte Lücken
-- Sichere Einladung für Partner/coparent fehlt.
-- Live-RLS ist noch nicht für Mehrbenutzerbetrieb erweitert.
+- Serverseitige Erzeugung, Widerruf und atomare Annahme von Einladungen sind noch nicht implementiert.
+- Mehrbenutzer-RLS für `partner`/`coparent` ist noch nicht aktiviert.
+- Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
-- Ein separates statisches Analyze/Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
+- Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
 
 ## Nächster Schritt
-Einen sicheren Einladungs-/Beitrittsfluss für `partner`/`coparent` als getrennten Auth-/Membership-Pfad entwerfen und testen. Live-RLS bleibt bis zur Zugriffsmatrix owner-only.
+Serverseitige Einladungsoperationen auf Basis von `private.household_invitations` implementieren und automatisiert prüfen. Danach mit getrennten Testkonten die Zugriffsmatrix ausführen. Live-RLS bleibt bis zu deren Erfolg owner-only.
 
 ## Update 25.09.2026 – Owner-only Mitglieder-Persistenz
-- `household_members` ist als eigene Supabase-Tabelle installiert und durch vier owner-only RLS-Policies geschützt.
-- Kalender-Personen (`id`, Name, Typ, Farbe, Schichtfähigkeit) bleiben fachlich getrennt von Auth-`memberships`.
-- Angemeldete Owner laden ihre persistierten Mitglieder; bei leerer Tabelle werden die bisherigen Bootstrap-Mitglieder einmalig per Upsert angelegt.
-- Personenfilter und Schichtauswahl verwenden danach dieselbe geladene Mitgliederquelle; bei Offline-/Fehlerfall bleibt der lokale Bootstrap-Fallback erhalten.
-- Partner-/Coparent-Zugriffe wurden nicht erweitert.
+- `household_members` ist als eigene Supabase-Tabelle installiert und durch owner-only RLS geschützt.
+- Kalender-Personen bleiben fachlich getrennt von Auth-`memberships`.
+- Angemeldete Owner laden ihre persistierten Mitglieder; bei leerer Tabelle werden Bootstrap-Mitglieder einmalig angelegt.
 
-## Update 25.09.2026 – Stabile Schichtzuordnung in der Darstellung
-- Personenfilter, Kalenderdarstellung und Heute-Ansicht verwenden bei Schichten vorrangig `ownerId`.
-- Ein veralteter gespeicherter Anzeigename kann damit nicht mehr die Personenzuordnung oder Farbklasse einer Schicht überschreiben.
-- Legacy-Schichten ohne `ownerId` bleiben über den bisherigen Namen lesbar.
+## Update 25.09.2026 – Stabile Schichtzuordnung
+- Filter, Kalenderdarstellung und Heute-Ansicht verwenden bei Schichten vorrangig `ownerId`.
+- Neue/aktualisierte Schichten schreiben bei vorhandener `ownerId` keinen redundanten Anzeigenamen mehr.
+- Legacy-Schichten ohne `ownerId` bleiben lesbar.
 
-
-## Update 25.09.2026 – Schicht-Persistenz auf stabile Mitglieder-ID konsolidiert
-- Neue Schichten speichern in Supabase nur noch `ownerId`; ein parallel gespeicherter Anzeigename ist nicht mehr Teil neuer Schicht-Metadaten.
-- Vorhandene Legacy-Schichten, die nur `owner` enthalten, bleiben weiterhin lesbar.
-- Wird ein älterer Datensatz mit vorhandener `ownerId` erneut gespeichert, wird die redundante Namenskopie automatisch nicht mehr mitgeschrieben.
-- Filter, Anzeige und Farbzuordnung nutzen bereits die stabile ID. Damit ist die Schichtzuordnung durchgängig ID-basiert.
+## Update 25.09.2026 – Sicherer Einladungsunterbau
+- `docs/INVITATION_FLOW.md` definiert den serverseitigen, E-Mail-gebundenen Einmal-Token-Ablauf.
+- Der Client-Domänenvertrag lehnt unzulässige Rollen, ungültige E-Mails und offensichtlich fehlerhafte Tokens ab.
+- `private.household_invitations` speichert nur SHA-256-kompatible 64-stellige Token-Hashes und Statusdaten.
+- `anon` und `authenticated` besitzen weder Schema-USAGE noch Tabellen-SELECT auf dem privaten Einladungsspeicher.
+- Partner-/Coparent-Rechte wurden ausdrücklich noch nicht erweitert.
