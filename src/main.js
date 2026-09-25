@@ -8,6 +8,7 @@ import {
   calendarTitle,
   entriesForDay,
   eventTimeLabel,
+  filterCalendarEntries,
   monthSummary,
   shiftCalendarDate,
 } from './calendar-overview.js';
@@ -24,6 +25,8 @@ let month = new Date();
 let focusedDate = new Date();
 let calendarMode = 'month';
 let view = 'all';
+let personFilter = 'all';
+let categoryFilter = 'all';
 let cloud = null;
 let shiftCaptureDate = null;
 let dayDialogDate = null;
@@ -67,7 +70,11 @@ async function connectCloud() {
 function render() {
   const days = calendarDates(focusedDate, month, calendarMode);
   const today = dateKey(new Date());
-  const summary = monthSummary(entries, month);
+  const visibleEntries = filterCalendarEntries(
+    entries.filter(entry => canSee(entry, view)),
+    {person: personFilter, category: categoryFilter},
+  );
+  const summary = monthSummary(visibleEntries, month);
   const monthLabel = calendarTitle(focusedDate, month, calendarMode);
   const weekdayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   const calendarMarkup =
@@ -81,9 +88,17 @@ function render() {
       .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
-    '</div><button id="go-today">Heute</button><button id="shift-capture" class="primary">+ Dienstplan</button></div></div>' +
+    '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
+    '<div class="calendar-filters"><div class="filter-group" aria-label="Personenfilter">' +
+    [['all', 'Alle'], ['Martin', 'Martin'], ['Steffi', 'Steffi']].map(([id, label]) =>
+      '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '">' + label + '</button>').join('') +
+    '</div><div class="filter-group" aria-label="Kategoriefilter">' +
+    [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste']].map(([id, label]) =>
+      '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '">' +
+      '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
+    '</div></div>' +
     '<div class="calendar ' + calendarMode + '-view">' +
     (calendarMode === 'day' ? '' : calendarMode === 'month'
       ? weekdayLabels.map(d => '<b>' + d + '</b>').join('')
@@ -95,7 +110,7 @@ function render() {
     days.map(day => day
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
-        entries.filter(e => e.date === day && canSee(e, view))
+        visibleEntries.filter(e => e.date === day)
           .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(e.owner || 'unknown').toLowerCase() : '') + '" title="' + h(e.type === 'shift' ? (e.owner || 'Unbekannt') + ': ' + e.title : e.title) + '">' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
@@ -174,6 +189,9 @@ function bindControls() {
   app.querySelector('#add-today')?.addEventListener('click', () => {
     openDayDialog(dateKey(new Date()));
   });
+  app.querySelector('#quick-event')?.addEventListener('click', () => {
+    openDayDialog(dateKey(focusedDate));
+  });
   app.querySelectorAll('[data-view]').forEach(button => {
     button.onclick = () => {
       view = button.dataset.view;
@@ -183,6 +201,18 @@ function bindControls() {
   app.querySelectorAll('[data-calendar-mode]').forEach(button => {
     button.onclick = () => {
       calendarMode = button.dataset.calendarMode;
+      render();
+    };
+  });
+  app.querySelectorAll('[data-person-filter]').forEach(button => {
+    button.onclick = () => {
+      personFilter = button.dataset.personFilter;
+      render();
+    };
+  });
+  app.querySelectorAll('[data-category-filter]').forEach(button => {
+    button.onclick = () => {
+      categoryFilter = button.dataset.categoryFilter;
       render();
     };
   });
