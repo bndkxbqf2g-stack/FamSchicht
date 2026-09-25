@@ -64,6 +64,19 @@ export async function saveOwnerEvent(supabase, event, householdId, userId) {
   return event;
 }
 
+export async function updateOwnerEvent(supabase, event, householdId, userId) {
+  if (!householdId) throw new Error('householdId is required for cloud updating');
+  const payload = toDatabaseEvent(event, householdId, userId);
+  const {id, household_id, ...changes} = payload;
+  const query = supabase.from('calendar_events')
+    .update(changes)
+    .eq('id', id)
+    .eq('household_id', household_id);
+  const {error} = await query;
+  if (error) throw error;
+  return event;
+}
+
 export async function deleteOwnerEvent(supabase, eventId, householdId) {
   if (!householdId) throw new Error('householdId is required for cloud deletion');
   const query = supabase.from('calendar_events').delete().eq('id', eventId).eq('household_id', householdId);
