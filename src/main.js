@@ -343,6 +343,11 @@ function dayDialogMarkup() {
     h(existing?.title || '') + '"></label>' +
     '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
     '<label>Ende<input name="end" type="time" value="' + h(existing?.end || '') + '"></label>' +
+    '<label class="wide">Wiederholung<select name="recurrence">' +
+    [['none', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']]
+      .map(([value, label]) => '<option value="' + value + '"' +
+        ((existing?.recurrence || 'none') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
+    '</select></label>' +
     '<div class="wide dialog-actions"><button type="button" id="day-dialog-cancel">Abbrechen</button>' +
     '<button class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
 }
@@ -368,6 +373,7 @@ function handleDayDialogSubmit(event) {
     endDate: rawEndDate === date ? undefined : rawEndDate,
     start: String(data.get('start') || ''),
     end: String(data.get('end') || ''),
+    recurrence: String(data.get('recurrence') || 'none'),
   };
   if (!item.title || !item.date) return;
   dayDialogDate = null;
