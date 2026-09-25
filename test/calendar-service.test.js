@@ -176,3 +176,9 @@ test('cloud deletion surfaces database failures', async () => {
   const query={eq(){return this;},then(resolve){resolve({error:new Error('offline')});}};
   await assert.rejects(() => deleteOwnerEvent({from:()=>({delete:()=>query})},'x','h1'), /offline/);
 });
+
+
+test('empty cloud save batch stays a database no-op', async () => {
+  const supabase={from:()=>{throw new Error('database must not be called');}};
+  assert.deepEqual(await saveOwnerEvents(supabase,[],'',''), []);
+});
