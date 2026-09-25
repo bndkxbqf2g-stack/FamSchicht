@@ -63,6 +63,15 @@ test('batch save inserts custody schedule in one request', async () => {
   assert.equal(inserted[1].metadata.anchor,'2026-09-24');
 });
 
+test('overnight shift keeps next-day end through database round trip', () => {
+  const row=toDatabaseEvent({id:'night',type:'shift',title:'Nachtdienst',date:'2026-09-24',start:'21:15',end:'06:30',owner:'Steffi'},'h1','u1');
+  const restored=fromDatabaseEvent(row);
+  assert.equal(restored.date,'2026-09-24');
+  assert.equal(restored.start,'21:15');
+  assert.equal(restored.end,'06:30');
+  assert.equal(restored.owner,'Steffi');
+});
+
 test('supported shifts keep full labels and configured UKW times', () => {
   assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Nachtdienst']);
   assert.deepEqual(shiftTimes('Frühdienst'), ['06:00','14:12']);
