@@ -128,7 +128,7 @@ function bindControls() {
       if (!confirm('Eintrag löschen?')) return;
       const id = button.dataset.remove;
       try {
-        if (cloud) await deleteOwnerEvent(supabase, id);
+        if (cloud) await deleteOwnerEvent(supabase, id, cloud.householdId);
         entries = entries.filter(entry => entry.id !== id);
         if (!cloud) save(entries);
         render();
