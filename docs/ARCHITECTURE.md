@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Stand: 24.09.2026
+Stand: 25.09.2026
 
 ## Client
 Vite-basierte JavaScript-Web-App.
@@ -18,6 +18,7 @@ Vite-basierte JavaScript-Web-App.
 Supabase/PostgreSQL mit:
 - households
 - memberships
+- household_members
 - calendar_events
 - Row Level Security
 
@@ -25,9 +26,9 @@ Rollen im Repository-Entwurf: owner, partner, coparent.
 Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 
 ## Datenfluss heute
-Kalendereinträge -> lokaler Speicher -> Kalender-UI.
-Auth/Haushalt -> Supabase.
-Diese beiden Pfade sind noch nicht verbunden.
+- Offline/Fallback: lokale Kalendereinträge + Bootstrap-Mitglieder -> Kalender-UI.
+- Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.
+- `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.
 
 ## Zielarchitektur
 UI -> klar abgegrenzte Kalender-/Haushaltsservices -> Supabase.
