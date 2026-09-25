@@ -21,9 +21,7 @@ export function toDatabaseEvent(event, householdId, userId) {
       ? {source: 'custody', anchor: event.anchor || null}
       : event.type === 'shift'
         ? (event.owner ? {owner: event.owner} : {})
-        : (event.recurrence && event.recurrence !== 'none'
-            ? {recurrence: event.recurrence}
-            : {}),
+        : familyMetadata(event),
   };
 }
 
@@ -45,6 +43,9 @@ export function fromDatabaseEvent(row) {
     owner: row.category === 'shift' ? (row.metadata?.owner || undefined) : undefined,
     recurrence: row.category !== 'shift' && row.metadata?.recurrence
       ? row.metadata.recurrence
+      : undefined,
+    eventKind: row.category !== 'shift' && row.metadata?.eventKind
+      ? row.metadata.eventKind
       : undefined,
   };
 }
@@ -94,6 +95,17 @@ export async function deleteOwnerEvent(supabase, eventId, householdId) {
   const query = supabase.from('calendar_events').delete().eq('id', eventId).eq('household_id', householdId);
   const {error} = await query;
   if (error) throw error;
+}
+
+function familyMetadata(event) {
+  const metadata = {};
+  if (event.recurrence && event.recurrence !== 'none') {
+    metadata.recurrence = event.recurrence;
+  }
+  if (event.eventKind && event.eventKind !== 'event') {
+    metadata.eventKind = event.eventKind;
+  }
+  return metadata;
 }
 
 function localDateTime(date, time) {
