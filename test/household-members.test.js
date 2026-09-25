@@ -4,6 +4,7 @@ import {
   bootstrapHouseholdMembers,
   createHouseholdMember,
   memberFilterOptions,
+  memberNamesById,
   shiftEligibleMembers,
 } from '../src/household-members.js';
 
@@ -34,10 +35,14 @@ test('bootstrap adults drive filters and shift selection centrally', () => {
   );
   assert.deepEqual(
     memberFilterOptions(),
-    [['all', 'Alle'], ['Martin', 'Martin'], ['Steffi', 'Steffi']],
+    [['all', 'Alle'], ['martin', 'Martin'], ['steffi', 'Steffi']],
   );
   assert.deepEqual(
     shiftEligibleMembers().map(member => member.name),
     ['Martin', 'Steffi'],
   );
+  assert.deepEqual(memberNamesById(), {
+    martin: 'Martin',
+    steffi: 'Steffi',
+  });
 });
