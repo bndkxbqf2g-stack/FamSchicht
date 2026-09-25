@@ -55,3 +55,35 @@ export function memberFilterOptions(members = bootstrapHouseholdMembers) {
 export function memberNamesById(members = bootstrapHouseholdMembers) {
   return Object.fromEntries(members.map(member => [member.id, member.name]));
 }
+
+
+export function householdMemberToRecord(member) {
+  return {
+    id: member.id,
+    name: member.name,
+    type: member.type,
+    colorKey: member.colorKey,
+    shiftEligible: member.shiftEligible,
+  };
+}
+
+export function householdMemberFromRecord(record) {
+  return createHouseholdMember({
+    id: record?.id,
+    name: record?.name,
+    type: record?.type,
+    colorKey: record?.colorKey,
+    shiftEligible: record?.shiftEligible,
+  });
+}
+
+export function householdMembersFromRecords(records) {
+  if (!Array.isArray(records)) throw new Error('member records must be an array');
+  const seen = new Set();
+  return records.map(record => {
+    const member = householdMemberFromRecord(record);
+    if (seen.has(member.id)) throw new Error('duplicate member id');
+    seen.add(member.id);
+    return member;
+  });
+}
