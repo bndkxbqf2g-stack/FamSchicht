@@ -1,4 +1,6 @@
 export function toDatabaseEvent(event, householdId, userId) {
+  if (!householdId) throw new Error('householdId is required for database events');
+  if (!userId) throw new Error('userId is required for database events');
   const startsAt = localDateTime(event.date, event.start || '00:00');
   let endsAt = localDateTime(event.date, event.end || endFallback(event.start));
   if (endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1);
