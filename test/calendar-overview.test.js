@@ -9,6 +9,8 @@ import {
   filterCalendarEntries,
   monthSummary,
   shiftCalendarDate,
+  shiftOwnerDisplayName,
+  shiftOwnerStyleKey,
 } from '../src/calendar-overview.js';
 
 test('week view starts on Monday and crosses month and year boundaries', () => {
@@ -109,6 +111,28 @@ test('stable shift owner id takes precedence over stale legacy owner name', () =
     filterCalendarEntries(entries, {person: 'steffi', personNamesById}),
     ['Spätdienst'],
   );
+});
+
+
+test('stable shift owner id drives display name and style before stale legacy name', () => {
+  const entry = {
+    type: 'shift',
+    ownerId: 'steffi',
+    owner: 'Martin',
+    title: 'Spätdienst',
+  };
+  const personNamesById = {martin: 'Martin', steffi: 'Steffi'};
+
+  assert.equal(shiftOwnerDisplayName(entry, personNamesById), 'Steffi');
+  assert.equal(shiftOwnerStyleKey(entry, personNamesById), 'steffi');
+});
+
+test('legacy shift owner name still resolves through member mapping', () => {
+  const entry = {type: 'shift', owner: 'Steffi', title: 'Spätdienst'};
+  const personNamesById = {martin: 'Martin', steffi: 'Steffi'};
+
+  assert.equal(shiftOwnerDisplayName(entry, personNamesById), 'Steffi');
+  assert.equal(shiftOwnerStyleKey(entry, personNamesById), 'steffi');
 });
 
 function expectTitles(entries, expected) {
