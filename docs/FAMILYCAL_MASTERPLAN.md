@@ -33,7 +33,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] vollständiger Termin-Editor
 - [x] mehrtägige Termine
 - [x] Wiederholungen: täglich / wöchentlich / monatlich / jährlich
-- [ ] Geburtstage und ganztägige Ereignisse
+- [x] Geburtstage und ganztägige Ereignisse
 - [ ] Drag/Move nur falls stabil auf Touch und Desktop
 
 ### Phase 2 – Familie, Rollen und Sichtbarkeit
@@ -135,4 +135,4 @@ Die FamilyCal-inspirierte App-Shell, Monats-, Wochen- und Tagesansicht, Heute-An
 ## Wiedereinstieg nach dem aktuellen Entwicklungsblock
 Der vollständige Termin-Editor ist umgesetzt: bestehende Familientermine werden über die Supabase-Updateoperation geändert statt dupliziert. Mehrtägige Familientermine werden mit ihrem Datumsbereich persistiert, nach dem Cloud-Roundtrip erhalten und an allen betroffenen Kalendertagen dargestellt. Regressionstests decken Update und Mehrtagstermine ab.
 
-Wiederholungen täglich, wöchentlich, monatlich und jährlich sind umgesetzt, werden in der Terminbearbeitung gewählt, über Metadaten cloudseitig erhalten und in den Kalenderansichten ohne duplizierte Persistenz als Vorkommen dargestellt. Der nächste sichere Phase-1-Schritt sind Geburtstage und ganztägige Ereignisse. Das bestehende Personenmodell bleibt dabei bewusst unverändert; Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
+Wiederholungen täglich, wöchentlich, monatlich und jährlich sind umgesetzt, werden in der Terminbearbeitung gewählt, über Metadaten cloudseitig erhalten und in den Kalenderansichten ohne duplizierte Persistenz als Vorkommen dargestellt. Geburtstage sind als eigener ganztägiger Ereignistyp mit jährlicher Wiederholung umgesetzt; bestehende Termine ohne Uhrzeit bleiben als ganztägige Ereignisse erhalten. Der nächste optionale Phase-1-Schritt ist Drag/Move, aber nur wenn die Bedienung auf Touch und Desktop stabil umgesetzt werden kann. Das bestehende Personenmodell bleibt dabei bewusst unverändert; Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
