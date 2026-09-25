@@ -132,14 +132,22 @@ function custodyMarkup() {
 }
 
 function bindControls() {
-  app.querySelector('#prev').onclick = () => {
+  app.querySelector('#prev')?.addEventListener('click', () => {
     month.setMonth(month.getMonth() - 1);
     render();
-  };
-  app.querySelector('#next').onclick = () => {
+  });
+  app.querySelector('#next')?.addEventListener('click', () => {
     month.setMonth(month.getMonth() + 1);
     render();
-  };
+  });
+  app.querySelector('#go-today')?.addEventListener('click', () => {
+    const now = new Date();
+    month = new Date(now.getFullYear(), now.getMonth(), 1, 12);
+    render();
+  });
+  app.querySelector('#add-today')?.addEventListener('click', () => {
+    openDayDialog(dateKey(new Date()));
+  });
   app.querySelectorAll('[data-view]').forEach(button => {
     button.onclick = () => {
       view = button.dataset.view;
@@ -152,7 +160,7 @@ function bindControls() {
       openDayDialog(day.dataset.day);
     };
   });
-  app.querySelector('#shift-capture').onclick = startShiftCapture;
+  app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {
     button.onclick = () => { shiftOwner = button.dataset.owner; render(); };
   });
@@ -178,7 +186,7 @@ function bindControls() {
     };
   });
 
-  app.querySelector('#custody-form').onsubmit = handleCustodySubmit;
+  app.querySelector('#custody-form')?.addEventListener('submit', handleCustodySubmit);
 }
 
 async function handleCustodySubmit(event) {
