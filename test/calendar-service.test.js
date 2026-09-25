@@ -146,3 +146,8 @@ test('batch cloud save refuses missing household scope', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
   await assert.rejects(() => saveOwnerEvents(supabase,[{id:'x',type:'family',title:'x',date:'2026-09-25'}],'','u1'), /householdId is required/);
 });
+
+
+test('database event serialization requires user identity', () => {
+  assert.throws(() => toDatabaseEvent({id:'x',type:'family',title:'x',date:'2026-09-25'},'h1',''), /userId is required/);
+});
