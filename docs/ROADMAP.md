@@ -36,4 +36,4 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Data-API-Grants gehärtet.
 - Zentrales Haushaltsmitglieder-Domänenmodell.
 - Personenfilter und Schichtauswahl aus Mitglieder-Modell.
-- Neue Schichten mit stabiler `ownerId` und Legacy-Fallback.
+- Neue Schichten mit stabiler `ownerId` und Legacy-Fallback.\n- Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
