@@ -164,3 +164,9 @@ test('batch cloud save refuses missing user identity', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
   await assert.rejects(() => saveOwnerEvents(supabase,[{id:'x',type:'family',title:'x',date:'2026-09-25'}],'h1',''), /userId is required/);
 });
+
+
+test('cloud loading surfaces database failures', async () => {
+  const query={select(){return this;},eq(){return this;},order(){return Promise.resolve({data:null,error:new Error('offline')});}};
+  await assert.rejects(() => loadOwnerEvents({from:()=>query},'h1'), /offline/);
+});
