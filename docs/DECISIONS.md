@@ -1,6 +1,6 @@
 # DECISIONS
 
-Stand: 24.09.2026
+Stand: 25.09.2026
 
 ## D-001 — Schrittweise Entwicklung
 Änderungen erfolgen in kleinen, abgeschlossenen Paketen. Tests und CI sind Gate vor dem nächsten Paket.
@@ -25,3 +25,4 @@ Datenmodell, Rechte und Synchronisationslogik werden stabilisiert, bevor darauf 
 
 ## D-008 — Work gezielt einsetzen
 Kleine/mittlere Pakete bleiben im Projektchat. Repo-weite Audits, große Migrationen und Meilensteinprüfungen kommen in die WORK QUEUE.
+\n\n## D-009 — Kalender-Personen sind keine Auth-Memberships\n`household_members` speichert fachliche Personen für Filter, Farben und Schichtzuordnung. Diese Datensätze verleihen keinerlei Login- oder Haushaltszugriff. Authentifizierte Zugriffsrollen bleiben ausschließlich in `memberships` und werden erst über einen separat abgesicherten Einladungs-/Beitrittsfluss erweitert. Bis dahin darf nur der Haushalts-Owner `household_members` lesen oder verändern.\n
