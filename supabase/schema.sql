@@ -53,6 +53,18 @@ alter table public.households enable row level security;
 alter table public.memberships enable row level security;
 alter table public.calendar_events enable row level security;
 
+-- Keep the public Data API surface minimal. Anonymous users never need direct
+-- table access; authenticated users receive only the operations backed by RLS.
+revoke all on table public.households from anon;
+revoke all on table public.memberships from anon;
+revoke all on table public.calendar_events from anon;
+revoke all on table public.households from authenticated;
+revoke all on table public.memberships from authenticated;
+revoke all on table public.calendar_events from authenticated;
+grant select, insert, update on table public.households to authenticated;
+grant select on table public.memberships to authenticated;
+grant select, insert, update, delete on table public.calendar_events to authenticated;
+
 create policy households_read on public.households for select to authenticated using (public.is_household_member(id));
 create policy households_create on public.households for insert to authenticated with check (owner_id=(select auth.uid()));
 create policy memberships_read on public.memberships for select to authenticated using (public.is_household_member(household_id));
