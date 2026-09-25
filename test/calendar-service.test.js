@@ -133,3 +133,10 @@ test('cloud loading refuses missing household scope', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
   await assert.rejects(() => loadOwnerEvents(supabase,''), /householdId is required/);
 });
+
+
+test('single cloud save refuses missing household scope', async () => {
+  const {saveOwnerEvent}=await import('../src/calendar-service.js');
+  const supabase={from:()=>{throw new Error('database must not be called');}};
+  await assert.rejects(() => saveOwnerEvent(supabase,{id:'x',type:'family',title:'x',date:'2026-09-25'},'', 'u1'), /householdId is required/);
+});
