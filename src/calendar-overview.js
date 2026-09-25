@@ -30,6 +30,27 @@ export function filterCalendarEntries(
   });
 }
 
+export function shiftOwnerDisplayName(entry, personNamesById = {}) {
+  if (entry?.type !== 'shift') return '';
+  if (entry.ownerId && personNamesById[entry.ownerId]) {
+    return personNamesById[entry.ownerId];
+  }
+  return entry.owner || '';
+}
+
+export function shiftOwnerStyleKey(entry, personNamesById = {}) {
+  if (entry?.type !== 'shift') return 'unknown';
+  let key = entry.ownerId;
+  if (!key && entry.owner) {
+    key = Object.entries(personNamesById)
+      .find(([, name]) => name === entry.owner)?.[0];
+  }
+  key ||= entry.owner || 'unknown';
+  return String(key)
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-');
+}
+
 export function calendarDates(referenceDate, monthDate, mode = 'month') {
   if (mode === 'month') return calendarDays(monthDate);
   const start = new Date(
