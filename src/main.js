@@ -341,6 +341,11 @@ function dayDialogMarkup() {
     '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +
     '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend" value="' +
     h(existing?.title || '') + '"></label>' +
+    '<label class="wide">Art<select name="eventKind">' +
+    [['event', 'Termin'], ['birthday', 'Geburtstag']]
+      .map(([value, label]) => '<option value="' + value + '"' +
+        ((existing?.eventKind || 'event') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
+    '</select></label>' +
     '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
     '<label>Ende<input name="end" type="time" value="' + h(existing?.end || '') + '"></label>' +
     '<label class="wide">Wiederholung<select name="recurrence">' +
@@ -374,7 +379,14 @@ function handleDayDialogSubmit(event) {
     start: String(data.get('start') || ''),
     end: String(data.get('end') || ''),
     recurrence: String(data.get('recurrence') || 'none'),
+    eventKind: String(data.get('eventKind') || 'event'),
   };
+  if (item.eventKind === 'birthday') {
+    item.start = '';
+    item.end = '';
+    item.endDate = undefined;
+    item.recurrence = 'yearly';
+  }
   if (!item.title || !item.date) return;
   dayDialogDate = null;
   dayDialogEventId = null;
