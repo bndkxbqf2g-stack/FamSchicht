@@ -1,8 +1,12 @@
 export function toDatabaseEvent(event, householdId, userId) {
   if (!householdId) throw new Error('householdId is required for database events');
   if (!userId) throw new Error('userId is required for database events');
+  if (event.endDate && event.endDate < event.date) {
+    throw new Error('endDate must not be before date');
+  }
   const startsAt = localDateTime(event.date, event.start || '00:00');
-  let endsAt = localDateTime(event.date, event.end || endFallback(event.start));
+  const endDate = event.endDate || event.date;
+  let endsAt = localDateTime(endDate, event.end || endFallback(event.start));
   if (endsAt <= startsAt) endsAt.setDate(endsAt.getDate() + 1);
   return {
     id: event.id,
@@ -29,6 +33,9 @@ export function fromDatabaseEvent(row) {
     type: row.category === 'shift' ? 'shift' : 'family',
     title: row.title,
     date: localDateKey(start),
+    endDate: row.category !== 'shift' && localDateKey(end) !== localDateKey(start)
+      ? localDateKey(end)
+      : undefined,
     start: hasMeaningfulTime(start) ? localTime(start) : '',
     end: hasMeaningfulTime(end) ? localTime(end) : '',
     source: row.metadata?.source || 'supabase',
