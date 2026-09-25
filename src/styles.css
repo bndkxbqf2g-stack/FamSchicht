@@ -11,3 +11,56 @@
 .shift-owner-label{margin:0 0 6px;font-size:12px;color:#71877d;font-weight:650}.month{position:sticky;top:0;background:white;z-index:4;padding:4px 0}.month button{width:44px;height:44px;border-radius:50%;font-size:22px;padding:0}.panel:first-of-type{overflow:hidden}@media(max-width:600px){.month h2{margin:8px 0}.calendar>b{font-size:10px}.day>b{display:block;text-align:right}.entry.shift{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 
 .entry.shift.owner-unknown{background:#eef0ed;color:#4b514d}
+
+
+/* FamilyCal-inspired command center: original FamSchicht implementation */
+:root{
+  --app-bg:#f6f3ee;
+  --surface:#ffffff;
+  --surface-soft:#fbfaf7;
+  --text:#24312d;
+  --muted:#7b8782;
+  --line:#e7e4de;
+  --accent:#315f52;
+  --accent-soft:#e8f0ec;
+  --martin:#d76e69;
+  --martin-soft:#f8e5e3;
+  --steffi:#668fc5;
+  --steffi-soft:#e4edf8;
+}
+body{background:var(--app-bg);color:var(--text)}
+#app{max-width:none;margin:0;padding:0}
+.familycal-shell{min-height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}
+.app-sidebar{position:sticky;top:0;height:100vh;padding:24px 16px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:28px}
+.brand{display:flex;align-items:center;gap:11px;padding:0 7px}.brand-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:850}.brand strong{display:block;font-size:17px}.brand small{display:block;color:var(--muted);margin-top:2px}
+.side-nav{display:grid;gap:7px}.side-nav button{width:100%;border:0;background:transparent;color:#51605a;text-align:left;display:flex;align-items:center;gap:11px;font-weight:650;padding:11px 12px}.side-nav button span{width:22px;text-align:center;font-size:18px}.side-nav button:hover{background:#f5f4f0}.side-nav button.active{background:var(--accent-soft);color:var(--accent)}
+.sidebar-status{margin-top:auto;padding:10px 12px;border-radius:12px;background:#faf9f6;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:7px}.status-dot{width:8px;height:8px;border-radius:99px;background:#b2b8b5}.status-dot.online{background:#55a477}
+.app-workspace{min-width:0;padding:28px clamp(18px,3vw,44px) 56px;max-width:1500px;width:100%;margin:0 auto}
+.app-topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:0 2px 18px}.app-topbar h1{font-size:30px;letter-spacing:-.035em;margin:2px 0 0}.eyebrow{margin:0;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.member-legend{display:flex;gap:8px;flex-wrap:wrap}.member{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:750}.member.martin{background:var(--martin-soft);color:#8b3e3a}.member.steffi{background:var(--steffi-soft);color:#315f95}
+.calendar-panel{margin:0;padding:20px;border-radius:22px;box-shadow:0 12px 40px rgba(50,49,43,.06);border:1px solid #edeae4}
+.calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}.calendar-toolbar .month{position:static;background:transparent;padding:0;gap:8px}.calendar-toolbar .month h2{min-width:190px;margin:0;font-size:20px;text-transform:capitalize}.calendar-toolbar .month button{width:36px;height:36px;border:1px solid var(--line);font-size:18px;background:#fff}
+.calendar-actions{display:flex;gap:8px}.calendar-actions button{padding:9px 12px}
+.calendar-summary{display:flex;gap:18px;flex-wrap:wrap;margin:0 0 14px;padding:10px 12px;background:var(--surface-soft);border-radius:12px;color:var(--muted);font-size:12px}.calendar-summary strong{color:var(--text)}
+.calendar{gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}.calendar>b{background:#faf9f6;padding:9px 4px;color:#8b948f}.day,.day.empty{border:0;border-radius:0;box-shadow:none;background:#fff;min-height:112px;padding:8px}.day.empty{background:#faf9f7}.day[data-day]:hover{background:#fbfcfa}.day>b{font-size:12px;color:#5d6a65}.today{box-shadow:inset 0 0 0 2px var(--accent);background:#fbfdfc}.today>b{display:inline-grid;place-items:center;min-width:25px;height:25px;border-radius:99px;background:var(--accent);color:#fff}
+.entry{border-radius:6px;margin-top:5px;padding:4px 5px;font-size:10px;border-left:3px solid #9ab3a8;background:#eef4f1;color:#33453e}.entry-time{font-variant-numeric:tabular-nums;margin-right:4px;opacity:.75}.entry.shift.owner-martin{background:var(--martin-soft);border-left-color:var(--martin);color:#7c3531}.entry.shift.owner-steffi{background:var(--steffi-soft);border-left-color:var(--steffi);color:#2c5889}.entry.shift.owner-unknown{background:#efefed;border-left-color:#a3a8a5;color:#4f5753}.entry button{float:right;border:0;background:transparent;padding:0 2px}
+.calendar-hint{margin:12px 2px 0;color:var(--muted);font-size:12px}
+.today-board{display:grid;gap:14px}.today-hero{background:linear-gradient(135deg,#ffffff,#f7faf8);border:1px solid var(--line);border-radius:22px;padding:22px;display:flex;align-items:center;justify-content:space-between;gap:18px}.today-hero h2{margin:5px 0 0;font-size:24px}.today-actions{display:flex;gap:8px;flex-wrap:wrap}.today-list{display:grid;gap:9px}.today-item{display:grid;grid-template-columns:100px 1fr auto;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-left:4px solid #9ab3a8;border-radius:15px;padding:14px 16px;box-shadow:0 6px 24px rgba(50,49,43,.04)}.today-item.shift.owner-martin{border-left-color:var(--martin)}.today-item.shift.owner-steffi{border-left-color:var(--steffi)}.today-item time{font-weight:750;font-size:13px;color:#56635e}.today-item strong{display:block}.today-item small{display:block;color:var(--muted);margin-top:3px}.today-item>button{border:0;background:transparent;font-size:18px;color:#8a918e}
+.empty-state{padding:32px;border:1px dashed #d8d7d1;border-radius:18px;background:#fff;text-align:center}.empty-state strong,.empty-state span{display:block}.empty-state span{color:var(--muted);margin-top:5px}
+.custody-card{margin-top:18px}.custody-card h2{margin-top:0}
+.shift-capture{border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 42px rgba(32,45,40,.12)}
+#auth,#household{max-width:1500px;margin:12px auto 0;padding:0 clamp(18px,3vw,44px)}
+#auth form,#auth .auth-status,#household{border:1px solid var(--line);background:#fff;box-shadow:none}
+
+@media(max-width:820px){
+  .familycal-shell{display:block;padding-bottom:72px}
+  .app-sidebar{position:fixed;inset:auto 0 0 0;height:auto;z-index:15;border-right:0;border-top:1px solid var(--line);padding:7px 10px;background:rgba(255,255,255,.97);backdrop-filter:blur(14px)}
+  .brand,.sidebar-status{display:none}
+  .side-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.side-nav button{display:grid;justify-items:center;gap:1px;padding:7px 3px;font-size:10px;text-align:center}.side-nav button span{font-size:18px}
+  .app-workspace{padding:18px 10px 34px}.app-topbar{align-items:flex-start}.app-topbar h1{font-size:25px}.member-legend{display:none}
+  .calendar-panel{padding:10px;border-radius:16px}.calendar-toolbar{align-items:flex-start}.calendar-toolbar .month h2{min-width:0;font-size:17px}.calendar-actions #shift-capture{display:none}
+  .calendar-summary{gap:10px;font-size:10px;padding:8px}
+  .calendar{gap:1px}.calendar>b{font-size:9px;padding:6px 2px}.day,.day.empty{min-height:78px;padding:4px}.day>b{font-size:10px}.today>b{min-width:20px;height:20px}.entry{font-size:8px;padding:3px 3px;border-left-width:2px}.entry-time{display:none}
+  .today-hero{padding:16px;align-items:flex-start;flex-direction:column}.today-item{grid-template-columns:76px 1fr auto;padding:12px}
+  #auth,#household{padding:0 10px}
+}
