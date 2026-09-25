@@ -112,3 +112,13 @@ test('cloud deletion is scoped to event id and household', async () => {
   await deleteOwnerEvent(supabase,'event-1','house-1');
   assert.deepEqual(filters,[['id','event-1'],['household_id','house-1']]);
 });
+
+
+test('loading events is scoped to the active household', async () => {
+  const filters=[];
+  const query={select(){return this;},eq(key,value){filters.push([key,value]);return this;},order(){return Promise.resolve({data:[],error:null});}};
+  const supabase={from:()=>query};
+  const {loadOwnerEvents}=await import('../src/calendar-service.js');
+  await loadOwnerEvents(supabase,'house-2');
+  assert.deepEqual(filters,[['household_id','house-2']]);
+});
