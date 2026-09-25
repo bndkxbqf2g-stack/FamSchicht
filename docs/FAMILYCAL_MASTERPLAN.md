@@ -30,8 +30,8 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Personenfilter direkt im Kalender
 - [x] Kategorie-/Farbfilter
 - [x] Schnelltermin
-- [ ] vollständiger Termin-Editor
-- [ ] mehrtägige Termine
+- [x] vollständiger Termin-Editor
+- [x] mehrtägige Termine
 - [ ] Wiederholungen: täglich / wöchentlich / monatlich / jährlich
 - [ ] Geburtstage und ganztägige Ereignisse
 - [ ] Drag/Move nur falls stabil auf Touch und Desktop
@@ -133,12 +133,6 @@ Phase 1 vollständig abschließen → Phase 2 → Phase 3 vervollständigen → 
 Die FamilyCal-inspirierte App-Shell, Monats-, Wochen- und Tagesansicht, Heute-Ansicht, mobile Navigation, Schicht-Schnellerfassung, Supabase-Persistenz, Haushalts-Scoping und zentrale Regressionstests sind vorhanden.
 
 ## Wiedereinstieg nach dem aktuellen Entwicklungsblock
-Personen- und Kategoriefilter arbeiten auf dem bestehenden Datenmodell: Martin/Steffi filtern die vorhandenen Schicht-Owner, gemeinsame Familientermine bleiben sichtbar; Familie/Dienste können separat gefiltert werden. Der Kalender besitzt außerdem einen Schnelltermin für das fokussierte Datum.
+Der vollständige Termin-Editor ist umgesetzt: bestehende Familientermine werden über die Supabase-Updateoperation geändert statt dupliziert. Mehrtägige Familientermine werden mit ihrem Datumsbereich persistiert, nach dem Cloud-Roundtrip erhalten und an allen betroffenen Kalendertagen dargestellt. Regressionstests decken Update und Mehrtagstermine ab.
 
-Zugehörige Commits dieses Blocks:
-- `a1ddaa7` Filterlogik
-- `5c33ef8` Regressionstest
-- `94d2eb7` Filter-/Schnelltermin-UI
-- `b455faf` responsive Filterdarstellung
-
-Der nächste sichere Phase-1-Schritt ist der vollständige Termin-Editor. Dafür muss der bestehende Insert/Delete-Service um eine Update-Operation erweitert werden; danach können bestehende Termine bearbeitet werden. Mehrtägige Termine und Wiederholungen bleiben davon getrennte Folgeschritte.
+Der nächste sichere Phase-1-Schritt sind Wiederholungen (täglich / wöchentlich / monatlich / jährlich). Das bestehende Personenmodell bleibt dabei bewusst unverändert; Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
