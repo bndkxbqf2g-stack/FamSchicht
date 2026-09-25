@@ -3,6 +3,15 @@ import assert from 'node:assert/strict';
 import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, updateOwnerEvent, deleteOwnerEvent, loadOwnerEvents} from '../src/calendar-service.js';
 import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
 
+test('recurring family event keeps recurrence through database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'repeat-1', type: 'family', title: 'Training',
+    date: '2026-09-25', recurrence: 'weekly',
+  }, 'h1', 'u1');
+  assert.equal(row.metadata.recurrence, 'weekly');
+  assert.equal(fromDatabaseEvent(row).recurrence, 'weekly');
+});
+
 test('all-day family event remains on the same calendar date after round trip', () => {
   const row=toDatabaseEvent({id:'all-day',type:'family',title:'Ferien',date:'2026-09-24'},'h1','u1');
   const restored=fromDatabaseEvent(row);
