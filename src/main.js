@@ -9,6 +9,7 @@ import {
   memberNamesById,
   shiftEligibleMembers,
 } from './household-members.js';
+import {ensureOwnerHouseholdMembers} from './household-member-service.js';
 import {
   calendarDates,
   calendarTitle,
@@ -39,10 +40,25 @@ let cloud = null;
 let shiftCaptureDate = null;
 let dayDialogDate = null;
 let dayDialogEventId = null;
-const householdMembers = bootstrapHouseholdMembers;
-const shiftMembers = shiftEligibleMembers(householdMembers);
-const householdMemberNames = memberNamesById(householdMembers);
+let householdMembers = [...bootstrapHouseholdMembers];
+let shiftMembers = shiftEligibleMembers(householdMembers);
+let householdMemberNames = memberNamesById(householdMembers);
 let shiftOwnerId = shiftMembers[0]?.id || '';
+
+function applyHouseholdMembers(members) {
+  householdMembers = members?.length
+    ? [...members]
+    : [...bootstrapHouseholdMembers];
+  shiftMembers = shiftEligibleMembers(householdMembers);
+  householdMemberNames = memberNamesById(householdMembers);
+  if (!shiftMembers.some(member => member.id === shiftOwnerId)) {
+    shiftOwnerId = shiftMembers[0]?.id || '';
+  }
+  if (personFilter !== 'all' &&
+      !householdMembers.some(member => member.id === personFilter)) {
+    personFilter = 'all';
+  }
+}
 month.setDate(1);
 
 const app = document.querySelector('#app');
@@ -52,6 +68,7 @@ async function connectCloud() {
   const user = data?.user;
   if (!user) {
     cloud = null;
+    applyHouseholdMembers(bootstrapHouseholdMembers);
     entries = load();
     render();
     return;
@@ -65,12 +82,24 @@ async function connectCloud() {
 
   if (error || !homes?.length) {
     cloud = null;
+    applyHouseholdMembers(bootstrapHouseholdMembers);
     entries = load();
     render();
     return;
   }
 
   cloud = {householdId: homes[0].id, userId: user.id};
+  try {
+    const persistedMembers = await ensureOwnerHouseholdMembers(
+      supabase,
+      cloud.householdId,
+    );
+    applyHouseholdMembers(persistedMembers);
+  } catch (err) {
+    console.error('Haushaltsmitglieder konnten nicht synchronisiert werden', err);
+    applyHouseholdMembers(bootstrapHouseholdMembers);
+  }
+
   try {
     entries = await loadOwnerEvents(supabase, cloud.householdId);
     render();
