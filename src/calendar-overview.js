@@ -14,12 +14,13 @@ export function entriesForDay(entries, date) {
 
 export function filterCalendarEntries(
   entries,
-  {person = 'all', category = 'all'} = {},
+  {person = 'all', category = 'all', personNamesById = {}} = {},
 ) {
   return entries.filter(entry => {
     if (category !== 'all' && entry.type !== category) return false;
-    if (person !== 'all' && entry.type === 'shift' && entry.owner !== person) {
-      return false;
+    if (person !== 'all' && entry.type === 'shift') {
+      const legacyOwnerName = personNamesById[person];
+      if (entry.ownerId !== person && entry.owner !== legacyOwnerName) return false;
     }
     return true;
   });
