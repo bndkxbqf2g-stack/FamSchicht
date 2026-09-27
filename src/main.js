@@ -158,7 +158,7 @@ function render() {
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
-          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(e, householdMemberNames)) : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
+          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(e, householdMemberNames)) : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (e.type === 'family' ? ' data-edit="' + h(e.id) + '"' : '') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
