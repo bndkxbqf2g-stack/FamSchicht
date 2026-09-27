@@ -17,7 +17,13 @@ export function filterCalendarEntries(
   {person = 'all', category = 'all', personNamesById = {}} = {},
 ) {
   return entries.filter(entry => {
-    if (category !== 'all' && entry.type !== category) return false;
+    if (category !== 'all') {
+      const isTypeCategory = category === 'family' || category === 'shift';
+      if (isTypeCategory && entry.type !== category) return false;
+      if (!isTypeCategory && (entry.type !== 'family' || entry.eventKind !== category)) {
+        return false;
+      }
+    }
     if (person !== 'all' && entry.type === 'shift') {
       if (entry.ownerId) {
         if (entry.ownerId !== person) return false;
