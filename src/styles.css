@@ -141,3 +141,11 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
+
+
+/* iPhone safe-area support for the mobile navigation */
+@media(max-width:700px){
+  body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+  .app-sidebar{bottom:calc(10px + env(safe-area-inset-bottom))}
+  .side-nav button{min-height:48px}
+}
