@@ -68,3 +68,76 @@ body{background:var(--app-bg);color:var(--text)}
   .today-hero{padding:16px;align-items:flex-start;flex-direction:column}.today-item{grid-template-columns:76px 1fr auto;padding:12px}
   #auth,#household{padding:0 10px}
 }
+
+
+/* Mobile-first polish: touch-friendly navigation and accessible interaction */
+:root{
+  --focus-ring:0 0 0 3px rgba(49,95,82,.22);
+}
+button,input,select{min-height:42px}
+button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:0;
+  box-shadow:var(--focus-ring);
+}
+.side-nav button{min-height:46px;border-radius:12px}
+.side-nav button.active{font-weight:800}
+.calendar-actions button,.calendar-modes button{min-height:40px}
+.calendar-toolbar .month button{min-height:36px}
+.entry button{min-height:24px}
+@media(max-width:700px){
+  body{padding-bottom:74px}
+  .familycal-shell{display:block}
+  .app-sidebar{
+    position:fixed;
+    inset:auto 10px 10px;
+    width:auto;
+    height:auto;
+    z-index:30;
+    padding:7px;
+    border:1px solid rgba(49,95,82,.14);
+    border-radius:18px;
+    box-shadow:0 14px 34px rgba(24,48,39,.18);
+    display:block;
+  }
+  .brand,.sidebar-status{display:none}
+  .side-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  .side-nav button{
+    justify-content:center;
+    flex-direction:column;
+    gap:2px;
+    padding:7px 4px;
+    font-size:10px;
+    line-height:1.1;
+  }
+  .side-nav button span{width:auto;font-size:20px;line-height:1}
+  .app-workspace{padding:14px 10px 20px}
+  .app-topbar{align-items:flex-start;display:block;padding-bottom:12px}
+  .app-topbar h1{font-size:26px}
+  .member-legend{margin-top:10px}
+  .calendar-panel{padding:11px;border-radius:18px}
+  .calendar-toolbar{display:grid;gap:10px}
+  .calendar-toolbar .month{order:0}
+  .calendar-actions{order:1;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .calendar-actions .calendar-modes{grid-column:1/-1;justify-content:stretch}
+  .calendar-modes button{flex:1}
+  .calendar-summary{gap:8px;margin-bottom:10px}
+  .calendar-filters{display:grid;gap:7px}
+  .filter-group{overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px}
+  .filter-group button{white-space:nowrap}
+  .calendar{border-radius:11px}
+  .day{min-height:82px;padding:5px}
+  .entry{font-size:10px;line-height:1.15}
+  .entry-time{display:none}
+  .today-hero{display:block;padding:17px;border-radius:18px}
+  .today-hero h2{font-size:21px}
+  .today-actions{margin-top:14px}
+  form{grid-template-columns:1fr}
+  .wide{grid-column:auto}
+}
+@media(min-width:701px){
+  .side-nav button{transition:background .16s ease,color .16s ease,transform .16s ease}
+  .side-nav button:hover{transform:translateX(2px)}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
