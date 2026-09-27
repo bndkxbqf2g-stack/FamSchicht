@@ -181,3 +181,16 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 @media(max-width:700px){
   .empty-state{min-height:116px;padding:18px}
 }
+
+
+/* Family category cues */
+.entry.family.school,.today-item.school{background:#e7efff;border-left-color:#6d8fd4;color:#2d4d89}
+.entry.family.sport,.today-item.sport{background:#e8f7e9;border-left-color:#65a86d;color:#2e6a37}
+.entry.family.doctor,.today-item.doctor{background:#fbe7ee;border-left-color:#d27593;color:#823650}
+.entry.family.holiday,.today-item.holiday{background:#eee8fb;border-left-color:#9a7bc8;color:#5a4289}
+.entry.family.task,.today-item.task{background:#fff4d8;border-left-color:#d6a43b;color:#77581b}
+.entry.family.school::before,.today-item.school::before{content:'📚 ';font-size:11px}
+.entry.family.sport::before,.today-item.sport::before{content:'⚽ ';font-size:11px}
+.entry.family.doctor::before,.today-item.doctor::before{content:'⚕ ';font-size:11px}
+.entry.family.holiday::before,.today-item.holiday::before{content:'☀ ';font-size:11px}
+.entry.family.task::before,.today-item.task::before{content:'✓ ';font-weight:800}
