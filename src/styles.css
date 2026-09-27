@@ -149,3 +149,14 @@ button:focus-visible,input:focus-visible,select:focus-visible{
   .app-sidebar{bottom:calc(10px + env(safe-area-inset-bottom))}
   .side-nav button{min-height:48px}
 }
+
+
+/* Event-type cues */
+.entry.family.event{border-left-color:#9ab3a8}
+.entry.family.birthday{
+  background:#fff1d8;
+  border-left-color:#e4a63d;
+  color:#79551b;
+}
+.entry.family.birthday::before{content:'🎂 ';font-size:11px}
+.today-item.birthday{border-left-color:#e4a63d;background:#fff8ea}
