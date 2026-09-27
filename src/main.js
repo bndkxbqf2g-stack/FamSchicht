@@ -388,7 +388,7 @@ function dayDialogMarkup() {
     '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend" value="' +
     h(existing?.title || '') + '"></label>' +
     '<label class="wide">Art<select name="eventKind">' +
-    [['event', 'Termin'], ['birthday', 'Geburtstag']]
+    [['event', 'Allgemeiner Termin'], ['birthday', 'Geburtstag'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgabe']]
       .map(([value, label]) => '<option value="' + value + '"' +
         ((existing?.eventKind || 'event') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
     '</select></label>' +
