@@ -142,7 +142,7 @@ function render() {
     memberFilterOptions(householdMembers).map(([id, label]) =>
       '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '">' + label + '</button>').join('') +
     '</div><div class="filter-group" aria-label="Kategoriefilter">' +
-    [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste']].map(([id, label]) =>
+    [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben']].map(([id, label]) =>
       '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div>' +

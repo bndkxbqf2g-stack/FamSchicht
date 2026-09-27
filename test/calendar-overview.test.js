@@ -164,3 +164,25 @@ test('month summary separates shifts from family events', () => {
 
   assert.deepEqual(summary, {total: 3, shifts: 1, family: 2});
 });
+
+
+test('category filter isolates family event categories without hiding shifts', () => {
+  const entries = [
+    {type: 'family', eventKind: 'school', title: 'Elternabend'},
+    {type: 'family', eventKind: 'sport', title: 'Fußball'},
+    {type: 'shift', title: 'Spätdienst'},
+  ];
+
+  expectTitles(
+    filterCalendarEntries(entries, {category: 'school'}),
+    ['Elternabend'],
+  );
+  expectTitles(
+    filterCalendarEntries(entries, {category: 'sport'}),
+    ['Fußball'],
+  );
+  expectTitles(
+    filterCalendarEntries(entries, {category: 'shift'}),
+    ['Spätdienst'],
+  );
+});
