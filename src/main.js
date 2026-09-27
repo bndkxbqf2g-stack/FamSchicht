@@ -203,7 +203,7 @@ function todayOverviewMarkup(today) {
     '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
     '<div class="today-list">' +
     (items.length
-      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(entry, householdMemberNames)) : '') + '"' +
+      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(entry, householdMemberNames)) : ' ' + h(entry.eventKind || 'event')) + '"' +
           (entry.type === 'family' ? ' data-edit="' + h(entry.id) + '"' : '') + '>' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
