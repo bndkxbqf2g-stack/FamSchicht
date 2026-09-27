@@ -160,3 +160,24 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 }
 .entry.family.birthday::before{content:'🎂 ';font-size:11px}
 .today-item.birthday{border-left-color:#e4a63d;background:#fff8ea}
+
+
+/* Helpful empty states */
+.empty-state{
+  display:grid;
+  gap:6px;
+  place-items:center;
+  min-height:132px;
+  padding:24px;
+  border:1px dashed #d5dfd9;
+  border-radius:16px;
+  background:linear-gradient(145deg,#fbfdfc,#f5f9f6);
+  color:var(--muted);
+  text-align:center;
+}
+.empty-state::before{content:'✦';font-size:24px;color:var(--accent)}
+.empty-state strong{color:var(--text);font-size:15px}
+.empty-state span{font-size:13px}
+@media(max-width:700px){
+  .empty-state{min-height:116px;padding:18px}
+}
