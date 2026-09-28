@@ -1,6 +1,6 @@
 # PROJECT STATUS
 
-Stand: 25.09.2026
+Stand: 28.09.2026
 
 ## Ziel
 FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Kindertermine, Umgangszeiten und persönliche Schichtplanung.
@@ -48,3 +48,12 @@ Serverseitige Einladungsoperationen auf Basis von `private.household_invitations
 - `private.household_invitations` speichert nur SHA-256-kompatible 64-stellige Token-Hashes und Statusdaten.
 - `anon` und `authenticated` besitzen weder Schema-USAGE noch Tabellen-SELECT auf dem privaten Einladungsspeicher.
 - Partner-/Coparent-Rechte wurden ausdrücklich noch nicht erweitert.
+
+
+## Update 28.09.2026 – Übersicht und Kalender-UX
+- Konto-/Haushaltseinrichtung ist strukturell vom Kalenderbereich getrennt.
+- Kalenderoptik wurde an die bereitgestellte Referenz angelehnt: klare blaue Steuerung, sichtbares Tagesraster und kompakte mobile Darstellung.
+- Terminarten unterstützen Allgemeiner Termin, Geburtstag, Schule, Sport, Arzt, Urlaub und Aufgabe mit eigener visueller Kennzeichnung.
+- Personen- und Bereichsfilter werden auch in der Heute-Ansicht angewendet.
+- Der mobile Termineditor ist ein einspaltiges, scrollbares Bottom-Sheet und bleibt oberhalb der mobilen Navigation bedienbar.
+- Der Synchronisationsstatus ist auf mobilen Geräten sichtbar.
