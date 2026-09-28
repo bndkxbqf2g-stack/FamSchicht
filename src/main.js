@@ -17,6 +17,7 @@ import {
   entryOccursOnDate,
   eventTimeLabel,
   filterCalendarEntries,
+  visibleEntriesForDay,
   monthSummary,
   shiftCalendarDate,
   shiftOwnerDisplayName,
@@ -195,7 +196,11 @@ function render() {
 }
 
 function todayOverviewMarkup(today) {
-  const items = entriesForDay(entries, today);
+  const items = visibleEntriesForDay(entries, today, {
+    person: personFilter,
+    category: categoryFilter,
+    personNamesById: householdMemberNames,
+  });
   const label = new Date(today + 'T12:00:00').toLocaleDateString('de-DE', {
     weekday: 'long', day: '2-digit', month: 'long',
   });

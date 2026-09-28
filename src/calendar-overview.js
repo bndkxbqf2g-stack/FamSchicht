@@ -12,6 +12,14 @@ export function entriesForDay(entries, date) {
     .sort((a, b) => (a.start || '99:99').localeCompare(b.start || '99:99') || a.title.localeCompare(b.title));
 }
 
+export function visibleEntriesForDay(
+  entries,
+  date,
+  filters = {},
+) {
+  return entriesForDay(filterCalendarEntries(entries, filters), date);
+}
+
 export function filterCalendarEntries(
   entries,
   {person = 'all', category = 'all', personNamesById = {}} = {},

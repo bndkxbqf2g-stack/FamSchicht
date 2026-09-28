@@ -7,6 +7,7 @@ import {
   entryOccursOnDate,
   eventTimeLabel,
   filterCalendarEntries,
+  visibleEntriesForDay,
   monthSummary,
   shiftCalendarDate,
   shiftOwnerDisplayName,
@@ -184,5 +185,32 @@ test('category filter isolates family event categories without hiding shifts', (
   expectTitles(
     filterCalendarEntries(entries, {category: 'shift'}),
     ['Spätdienst'],
+  );
+});
+
+
+test('today entries respect person and category filters', () => {
+  const entries = [
+    {type: 'family', eventKind: 'school', title: 'Elternabend', date: '2026-09-28'},
+    {type: 'family', eventKind: 'sport', title: 'Fußball', date: '2026-09-28'},
+    {type: 'shift', ownerId: 'martin', title: 'Frühdienst', date: '2026-09-28'},
+    {type: 'shift', ownerId: 'steffi', title: 'Spätdienst', date: '2026-09-28'},
+  ];
+  const personNamesById = {martin: 'Martin', steffi: 'Steffi'};
+
+  assert.deepEqual(
+    visibleEntriesForDay(entries, '2026-09-28', {
+      person: 'steffi',
+      category: 'shift',
+      personNamesById,
+    }).map(entry => entry.title),
+    ['Spätdienst'],
+  );
+  assert.deepEqual(
+    visibleEntriesForDay(entries, '2026-09-28', {
+      category: 'school',
+      personNamesById,
+    }).map(entry => entry.title),
+    ['Elternabend'],
   );
 });
