@@ -184,7 +184,7 @@ function render() {
     (view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : 'Kalender') +
     '</h1></div><div class="member-legend">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '">' + h(member.name) + '</span>').join('') +
-    '</div></header>' +
+    '</div><div class="mobile-sync-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' + (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></header>' +
     body +
     (shiftCaptureDate ? shiftCaptureMarkup() : '') +
     (dayDialogDate ? dayDialogMarkup() : '') +
