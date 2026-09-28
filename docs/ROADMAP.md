@@ -1,9 +1,9 @@
 # ROADMAP
 
-Stand: 25.09.2026
+Stand: 28.09.2026
 
 ## Aktive Reihenfolge
-1. Serverseitige Einladungen erzeugen/widerrufen/annehmen; Membership-Anlage atomar und einmalig.
+1. Einladungserzeugung und atomare Einladungsannahme mit separater Einstellungen-UI verifizieren; Widerruf bleibt als Service vorhanden.
 2. Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten ausführen.
 3. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
 4. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
@@ -22,7 +22,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 
 ## WORK QUEUE
 ### READY
-- Keine Aufgabe. Der nächste Einladungsbaustein ist klein genug für den Projektchat.
+- Getrennte Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen; danach die Zugriffsmatrix ausführen.
 
 ### WAITING
 - Repo-weites Architektur-/Security-Audit nach Abschluss der ersten sicheren Mehrbenutzer-Synchronisierung.
@@ -38,7 +38,8 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Zentrales Haushaltsmitglieder-Domänenmodell.
 - Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
 - Schichtfilter, Darstellung und Persistenz verwenden stabile `ownerId`; Legacy-Namen bleiben Fallback.
-- Sicherer Einladungs-/Beitrittsfluss fachlich dokumentiert.
+- Sicherer Einladungs-/Beitrittsfluss fachlich dokumentiert und serverseitig umgesetzt.
 - Getesteter Client-Domänenvertrag für E-Mail, Rolle und opaken Token.
 - Privater Einladungsspeicher live installiert; Browserrollen haben keinen Zugriff.
+- Einladungs-UI im ausgelagerten Einstellungen-Bereich mit Magic-Link-Rückkehr und Regressionstest.
 - Fehlende FK-Indizes live ergänzt und im Repository gespiegelt.
