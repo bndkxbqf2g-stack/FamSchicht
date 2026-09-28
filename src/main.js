@@ -138,14 +138,14 @@ function render() {
     '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
-    '<div class="calendar-filters"><div class="filter-group" aria-label="Personenfilter">' +
+    '<div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
     memberFilterOptions(householdMembers).map(([id, label]) =>
       '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '">' + label + '</button>').join('') +
-    '</div><div class="filter-group" aria-label="Kategoriefilter">' +
+    '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
     [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben']].map(([id, label]) =>
       '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
-    '</div></div>' +
+    '</div></div></div>' +
     '<div class="calendar ' + calendarMode + '-view">' +
     (calendarMode === 'day' ? '' : calendarMode === 'month'
       ? weekdayLabels.map(d => '<b>' + d + '</b>').join('')

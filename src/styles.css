@@ -194,3 +194,27 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 .entry.family.doctor::before,.today-item.doctor::before{content:'⚕ ';font-size:11px}
 .entry.family.holiday::before,.today-item.holiday::before{content:'☀ ';font-size:11px}
 .entry.family.task::before,.today-item.task::before{content:'✓ ';font-weight:800}
+
+
+/* Clear filter hierarchy */
+.calendar-filters{
+  align-items:flex-start;
+  padding:12px;
+  background:#fafbf9;
+  border:1px solid #edf0ec;
+  border-radius:14px;
+}
+.filter-block{display:grid;gap:6px;min-width:0}
+.filter-heading{
+  color:var(--muted);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.filter-block .filter-group{min-width:0}
+@media(max-width:700px){
+  .calendar-filters{padding:10px}
+  .filter-block{width:100%}
+  .filter-heading{font-size:9px}
+}
