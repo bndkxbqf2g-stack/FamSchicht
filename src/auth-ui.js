@@ -1,9 +1,36 @@
 import {supabase,sendLoginLink,signOut} from './auth.js';
+import {acceptHouseholdInvitation} from './invitation-service.js';
+import {clearInvitationParam} from './invitation-link.js';
 import {escapeHtml} from './security.js';
 
 const root = document.querySelector('#auth');
 const COOLDOWN_MS = 5 * 60 * 1000;
+const pendingInvite = new URLSearchParams(window.location.search).get('invite');
 let lastRequest = 0;
+let inviteHandled = false;
+
+function showInviteMessage(text) {
+  const target = root.querySelector('.auth-status, #login');
+  if (!target) return;
+  const message = document.createElement('p');
+  message.className = 'note invitation-status';
+  message.setAttribute('aria-live', 'polite');
+  message.textContent = text;
+  target.append(message);
+}
+
+async function acceptPendingInvitation(user) {
+  if (!user || !pendingInvite || inviteHandled) return;
+  inviteHandled = true;
+  try {
+    await acceptHouseholdInvitation(supabase, pendingInvite);
+    const cleanUrl = clearInvitationParam(window.location.href);
+    window.history.replaceState({}, '', cleanUrl);
+    showInviteMessage('Einladung angenommen. Dein Familienzugang ist vorbereitet.');
+  } catch {
+    showInviteMessage('Einladung konnte nicht angenommen werden. Prüfe den Link oder melde dich mit der eingeladenen E-Mail-Adresse an.');
+  }
+}
 
 function show(user) {
   if (!root) return;
@@ -15,6 +42,7 @@ function show(user) {
       const {error} = await signOut();
       if (error) alert(error.message);
     };
+    void acceptPendingInvitation(user);
     return;
   }
   root.innerHTML = `<form id="login">
@@ -24,7 +52,7 @@ function show(user) {
     <button class="primary">Anmeldelink senden</button>
     <p id="login-message" class="note" aria-live="polite">
       Falls du bereits angemeldet bist, brauchst du keinen neuen Link.
-      Deine persönlichen Termine werden noch nicht synchronisiert.
+      Nach der Anmeldung wird eine offene Einladung automatisch geprüft.
     </p>
   </form>`;
   const form = root.querySelector('#login');

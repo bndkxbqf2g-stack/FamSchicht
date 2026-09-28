@@ -23,14 +23,14 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Kindertermine, 
 Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach serverseitigem Einladungs-/Annahmepfad und erfolgreicher Zugriffsmatrix mit getrennten Konten erweitert. Keine service_role-/Secret-Schlüssel im Browser oder Repository.
 
 ## Bekannte Lücken
-- Serverseitige Erzeugung, Widerruf und atomare Annahme von Einladungen sind noch nicht implementiert.
+- Die Einladungs-UI ist jetzt im separaten Einstellungen-Bereich integriert; Erzeugung und atomare Annahme laufen über den serverseitigen Edge-/RPC-Pfad. Widerruf ist als Dienst vorhanden, aber noch nicht in der UI angeboten.
 - Mehrbenutzer-RLS für `partner`/`coparent` ist noch nicht aktiviert.
 - Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
 - Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
 
 ## Nächster Schritt
-Serverseitige Einladungsoperationen auf Basis von `private.household_invitations` implementieren und automatisiert prüfen. Danach mit getrennten Testkonten die Zugriffsmatrix ausführen. Live-RLS bleibt bis zu deren Erfolg owner-only.
+Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Danach die Zugriffsmatrix ausführen und erst anschließend Mehrbenutzer-RLS aktivieren. Live-RLS bleibt bis zu deren Erfolg owner-only.
 
 ## Update 25.09.2026 – Owner-only Mitglieder-Persistenz
 - `household_members` ist als eigene Supabase-Tabelle installiert und durch owner-only RLS geschützt.
