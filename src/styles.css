@@ -394,3 +394,83 @@ body{background:var(--source-canvas)}
     min-height:48px;
   }
 }
+
+
+/* Separate account and household setup area */
+#account-shell{
+  width:min(680px,calc(100% - 24px));
+  margin:24px auto 18px;
+}
+.account-intro{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  margin-bottom:14px;
+  padding:0 4px;
+}
+.account-mark{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  background:var(--accent,#315f52);
+  color:#fff;
+  font-weight:900;
+  font-size:20px;
+}
+.account-eyebrow{
+  margin:0;
+  color:var(--muted,#7b8782);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.account-intro h1{
+  margin:1px 0 2px;
+  font-size:25px;
+  line-height:1.1;
+}
+.account-intro p:last-child{
+  margin:0;
+  color:var(--muted,#7b8782);
+  font-size:13px;
+}
+.account-panels{display:grid;gap:12px}
+#account-shell #auth,
+#account-shell #household{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0;
+}
+#account-shell #auth form,
+#account-shell #auth .auth-status,
+#account-shell #household{
+  border:1px solid #dfe6e1;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 8px 24px rgba(35,68,55,.06);
+}
+#account-shell #auth form{
+  display:grid;
+  gap:10px;
+  padding:18px;
+}
+#account-shell #auth label{min-width:0}
+#account-shell #auth .primary,
+#account-shell #household .primary{width:max-content}
+#account-shell #household{padding:18px}
+#account-shell #household form{margin:0}
+#account-shell .note{line-height:1.45}
+@media(max-width:700px){
+  #account-shell{width:calc(100% - 20px);margin:14px auto}
+  .account-intro{padding:0 2px}
+  .account-intro h1{font-size:21px}
+  #account-shell #auth form,
+  #account-shell #auth .auth-status,
+  #account-shell #household{padding:15px;border-radius:16px}
+  #account-shell #auth .primary,
+  #account-shell #household .primary{width:100%}
+}

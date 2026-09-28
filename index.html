@@ -20,8 +20,20 @@
 <p id="startup-detail">Falls diese Meldung stehen bleibt, werden die App-Dateien nicht korrekt geladen.</p>
 <button id="retry" type="button" onclick="location.reload()">Erneut laden</button>
 </div>
-<section id="auth" aria-label="Anmeldung"></section>
-<section id="household" class="panel" aria-label="Familienhaushalt"></section>
+<section id="account-shell" aria-label="Konto und Haushalt">
+  <div class="account-intro">
+    <span class="account-mark">F</span>
+    <div>
+      <p class="account-eyebrow">FamSchicht</p>
+      <h1>Dein Familienplan</h1>
+      <p>Gemeinsame Termine, Kinder und Dienste an einem Ort.</p>
+    </div>
+  </div>
+  <div class="account-panels">
+    <section id="auth" aria-label="Anmeldung"></section>
+    <section id="household" class="panel" aria-label="Familienhaushalt"></section>
+  </div>
+</section>
 <main id="app"></main>
 <script>
 (function(){
