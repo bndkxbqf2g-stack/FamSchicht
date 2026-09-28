@@ -176,7 +176,7 @@ function render() {
     '<div class="familycal-shell">' +
     '<aside class="app-sidebar"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.0</small></div></div>' +
     '<nav class="side-nav">' +
-    [['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste']]
+    [['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"><span>' + icon + '</span>' + label + '</button>')
       .join('') +
     '</nav><div class="sidebar-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' +
@@ -192,6 +192,7 @@ function render() {
     (view === 'family' ? custodyMarkup() : '') +
     '</section></div>';
 
+  document.body.classList.toggle('settings-open', view === 'settings');
   bindControls();
 }
 
@@ -253,6 +254,10 @@ function bindControls() {
       view = button.dataset.view;
       render();
     };
+  });
+  document.querySelector('#close-account-settings')?.addEventListener('click', () => {
+    view = 'all';
+    render();
   });
   app.querySelectorAll('[data-calendar-mode]').forEach(button => {
     button.onclick = () => {

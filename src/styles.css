@@ -474,3 +474,54 @@ body{background:var(--source-canvas)}
   #account-shell #auth .primary,
   #account-shell #household .primary{width:100%}
 }
+
+
+/* Account settings is a dedicated overlay, not start-page content */
+#account-shell{display:none}
+body.settings-open{overflow:hidden}
+body.settings-open::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  z-index:45;
+  background:rgba(24,35,31,.42);
+  backdrop-filter:blur(3px);
+}
+body.settings-open #account-shell{
+  display:block;
+  position:fixed;
+  inset:24px;
+  z-index:50;
+  width:auto;
+  max-width:none;
+  margin:0;
+  padding:24px;
+  overflow:auto;
+  border-radius:24px;
+  background:var(--source-canvas,#eef3fc);
+  box-shadow:0 24px 80px rgba(20,35,30,.28);
+}
+.account-intro{position:relative}
+.account-close{
+  position:absolute;
+  top:-4px;
+  right:0;
+  width:40px;
+  min-height:40px;
+  padding:0;
+  border:1px solid #c9d5e8;
+  border-radius:50%;
+  background:#fff;
+  color:var(--source-blue-dark,#254f91);
+  font-size:26px;
+  line-height:1;
+}
+@media(max-width:700px){
+  .side-nav{grid-template-columns:repeat(5,1fr)}
+  body.settings-open #account-shell{
+    inset:10px 10px calc(10px + env(safe-area-inset-bottom));
+    padding:16px;
+    border-radius:20px;
+  }
+  .account-close{top:-2px;right:-2px}
+}
