@@ -136,7 +136,7 @@ function render() {
       .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
-    '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
+    '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button><button id="shift-capture">+ Schnell-Dienstplan</button></div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
     '<div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
@@ -252,7 +252,11 @@ function bindControls() {
   app.querySelectorAll('[data-view]').forEach(button => {
     button.onclick = () => {
       view = button.dataset.view;
-      render();
+      if (view === 'shift') {
+        startShiftCapture();
+      } else {
+        render();
+      }
     };
   });
   document.querySelector('#close-account-settings')?.addEventListener('click', () => {
