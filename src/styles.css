@@ -575,3 +575,69 @@ body.settings-open #account-shell{
 .entry.owner-martin,.today-item.owner-martin{background:var(--martin-soft);border-left-color:var(--martin);color:#8e2430}
 .entry.owner-steffi,.today-item.owner-steffi{background:var(--steffi-soft);border-left-color:var(--steffi);color:#087b77}
 .entry.owner-anna,.today-item.owner-anna{background:var(--anna-soft);border-left-color:var(--anna);color:#63349a}
+
+/* Compact, readable calendar: full details in the selected-day list */
+.calendar-summary{display:none}
+.calendar-filter-details{margin:0 0 10px}
+.calendar-filter-details summary{cursor:pointer;width:max-content;max-width:100%;color:#254f91;font-size:13px;font-weight:750;padding:7px 10px;border-radius:10px;background:#eef3fc}
+.calendar-filter-details .calendar-filters{margin:8px 0 0}
+.entry[data-edit],.today-item[data-edit]{cursor:pointer}
+.entry-label{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calendar.month-view .entry{display:flex;gap:3px;align-items:center;min-width:0}
+.calendar.month-view .entry-label{font-size:12px;font-weight:850}
+.calendar.month-view .entry button{margin-left:auto;flex-shrink:0}
+.selected-day{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:12px 2px 2px}
+.selected-day strong{width:100%;font-size:15px}
+.selected-day button{display:inline-flex;gap:6px;align-items:center;padding:7px 10px;border-radius:10px;font-size:13px;text-align:left}
+.selected-day>span{font-size:13px;color:var(--muted)}
+.day-dot{width:9px;height:9px;border-radius:50%;background:#9ab3a8;flex-shrink:0}
+.day-dot.owner-martin{background:var(--martin)}.day-dot.owner-steffi{background:var(--steffi)}.day-dot.owner-anna{background:var(--anna)}
+.editor-more{grid-column:1/-1;border:1px solid #dbe4f1;border-radius:12px;padding:9px}
+.editor-more summary{cursor:pointer;color:#254f91;font-weight:750}
+.editor-more label{margin-top:9px}
+.shift-capture{position:static;margin:0 0 12px;padding:14px;display:grid;gap:9px}
+.shift-capture h2,.shift-capture p{margin:0}
+.shift-capture .shift-owner{margin:0}
+.shift-capture .shift-buttons{grid-template-columns:repeat(4,minmax(0,1fr))}
+.shift-capture .shift-buttons button{min-width:0;padding:8px 4px}
+#custody-settings .custody-card{margin:12px 0 0}
+@media(max-width:700px){
+  .app-topbar{padding-bottom:6px}.app-topbar .eyebrow,.mobile-sync-status{display:none}
+  .calendar-panel{padding:9px}
+  .calendar-toolbar{gap:6px;margin:0 0 7px;padding:0 0 7px}
+  .calendar-actions{grid-template-columns:1fr 1fr}
+  .calendar>b{padding:5px 1px;font-size:11px}
+  .day,.day.empty{min-height:67px;padding:3px}
+  .day>b{font-size:12px}
+  .calendar.month-view .entry{height:19px;margin-top:2px;padding:1px 2px;border-left-width:3px}
+  .calendar.month-view .entry-label{font-size:11px}
+  .calendar.month-view .entry button,.calendar.month-view .entry-time{display:none}
+  .selected-day{padding:8px 0 0}
+  .shift-capture .shift-buttons{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .shift-capture .note{font-size:12px}
+}
+@media(max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .familycal-shell{padding-bottom:0}
+  .app-sidebar{inset:auto 0 0;max-width:100%;border-radius:0;padding:2px 12px}
+  .side-nav button{min-height:34px;padding:2px;font-size:10px}
+  .side-nav button span{font-size:15px}
+  .app-workspace{padding:5px 8px 48px}
+  .app-topbar{display:none}
+  .calendar-panel{padding:5px}
+  .calendar-toolbar{display:flex;align-items:center;gap:8px;margin:0;padding:0 0 4px}
+  .calendar-toolbar .month{width:auto;flex:1}
+  .calendar-actions{display:flex;width:auto;gap:3px}
+  .calendar-actions button{min-height:30px;padding:3px 6px}
+  .calendar-modes button{min-width:43px}
+  .calendar-filter-details{margin:0 0 3px}
+  .calendar-filter-details summary{padding:2px 6px;font-size:11px}
+  .calendar.month-view .day,.calendar.month-view .day.empty{min-height:34px;padding:1px 3px}
+  .calendar.month-view .day>b{font-size:10px;display:inline}
+  .calendar.month-view .entry{display:inline-flex;max-width:calc(100% - 16px);height:15px;margin:0 0 0 2px;vertical-align:middle}
+  .calendar.month-view .entry-label{font-size:10px}
+  .calendar>b{padding:2px}
+  .selected-day{padding:3px 0;gap:3px}.selected-day strong{font-size:11px}.selected-day button{padding:2px 5px;font-size:10px}
+  .shift-capture{padding:6px;gap:4px;grid-template-columns:1fr 1fr}
+  .shift-capture .shift-buttons{grid-column:1/-1;grid-template-columns:repeat(9,1fr);gap:3px}
+  .shift-capture .shift-buttons button{min-height:28px;font-size:10px}
+}

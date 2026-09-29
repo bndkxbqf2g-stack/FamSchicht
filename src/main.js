@@ -1,5 +1,5 @@
 import {load, save} from './storage.js';
-import {dateKey, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate} from './dates.js';
+import {dateKey, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate, changedShift} from './dates.js';
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
 import {supabase} from './auth.js';
@@ -44,6 +44,7 @@ let cloud = null;
 let shiftCaptureDate = null;
 let dayDialogDate = null;
 let dayDialogEventId = null;
+let shiftDialogEventId = null;
 let householdMembers = [...bootstrapHouseholdMembers];
 let shiftMembers = shiftEligibleMembers(householdMembers);
 let householdMemberNames = memberNamesById(householdMembers);
@@ -137,17 +138,18 @@ function render() {
       .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
-    '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button><button id="shift-capture">+ Schnell-Dienstplan</button></div></div>' +
+    '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button>' +
+    (view === 'shift' ? '<button id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
-    '<div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
+    '<details class="calendar-filter-details"><summary>Filter · Personen und Bereiche</summary><div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
     memberFilterOptions(householdMembers).map(([id, label]) =>
       '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '">' + label + '</button>').join('') +
     '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
     [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben']].map(([id, label]) =>
       '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
-    '</div></div></div>' +
+    '</div></div></div></details>' +
     '<div class="calendar ' + calendarMode + '-view">' +
     (calendarMode === 'day' ? '' : calendarMode === 'month'
       ? weekdayLabels.map(d => '<b>' + d + '</b>').join('')
@@ -161,17 +163,20 @@ function render() {
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
-            (e.type === 'family' ? ' data-edit="' + h(e.id) + '"' : '') + '>' +
-            (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
+            ' data-edit="' + h(e.id) + '" role="button" tabindex="0" aria-label="' + h(e.title) + ' bearbeiten">' +
+            (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
+            '<span class="entry-label">' + h(calendarMode === 'month' ? (e.type === 'shift' ? shiftShortLabel(e.title) : e.source === 'custody' ? 'Papa' : e.title) : e.title) + '</span>' +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
           .join('') +
         '</div>'
       : '<div class="day empty" aria-hidden="true"></div>')
       .join('') +
-    '</div><p class="calendar-hint">Tag antippen, um einen Termin einzutragen.</p></section>';
+    '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
+    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
   const todayMarkup = todayOverviewMarkup(today);
-  const body = view === 'today' ? todayMarkup : calendarMarkup;
+  const body = view === 'today' ? todayMarkup :
+    (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + calendarMarkup;
 
   app.innerHTML =
     '<div class="familycal-shell">' +
@@ -188,12 +193,12 @@ function render() {
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '">' + h(member.name) + '</span>').join('') +
     '</div><div class="mobile-sync-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' + (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></header>' +
     body +
-    (shiftCaptureDate ? shiftCaptureMarkup() : '') +
     (dayDialogDate ? dayDialogMarkup() : '') +
-    (view === 'family' ? custodyMarkup() : '') +
+    (shiftDialogEventId ? shiftDialogMarkup() : '') +
     '</section></div>';
 
   document.body.classList.toggle('settings-open', view === 'settings');
+  document.querySelector('#custody-settings').innerHTML = view === 'settings' ? custodyMarkup() : '';
   bindControls();
 }
 
@@ -207,15 +212,15 @@ function todayOverviewMarkup(today) {
     weekday: 'long', day: '2-digit', month: 'long',
   });
   return '<section class="today-board"><div class="today-hero"><div><p class="eyebrow">' + label + '</p><h2>Was steht heute an?</h2></div>' +
-    '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
+    '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button></div></div>' +
     '<div class="today-list">' +
     (items.length
       ? items.map(entry => '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + '"' +
-          (entry.type === 'family' ? ' data-edit="' + h(entry.id) + '"' : '') + '>' +
+          ' data-edit="' + h(entry.id) + '" role="button" tabindex="0">' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
           '</small></div><button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button></article>').join('')
-      : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin oder Dienst direkt hinzufügen.</span></div>') +
+      : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
 }
 
@@ -226,6 +231,12 @@ function custodyMarkup() {
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
     '<button class="primary wide">Rhythmus eintragen</button></form></section>';
 }
+
+const shiftAbbreviations = {
+  'Frühdienst': 'F', 'Spätdienst': 'S', 'Zwischendienst': 'Z',
+  'Nachtdienst': 'N', 'SG-Tag': 'SG', 'Urlaub': 'U', 'Fortbildung': 'FB',
+};
+function shiftShortLabel(title) { return shiftAbbreviations[title] || title; }
 
 function bindControls() {
   app.querySelector('#prev')?.addEventListener('click', () => {
@@ -284,10 +295,10 @@ function bindControls() {
   });
   app.querySelectorAll('[data-day]').forEach(day => {
     day.onclick = event => {
-      if (event.target.closest('[data-remove]')) return;
+      if (event.target.closest('[data-remove], [data-edit]')) return;
       focusedDate = new Date(day.dataset.day + 'T12:00:00');
       month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
-      openDayDialog(day.dataset.day);
+      render();
     };
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
@@ -306,11 +317,16 @@ function bindControls() {
   });
 
   app.querySelectorAll('[data-edit]').forEach(element => {
-    element.onclick = event => {
+    const activate = event => {
       if (event.target.closest('[data-remove]')) return;
       event.stopPropagation();
       const item = entries.find(entry => entry.id === element.dataset.edit);
       if (item?.type === 'family') openDayDialog(item.date, item.id);
+      if (item?.type === 'shift') { shiftDialogEventId = item.id; render(); }
+    };
+    element.onclick = activate;
+    element.onkeydown = event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(event); }
     };
   });
 
@@ -329,7 +345,47 @@ function bindControls() {
     };
   });
 
-  app.querySelector('#custody-form')?.addEventListener('submit', handleCustodySubmit);
+  document.querySelector('#custody-form')?.addEventListener('submit', handleCustodySubmit);
+  app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
+  app.querySelector('#shift-edit-cancel')?.addEventListener('click', () => { shiftDialogEventId = null; render(); });
+  app.querySelector('#capture-date')?.addEventListener('change', event => {
+    if (event.target.value) {
+      shiftCaptureDate = event.target.value;
+      focusedDate = new Date(shiftCaptureDate + 'T12:00:00');
+      month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
+      render();
+    }
+  });
+}
+
+function shiftDialogMarkup() {
+  const item = entries.find(entry => entry.id === shiftDialogEventId && entry.type === 'shift');
+  if (!item) return '';
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-label="Dienst bearbeiten">' +
+    '<h2>Dienst bearbeiten</h2><form id="shift-edit-form">' +
+    '<label>Datum<input name="date" type="date" required value="' + h(item.date) + '"></label>' +
+    '<label>Beginn<input name="start" type="time" value="' + h(item.start || '') + '"></label>' +
+    '<label>Ende<input name="end" type="time" value="' + h(item.end || '') + '"></label>' +
+    '<details class="editor-more"><summary>Weitere Optionen · Dienst und Person</summary>' +
+    '<label>Dienst<select name="title">' + SHIFT_NAMES.map(name => '<option value="' + h(name) + '"' + (name === item.title ? ' selected' : '') + '>' + h(name) + '</option>').join('') + '</select></label>' +
+    '<label>Person<select name="ownerId">' + shiftMembers.map(member => '<option value="' + h(member.id) + '"' + (member.id === item.ownerId ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') + '</select></label></details>' +
+    '<div class="wide dialog-actions"><button id="shift-edit-cancel" type="button">Abbrechen</button><button class="primary">Speichern</button></div></form></section></div>';
+}
+
+function handleShiftEditSubmit(event) {
+  event.preventDefault();
+  const previous = entries.find(entry => entry.id === shiftDialogEventId && entry.type === 'shift');
+  if (!previous) return;
+  const data = new FormData(event.currentTarget);
+  const title = String(data.get('title'));
+  const ownerId = String(data.get('ownerId'));
+  const owner = shiftMembers.find(member => member.id === ownerId);
+  if (!SHIFT_NAMES.includes(title) || !owner) return;
+  const item = changedShift(previous, {title, date: String(data.get('date')), ownerId, owner: owner.name,
+    start: String(data.get('start') || ''), end: String(data.get('end') || '')});
+  if (!item.date) return;
+  shiftDialogEventId = null;
+  void updateEntry(item);
 }
 
 async function handleCustodySubmit(event) {
@@ -402,7 +458,10 @@ function dayDialogMarkup() {
     '<p class="note">' + label + '</p><form id="day-dialog-form">' +
     '<label>Von<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
     '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +
-    '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend" value="' +
+    (existing ? '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
+      '<label>Ende<input name="end" type="time" value="' + h(existing?.end || '') + '"></label>' : '') +
+    (existing ? '<details class="editor-more"><summary>Weitere Optionen · Titel, Person, Art</summary>' : '') +
+    '<label class="wide">Termin<input name="title" maxlength="120" required placeholder="z. B. Elternabend" value="' +
     h(existing?.title || '') + '"></label>' +
     '<label>Person<select name="ownerId">' + householdMembers.map(member => '<option value="' + h(member.id) + '"' + ((existing?.ownerId || 'martin') === member.id ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') + '</select></label>' +
     '<label class="wide">Art<select name="eventKind">' +
@@ -410,13 +469,13 @@ function dayDialogMarkup() {
       .map(([value, label]) => '<option value="' + value + '"' +
         ((existing?.eventKind || 'event') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
     '</select></label>' +
-    '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
-    '<label>Ende<input name="end" type="time" value="' + h(existing?.end || '') + '"></label>' +
+    (!existing ? '<label>Beginn<input name="start" type="time"></label><label>Ende<input name="end" type="time"></label>' : '') +
     '<label class="wide">Wiederholung<select name="recurrence">' +
     [['none', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']]
       .map(([value, label]) => '<option value="' + value + '"' +
         ((existing?.recurrence || 'none') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
     '</select></label>' +
+    (existing ? '</details>' : '') +
     '<div class="wide dialog-actions"><button type="button" id="day-dialog-cancel">Abbrechen</button>' +
     '<button class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
 }
@@ -471,7 +530,8 @@ function startShiftCapture() {
 function shiftCaptureMarkup() {
   const current = new Date(shiftCaptureDate + 'T12:00:00');
   const label = current.toLocaleDateString('de-DE', {weekday: 'long', day: '2-digit', month: '2-digit'});
-  return '<section class="panel shift-capture"><h2>' + label + '</h2>' +
+  return '<section class="panel shift-capture"><h2>Schnellerfassung · ' + label + '</h2>' +
+    '<label>Starttag wählen<input id="capture-date" type="date" value="' + h(shiftCaptureDate) + '"></label>' +
     '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner">' +
     shiftMembers.map(member => '<button data-owner="' + h(member.id) + '" class="' +
@@ -545,6 +605,8 @@ async function updateEntry(item) {
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
   } catch (err) {
+    if (item.type === 'shift') shiftDialogEventId = item.id;
+    render();
     alert('Änderung konnte nicht gespeichert werden: ' + err.message);
   }
 }

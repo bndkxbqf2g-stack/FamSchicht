@@ -1,7 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, updateOwnerEvent, deleteOwnerEvent, loadOwnerEvents} from '../src/calendar-service.js';
-import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes} from '../src/dates.js';
+import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes, changedShift} from '../src/dates.js';
+
+test('editing one shift keeps identity, date and owner and updates default hours', () => {
+  const original={id:'s1',type:'shift',date:'2026-10-01',title:'Spätdienst',start:'13:30',end:'21:42',ownerId:'martin'};
+  const changed=changedShift(original,{date:'2026-10-03',title:'Nachtdienst',start:'13:30',end:'21:42',ownerId:'steffi',owner:'Steffi'});
+  assert.deepEqual(changed,{...original,date:'2026-10-03',title:'Nachtdienst',start:'21:15',end:'06:30',ownerId:'steffi',owner:'Steffi'});
+  assert.equal(toDatabaseEvent(changed,'home','user').metadata.ownerId,'steffi');
+});
+
+test('custom shift hours survive title/date editing', () => {
+  const previous={id:'s2',type:'shift',date:'2026-10-01',title:'Frühdienst',start:'06:00',end:'14:12',ownerId:'martin'};
+  const item=changedShift(previous,{date:'2026-10-02',title:'Zwischendienst',start:'09:00',end:'17:00',ownerId:'martin',owner:'Martin'});
+  assert.equal(item.start,'09:00');
+  assert.equal(item.end,'17:00');
+  assert.equal(item.id,'s2');
+});
 
 test('birthday keeps event kind and yearly recurrence through database round trip', () => {
   const row = toDatabaseEvent({

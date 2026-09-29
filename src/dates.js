@@ -5,3 +5,13 @@ export function nextShiftCaptureDate(currentDate, displayedMonth) {
   if (next.getFullYear() !== displayedMonth.getFullYear() || next.getMonth() !== displayedMonth.getMonth()) return null;
   return dateKey(next);
 }
+
+export function changedShift(previous, {date, title, ownerId, owner, start, end}) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !SHIFT_NAMES.includes(title) || !ownerId) {
+    throw new Error('Ungültige Dienstdaten');
+  }
+  const defaults = shiftTimes(title);
+  return {...previous, date, title, ownerId, owner,
+    start: start === (previous.start || '') ? defaults[0] : start,
+    end: end === (previous.end || '') ? defaults[1] : end};
+}

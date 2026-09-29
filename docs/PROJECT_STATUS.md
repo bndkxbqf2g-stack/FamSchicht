@@ -1,5 +1,12 @@
 # PROJECT STATUS
 
+## Update 29.09.2026 – Mobile Kalenderbedienung
+- Dienste werden im Bereich „Dienste“ schnell erfasst und bestehende Schichten per Tipp mit Datum, Zeit, Diensttyp und Person bearbeitet.
+- Bestehende Familien- und Schichttermine zeigen zuerst Datum und Uhrzeit; seltene Felder liegen unter „Weitere Optionen“.
+- Monatskacheln zeigen kurze Dienstkürzel beziehungsweise „Papa“, während die Tagesliste volle Bezeichnungen bietet.
+- Filter sind einklappbar, Umgangsrhythmus ist in Einstellungen, und das Querformat hat ein kompaktes eigenes Layout.
+- Live-Rechte/RLS bleiben unverändert owner-only.
+
 Stand: 28.09.2026
 
 ## Ziel
