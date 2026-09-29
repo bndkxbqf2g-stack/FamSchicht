@@ -567,3 +567,11 @@ body.settings-open #account-shell{
 @media(max-width:820px){
   .calendar-actions #shift-capture{display:block}
 }
+
+
+/* Person colors for every calendar entry */
+:root{--martin:#d64f5b;--martin-soft:#fde3e6;--steffi:#16a6a1;--steffi-soft:#d9f5f2;--anna:#8a5ac2;--anna-soft:#eee2fb}
+.member.martin{background:var(--martin-soft);color:#9d2634}.member.steffi{background:var(--steffi-soft);color:#087b77}.member.anna{background:var(--anna-soft);color:#63349a}
+.entry.owner-martin,.today-item.owner-martin{background:var(--martin-soft);border-left-color:var(--martin);color:#8e2430}
+.entry.owner-steffi,.today-item.owner-steffi{background:var(--steffi-soft);border-left-color:var(--steffi);color:#087b77}
+.entry.owner-anna,.today-item.owner-anna{background:var(--anna-soft);border-left-color:var(--anna);color:#63349a}
