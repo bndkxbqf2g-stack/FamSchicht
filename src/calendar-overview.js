@@ -52,6 +52,17 @@ export function shiftOwnerDisplayName(entry, personNamesById = {}) {
   return entry.owner || '';
 }
 
+export function entryOwnerStyleKey(entry, personNamesById = {}) {
+  if (entry?.ownerId) return String(entry.ownerId).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+  if (entry?.personId) return String(entry.personId).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+  if (entry?.creatorId) return String(entry.creatorId).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+  if (entry?.owner) {
+    const match = Object.entries(personNamesById).find(([, name]) => name === entry.owner);
+    if (match) return String(match[0]).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+  }
+  return entry?.type === 'family' ? 'martin' : shiftOwnerStyleKey(entry, personNamesById);
+}
+
 export function shiftOwnerStyleKey(entry, personNamesById = {}) {
   if (entry?.type !== 'shift') return 'unknown';
   let key = entry.ownerId;
