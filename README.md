@@ -7,7 +7,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Vite-Web-App mit GitHub-Pages-Deployment.
 - Monats-, Wochen-, Tages- und Heute-Ansicht.
 - Familien- und Schichttermine inklusive Wiederholungen und mehrtägigen Ereignissen.
-- Schicht-Schnellerfassung für Früh-, Spät- und Nachtdienst.
+- Schicht-Schnellerfassung für Frühdienst, Spätdienst, Zwischendienst, Nachtdienst, SG-Tag, Urlaub und Fortbildung.
 - Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen Mitglieder-IDs.
 - Personenfilter und Schichtauswahl werden aus diesem Modell erzeugt.
 - Neue Schichten speichern neben dem Anzeigenamen eine stabile `ownerId`; ältere Einträge mit nur `owner` bleiben lesbar.
