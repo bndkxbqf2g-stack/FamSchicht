@@ -39,6 +39,13 @@ export const bootstrapHouseholdMembers = Object.freeze([
     colorKey: 'steffi',
     shiftEligible: true,
   }),
+  createHouseholdMember({
+    id: 'anna',
+    name: 'Anna',
+    type: 'adult',
+    colorKey: 'anna',
+    shiftEligible: false,
+  }),
 ]);
 
 export function shiftEligibleMembers(members = bootstrapHouseholdMembers) {
