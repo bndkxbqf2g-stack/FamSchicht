@@ -471,9 +471,9 @@ function shiftCaptureMarkup() {
       (shiftOwnerId === member.id ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
     '</div>' +
     '<div class="shift-buttons">' +
-    SHIFT_NAMES.map(name => '<button data-shift="' + name + '"' + (shiftSavePending ? ' disabled' : '') + '>' + name + '</button>').join('') +
-    '<button data-shift="skip"' + (shiftSavePending ? ' disabled' : '') + '>Frei</button>' +
-    '<button data-shift="close">Beenden</button></div></section>';
+    SHIFT_NAMES.map(name => '<button type="button" data-shift="' + h(name) + '"' + (shiftSavePending ? ' disabled' : '') + '>' + name + '</button>').join('') +
+    '<button type="button" data-shift="skip"' + (shiftSavePending ? ' disabled' : '') + '>Frei</button>' +
+    '<button type="button" data-shift="close">Beenden</button></div></section>';
 }
 
 let shiftSavePending = false;
@@ -547,8 +547,8 @@ async function saveEntry(item, afterSave, afterError) {
     if (cloud) await saveOwnerEvent(supabase, item, cloud.householdId, cloud.userId);
     entries.push(item);
     if (!cloud) save(entries);
-    render();
     afterSave?.();
+    render();
   } catch (err) {
     afterError?.();
     alert('Speichern fehlgeschlagen: ' + err.message);
