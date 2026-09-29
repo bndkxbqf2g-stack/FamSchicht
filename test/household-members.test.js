@@ -38,7 +38,7 @@ test('bootstrap adults drive filters and shift selection centrally', () => {
   );
   assert.deepEqual(
     memberFilterOptions(),
-    [['all', 'Alle'], ['martin', 'Martin'], ['steffi', 'Steffi']],
+    [['all', 'Alle'], ['martin', 'Martin'], ['steffi', 'Steffi'], ['anna', 'Anna']],
   );
   assert.deepEqual(
     shiftEligibleMembers().map(member => member.name),
@@ -47,6 +47,7 @@ test('bootstrap adults drive filters and shift selection centrally', () => {
   assert.deepEqual(memberNamesById(), {
     martin: 'Martin',
     steffi: 'Steffi',
+    anna: 'Anna',
   });
 });
 
