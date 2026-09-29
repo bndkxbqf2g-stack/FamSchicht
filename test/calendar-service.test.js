@@ -269,3 +269,9 @@ test('empty cloud save batch stays a database no-op', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
   assert.deepEqual(await saveOwnerEvents(supabase,[],'',''), []);
 });
+
+test('family entry owner survives database round trip', () => {
+  const row=toDatabaseEvent({id:'family-owner',type:'family',title:'Elternabend',date:'2026-09-24',ownerId:'anna'},'h1','u1');
+  assert.equal(row.metadata.ownerId,'anna');
+  assert.equal(fromDatabaseEvent(row).ownerId,'anna');
+});
