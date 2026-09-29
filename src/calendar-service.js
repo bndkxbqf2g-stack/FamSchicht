@@ -36,6 +36,7 @@ export function fromDatabaseEvent(row) {
     endDate: row.category !== 'shift' && localDateKey(end) !== localDateKey(start)
       ? localDateKey(end)
       : undefined,
+    ownerId: row.category !== 'shift' ? (row.metadata?.ownerId || undefined) : undefined,
     start: hasMeaningfulTime(start) ? localTime(start) : '',
     end: hasMeaningfulTime(end) ? localTime(end) : '',
     source: row.metadata?.source || 'supabase',
@@ -111,6 +112,7 @@ function familyMetadata(event) {
   if (event.eventKind && event.eventKind !== 'event') {
     metadata.eventKind = event.eventKind;
   }
+  if (event.ownerId) metadata.ownerId = event.ownerId;
   return metadata;
 }
 
