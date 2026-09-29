@@ -4,4 +4,5 @@ const url='https://kryxhpklrugceiwlrofm.supabase.co';
 const key='sb_publishable_vi3R-KjIYhgIFGnpVi5pyw_Sz-6szyv';
 export const supabase=createClient(url,key,{auth:{detectSessionInUrl:true,persistSession:true,autoRefreshToken:true}});
 export async function sendLoginLink(email){return supabase.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.origin+window.location.pathname+window.location.search}})}
+export async function verifyLoginCode(email, token){return supabase.auth.verifyOtp({email,token,type:'email'})}
 export async function signOut(){return supabase.auth.signOut()}

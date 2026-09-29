@@ -3,6 +3,7 @@ import {acceptHouseholdInvitation} from './invitation-service.js';
 import {clearInvitationParam} from './invitation-link.js';
 import {accountStatusText} from './account-status.js';
 import {escapeHtml} from './security.js';
+import {isValidLoginCode} from './auth-code.js';
 
 const root = document.querySelector('#auth');
 const COOLDOWN_MS = 5 * 60 * 1000;

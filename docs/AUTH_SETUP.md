@@ -1,11 +1,23 @@
 # Supabase-Anmeldung
 
-Die Web-App verwendet den öffentlichen Supabase Publishable Key (kein Geheimnis) und Magic Links über `@supabase/supabase-js`. **Keine geheimen Schlüssel in GitHub ablegen.**
+Die Web-App verwendet den öffentlichen Supabase Publishable Key (kein Geheimnis) und unterstützt Magic Links sowie einen sechsstelligen E-Mail-Code. **Keine geheimen Schlüssel in GitHub ablegen.**
 
 In Supabase → Authentication → URL Configuration:
 - Site URL: `https://bndkxbqf2g-stack.github.io/FamSchicht/`
 - Zusätzliche Redirect URL: `https://bndkxbqf2g-stack.github.io/FamSchicht/`
 
+Für den Login in einer iPhone-Home-Bildschirm-App muss die Supabase-Mailvorlage unter Authentication → Email Templates → Magic Link zusätzlich einen Code anzeigen:
+
+```html
+<h2>FamSchicht-Anmeldung</h2>
+<p>Öffne den Link in Safari:</p>
+<p><a href="{{ .ConfirmationURL }}">Anmeldelink öffnen</a></p>
+<p>Oder gib diesen sechsstelligen Code direkt in der FamSchicht-Home-App ein:</p>
+<p><strong>{{ .Token }}</strong></p>
+```
+
+Der Magic Link funktioniert im Browser. Der Code wird direkt in der Home-Bildschirm-App eingegeben und erzeugt dort die eigene Supabase-Sitzung. Die Home-App und Safari besitzen auf iOS getrennte Cookies/Speicher; eine Safari-Anmeldung kann deshalb nicht automatisch in die Home-App übernommen werden.
+
 In GitHub → Settings → Pages muss die Quelle **GitHub Actions** sein. Die Build-Konfiguration verwendet `/FamSchicht/` als Vite-Basispfad.
 
-Sicherheitsstatus: Der Login ist implementiert; es gibt noch **keine** sichere Einladung von Partnerin/Mit-Elternteil, keine Synchronisierung und keine Migration lokaler Einträge. Die bestehenden Datenbank-RLS-Regeln sind auf den Besitzer begrenzt. Vor Freigabe echter Familieninformationen mit getrennten Testkonten testen.
+Sicherheitsstatus: Der Login bleibt e-mailgebunden und verwendet ausschließlich den öffentlichen Publishable Key. Die bestehenden Datenbank-RLS-Regeln sind auf den Besitzer begrenzt. Vor Freigabe echter Familieninformationen mit getrennten Testkonten testen.
