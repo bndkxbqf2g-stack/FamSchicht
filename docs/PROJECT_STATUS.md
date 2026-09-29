@@ -5,7 +5,7 @@
 - Bestehende Familien- und Schichttermine zeigen zuerst Datum und Uhrzeit; seltene Felder liegen unter „Weitere Optionen“.
 - Monatskacheln zeigen kurze Dienstkürzel beziehungsweise „Papa“, während die Tagesliste volle Bezeichnungen bietet.
 - Filter sind einklappbar, Umgangsrhythmus ist in Einstellungen, und das Querformat hat ein kompaktes eigenes Layout.
-- Live-Rechte/RLS bleiben unverändert owner-only.
+- Umgangsblöcke sind standardmäßig Freitag bis Sonntag, können aber über Start- und Enddatum frei verschoben werden. Live-Rechte/RLS bleiben unverändert owner-only.
 
 Stand: 28.09.2026
 
