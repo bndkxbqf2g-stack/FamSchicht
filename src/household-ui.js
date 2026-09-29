@@ -1,5 +1,6 @@
 import {supabase} from './auth.js';
 import {createHouseholdInvitation} from './invitation-service.js';
+import {buildInvitationLink} from './invitation-link.js';
 import {escapeHtml} from './security.js';
 
 const root = document.querySelector('#household');
@@ -101,8 +102,8 @@ function bindInvitationForm(householdId) {
         email,
         role,
       });
-      const link = new URL(window.location.href);
-      link.searchParams.set('invite', result.token);
+      const link = buildInvitationLink(window.location.href, result.token);
+      form.querySelector('.invitation-result')?.remove();
       messageEl.textContent = 'Einladung erstellt. Teile diesen persönlichen Link nur mit der eingeladenen Person.';
       const resultBox = document.createElement('div');
       resultBox.className = 'invitation-result';
