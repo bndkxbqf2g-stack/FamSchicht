@@ -36,13 +36,12 @@ export function fromDatabaseEvent(row) {
     endDate: row.category !== 'shift' && localDateKey(end) !== localDateKey(start)
       ? localDateKey(end)
       : undefined,
-    ownerId: row.category !== 'shift' ? (row.metadata?.ownerId || undefined) : undefined,
     start: hasMeaningfulTime(start) ? localTime(start) : '',
     end: hasMeaningfulTime(end) ? localTime(end) : '',
     source: row.metadata?.source || 'supabase',
     anchor: row.metadata?.anchor || undefined,
     owner: row.category === 'shift' ? (row.metadata?.owner || undefined) : undefined,
-    ownerId: row.category === 'shift' ? (row.metadata?.ownerId || undefined) : undefined,
+    ownerId: row.metadata?.ownerId || undefined,
     recurrence: row.category !== 'shift' && row.metadata?.recurrence
       ? row.metadata.recurrence
       : undefined,
