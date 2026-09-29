@@ -88,7 +88,7 @@ test('loadOwnerHouseholdMembers reads scoped rows in persisted order', async () 
   };
 
   const members = await loadOwnerHouseholdMembers(supabase, 'home-1');
-  assert.deepEqual(members.map(member => member.id), ['martin', 'steffi']);
+  assert.deepEqual(members.map(member => member.id), ['martin', 'steffi', 'anna']);
   assert.deepEqual(calls, [
     ['from', 'household_members'],
     ['select', 'member_key,name,member_type,color_key,shift_eligible,sort_order'],
