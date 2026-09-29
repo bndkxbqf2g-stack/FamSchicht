@@ -272,6 +272,62 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 
 @media(min-width:701px){.view-all .calendar-panel{max-width:1180px}}
 
+/* Final start-page overrides: keep the screenshot-inspired dark home view above
+   the general light calendar rules defined earlier in this stylesheet. */
+@media(max-width:700px){
+  body:has(.familycal-shell.view-all){background:#111b28;color:#f4f7fa}
+  .familycal-shell.view-all .calendar-panel,
+  .familycal-shell.view-all .calendar-toolbar{background:transparent;border-color:#293746}
+  .familycal-shell.view-all .calendar-panel{box-shadow:none}
+  .familycal-shell.view-all .calendar-toolbar .month h2{color:#fff}
+  .familycal-shell.view-all .calendar-toolbar .month button{background:transparent;color:#fff;border:0}
+  .familycal-shell.view-all .calendar-actions button{background:#152231;border-color:#293746;color:#f3f6f8}
+  .familycal-shell.view-all .calendar-actions #quick-event{background:#2f7cf6;border-color:#2f7cf6;color:#fff}
+  .familycal-shell.view-all .calendar{background:#293746;border-color:#293746}
+  .familycal-shell.view-all .calendar>b{background:#111b28;color:#f6f8fa}
+  .familycal-shell.view-all .day,.familycal-shell.view-all .day.empty{background:#111b28;border-color:#293746}
+  .familycal-shell.view-all .day.empty{background:#101923}
+  .familycal-shell.view-all .day>b{color:#f4f6f8}
+  .familycal-shell.view-all .day.today{background:#172738!important;box-shadow:inset 0 0 0 2px #4b91ff}
+  .familycal-shell.view-all .entry{background:#1e2c3a;color:#e8eef3;border:0}
+  .familycal-shell.view-all .entry.shift.owner-martin{background:#c95f59;color:#fff}
+  .familycal-shell.view-all .entry.shift.owner-steffi{background:#2bb889;color:#fff}
+  .familycal-shell.view-all .entry.owner-anna{background:#8c62c7;color:#fff}
+  .familycal-shell.view-all .entry.family{background:#285d4a;color:#fff}
+  .familycal-shell.view-all .selected-day{color:#dfe6ec;background:#152231;border-color:#293746}
+}
+
+/* Time-based day/week views inspired by the supplied reference screens. */
+.timeline-panel{padding:20px;overflow:hidden}
+.timeline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.timeline-toolbar h2{margin:0;text-align:center;font-size:20px;text-transform:capitalize}
+.timeline-toolbar button{width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:50%;background:#fff;font-size:22px}
+.timeline-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0 12px}
+.timeline-grid{position:relative;display:grid;grid-template-columns:58px repeat(7,minmax(100px,1fr));min-width:700px;border-top:1px solid var(--line);border-left:1px solid var(--line);overflow:auto}
+.timeline-grid.timeline-days-1{grid-template-columns:58px minmax(240px,1fr);min-width:0}
+.timeline-corner{grid-column:1;background:var(--surface-soft);border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:60px}
+.timeline-day-heading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface-soft);gap:2px}
+.timeline-day-heading span{color:var(--muted);font-size:12px}.timeline-day-heading.today strong{color:var(--source-blue,#2f6fd1)}
+.timeline-hours{grid-column:1/-1;grid-row:2;display:grid;position:relative}
+.timeline-row{display:grid;grid-template-columns:58px repeat(7,minmax(100px,1fr));min-height:58px}
+.timeline-row.timeline-days-1{grid-template-columns:58px minmax(240px,1fr)}
+.timeline-row>span{padding:5px 6px;color:var(--muted);font-size:11px;text-align:right;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.timeline-row>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.timeline-events{grid-row:2;z-index:2;min-height:870px;padding:66px 4px 4px;border-right:1px solid transparent}
+.timeline-event{display:flex;flex-direction:column;align-items:flex-start;width:100%;margin-bottom:6px;padding:7px;border:0;border-left:4px solid var(--accent);border-radius:6px;background:var(--accent-soft);color:var(--text);text-align:left}
+.timeline-event span{font-size:11px;opacity:.75;margin-top:2px}.timeline-event.owner-martin{background:var(--martin-soft);border-left-color:var(--martin);color:#8e2430}.timeline-event.owner-steffi{background:var(--steffi-soft);border-left-color:var(--steffi);color:#087b77}.timeline-event.owner-anna{background:var(--anna-soft);border-left-color:var(--anna);color:#63349a}
+@media(max-width:700px){
+  .timeline-panel{padding:0;background:transparent;border:0}
+  .timeline-toolbar{padding:0 8px}.timeline-toolbar h2{font-size:19px;color:#fff}.timeline-toolbar button{background:transparent;border:0;color:#fff}
+  .timeline-actions{padding:0 8px}.timeline-actions button{background:#152231;border-color:#293746;color:#f3f6f8}.timeline-actions .primary{background:#2f7cf6;color:#fff;border-color:#2f7cf6}
+  .timeline-grid{grid-template-columns:54px repeat(1,minmax(250px,1fr));min-width:0;border-color:#293746}
+  .timeline-corner{background:#111b28;border-color:#293746}
+  .timeline-day-heading{background:#111b28;border-color:#293746;color:#fff}.timeline-day-heading span{color:#8d98a4}
+  .timeline-row,.timeline-row.timeline-days-1{grid-template-columns:54px minmax(250px,1fr);min-height:58px}.timeline-row>span,.timeline-row>div{border-color:#293746}
+  .timeline-row>div{background:#111b28}.timeline-events{grid-column:2;min-height:870px;border-color:#293746;padding-top:66px}
+  .timeline-event{background:#1e2c3a;color:#e8eef3}.timeline-event.owner-martin{background:#c95f59;color:#fff}.timeline-event.owner-steffi{background:#2bb889;color:#fff}.timeline-event.owner-anna{background:#8c62c7;color:#fff}
+}
+
 
 .mobile-sync-status{display:none}
 @media(max-width:700px){
