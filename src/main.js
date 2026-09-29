@@ -227,7 +227,7 @@ function todayOverviewMarkup(today) {
 function custodyMarkup() {
   return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
-    '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag<input name="endAnchor" type="date" required></label>' +
+    '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
     '<button class="primary wide">Rhythmus eintragen</button></form></section>';
 }
