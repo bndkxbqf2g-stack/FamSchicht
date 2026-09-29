@@ -174,9 +174,13 @@ function render() {
     '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
     (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
+  const timelineMarkup = calendarMode === 'day' || calendarMode === 'week'
+    ? timelineCalendarMarkup(days, visibleEntries)
+    : null;
+  const displayedCalendarMarkup = timelineMarkup || calendarMarkup;
   const todayMarkup = todayOverviewMarkup(today);
   const body = view === 'today' ? todayMarkup :
-    (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + calendarMarkup;
+    (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + displayedCalendarMarkup;
 
   app.innerHTML =
     '<div class="familycal-shell view-' + h(view) + '">' +
@@ -222,6 +226,28 @@ function todayOverviewMarkup(today) {
           '</small></div><button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button></article>').join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
+}
+
+function timelineCalendarMarkup(days, visibleEntries) {
+  const usableDays = days.filter(Boolean);
+  const labels = usableDays.map(day => {
+    const date = new Date(day + 'T12:00:00');
+    return '<div class="timeline-day-heading ' + (day === dateKey(new Date()) ? 'today' : '') + '">' +
+      '<strong>' + date.getDate() + '</strong><span>' + date.toLocaleDateString('de-DE', {weekday:'short'}) + '</span></div>';
+  }).join('');
+  const hours = Array.from({length: 15}, (_, index) => 9 + index);
+  const rows = hours.map(hour => '<div class="timeline-row timeline-days-' + usableDays.length + '"><span>' + String(hour).padStart(2, '0') + ':00</span>' +
+    usableDays.map(() => '<div></div>').join('') + '</div>').join('');
+  const events = usableDays.map(day => '<div class="timeline-events">' +
+    visibleEntries.filter(entry => entryOccursOnDate(entry, day)).map(entry =>
+      '<button class="timeline-event owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + '" data-edit="' + h(entry.id) + '">' +
+      '<strong>' + h(entry.title) + '</strong><span>' + h(eventTimeLabel(entry)) + '</span></button>').join('') + '</div>').join('');
+  return '<section class="panel calendar-panel timeline-panel"><div class="timeline-toolbar"><button id="prev" aria-label="Vorheriger Zeitraum">‹</button><h2>' +
+    h(calendarTitle(focusedDate, month, calendarMode)) + '</h2><button id="next" aria-label="Nächster Zeitraum">›</button></div>' +
+    '<div class="timeline-actions"><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button></div>' +
+    '<div class="timeline-grid timeline-days-' + usableDays.length + '"><div class="timeline-corner"></div>' + labels + '<div class="timeline-hours">' + rows + '</div>' + events + '</div>' +
+    '<div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
+    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => '<button type="button" data-edit="' + h(e.id) + '">' + h(e.title) + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 }
 
 function custodyMarkup() {
