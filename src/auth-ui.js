@@ -68,7 +68,7 @@ function show(user) {
     try {
       const {error} = await verifyLoginLink(input.value);
       msg.textContent = error
-        ? 'Anmeldelink ungültig oder bereits verwendet. Bitte einen neuen Link anfordern.'
+        ? 'Dieser Link ist abgelaufen oder wurde bereits geöffnet. Fordere einen neuen Link an und kopiere ihn in der E-Mail, ohne ihn vorher anzutippen.'
         : 'Anmeldung erfolgreich.';
       if (error) input.focus();
     } catch {
@@ -97,7 +97,7 @@ function show(user) {
         if (limited) lastRequest = Date.now();
       } else {
         lastRequest = Date.now();
-        msg.textContent = 'Anmeldelink angefordert. Öffne die E-Mail, kopiere den Link und füge ihn unten in diese App ein.';
+        msg.textContent = 'Anmeldelink angefordert. In der E-Mail den Link lange drücken → Kopieren. Nicht vorher öffnen, da er nur einmal funktioniert.';
       }
     } catch {
       msg.textContent = 'Verbindungsfehler. Bitte später erneut versuchen.';
