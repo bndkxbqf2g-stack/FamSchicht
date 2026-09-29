@@ -1,6 +1,7 @@
 import {supabase,sendLoginLink,signOut} from './auth.js';
 import {acceptHouseholdInvitation} from './invitation-service.js';
 import {clearInvitationParam} from './invitation-link.js';
+import {accountStatusText} from './account-status.js';
 import {escapeHtml} from './security.js';
 
 const root = document.querySelector('#auth');
@@ -8,15 +9,12 @@ const COOLDOWN_MS = 5 * 60 * 1000;
 const pendingInvite = new URLSearchParams(window.location.search).get('invite');
 let lastRequest = 0;
 let inviteHandled = false;
+let inviteStatus = '';
 
 function showInviteMessage(text) {
-  const target = root.querySelector('.auth-status, #login');
-  if (!target) return;
-  const message = document.createElement('p');
-  message.className = 'note invitation-status';
-  message.setAttribute('aria-live', 'polite');
-  message.textContent = text;
-  target.append(message);
+  inviteStatus = text;
+  const message = root.querySelector('#account-status');
+  if (message) message.textContent = text;
 }
 
 async function acceptPendingInvitation(user) {
@@ -37,7 +35,7 @@ function show(user) {
   if (user) {
     root.innerHTML = `<div class="auth-status">Angemeldet: <strong>${escapeHtml(user.email || 'Konto')}</strong>
       <button id="logout">Abmelden</button>
-      <p class="note">Kalendereinträge sind weiterhin nur lokal gespeichert.</p></div>`;
+      <p id="account-status" class="note" aria-live="polite">${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}</p></div>`;
     root.querySelector('#logout').onclick = async () => {
       const {error} = await signOut();
       if (error) alert(error.message);
@@ -52,7 +50,7 @@ function show(user) {
     <button class="primary">Anmeldelink senden</button>
     <p id="login-message" class="note" aria-live="polite">
       Falls du bereits angemeldet bist, brauchst du keinen neuen Link.
-      Nach der Anmeldung wird eine offene Einladung automatisch geprüft.
+      ${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}
     </p>
   </form>`;
   const form = root.querySelector('#login');
