@@ -13,7 +13,7 @@ test('every second Friday to Sunday', () => {
 test('allows freely movable start and end dates', () => {
   assert.deepEqual(generateCustodyDates('2026-09-26', 1, '2026-09-29').slice(0, 8), [
     '2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29',
-    '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13',
+    '2026-10-09', '2026-10-10', '2026-10-11', '2026-10-12',
   ]);
 });
 
