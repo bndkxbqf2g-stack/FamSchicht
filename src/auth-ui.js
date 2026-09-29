@@ -97,7 +97,7 @@ function show(user) {
         if (limited) lastRequest = Date.now();
       } else {
         lastRequest = Date.now();
-        msg.textContent = 'Anmeldelink angefordert. Bitte prüfe dein Postfach und auch den Spam-Ordner.';
+        msg.textContent = 'Anmeldelink angefordert. Öffne die E-Mail, kopiere den Link und füge ihn unten in diese App ein.';
       }
     } catch {
       msg.textContent = 'Verbindungsfehler. Bitte später erneut versuchen.';
