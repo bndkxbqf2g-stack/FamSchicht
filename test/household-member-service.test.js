@@ -120,9 +120,9 @@ test('saveOwnerHouseholdMembers upserts stable keys within one household', async
     'home-1',
   );
 
-  assert.deepEqual(result.map(member => member.id), ['martin', 'steffi']);
-  assert.deepEqual(saved.map(row => row.member_key), ['martin', 'steffi']);
-  assert.deepEqual(saved.map(row => row.sort_order), [0, 1]);
+  assert.deepEqual(result.map(member => member.id), ['martin', 'steffi', 'anna']);
+  assert.deepEqual(saved.map(row => row.member_key), ['martin', 'steffi', 'anna']);
+  assert.deepEqual(saved.map(row => row.sort_order), [0, 1, 2]);
   assert.deepEqual(options, {onConflict: 'household_id,member_key'});
 });
 
@@ -157,5 +157,5 @@ test('ensureOwnerHouseholdMembers seeds bootstrap only when cloud is empty', asy
 
   const members = await ensureOwnerHouseholdMembers(supabase, 'home-1');
   assert.deepEqual(members.map(member => member.id), ['martin', 'steffi']);
-  assert.deepEqual(inserted.map(row => row.member_key), ['martin', 'steffi']);
+  assert.deepEqual(inserted.map(row => row.member_key), ['martin', 'steffi', 'anna']);
 });
