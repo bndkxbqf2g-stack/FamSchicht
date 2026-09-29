@@ -4,7 +4,7 @@ import {generateCustodyDates, missingCustodyDates} from '../src/custody.js';
 
 test('every second Friday to Sunday', () => {
   const days = generateCustodyDates('2026-09-25', 1, '2026-09-27');
-  assert.deepEqual(days.slice(0, 8), [
+  assert.deepEqual(days.slice(0, 6), [
     '2026-09-25', '2026-09-26', '2026-09-27',
     '2026-10-09', '2026-10-10', '2026-10-11',
   ]);
