@@ -34,7 +34,7 @@ test('household member model validates identity and type', () => {
 test('bootstrap adults drive filters and shift selection centrally', () => {
   assert.deepEqual(
     bootstrapHouseholdMembers.map(member => member.name),
-    ['Martin', 'Steffi'],
+    ['Martin', 'Steffi', 'Anna'],
   );
   assert.deepEqual(
     memberFilterOptions(),
