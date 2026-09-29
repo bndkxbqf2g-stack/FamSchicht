@@ -179,7 +179,7 @@ function render() {
     (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + calendarMarkup;
 
   app.innerHTML =
-    '<div class="familycal-shell">' +
+    '<div class="familycal-shell view-' + view + '">' +
     '<aside class="app-sidebar"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.0</small></div></div>' +
     '<nav class="side-nav">' +
     [['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
