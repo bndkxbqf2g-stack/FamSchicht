@@ -129,9 +129,13 @@ test('overnight shift keeps next-day end through database round trip', () => {
 });
 
 test('supported shifts keep full labels and configured UKW times', () => {
-  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Nachtdienst']);
+  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Zwischendienst','Nachtdienst','SG-Tag','Urlaub','Fortbildung']);
   assert.deepEqual(shiftTimes('Frühdienst'), ['06:00','14:12']);
   assert.deepEqual(shiftTimes('Spätdienst'), ['13:30','21:42']);
+  assert.deepEqual(shiftTimes('Zwischendienst'), ['', '']);
+  assert.deepEqual(shiftTimes('SG-Tag'), ['', '']);
+  assert.deepEqual(shiftTimes('Urlaub'), ['', '']);
+  assert.deepEqual(shiftTimes('Fortbildung'), ['', '']);
   assert.deepEqual(shiftTimes('Nachtdienst'), ['21:15','06:30']);
 });
 
