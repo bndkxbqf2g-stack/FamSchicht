@@ -12,6 +12,7 @@ import {
   shiftCalendarDate,
   shiftOwnerDisplayName,
   shiftOwnerStyleKey,
+  entryOwnerStyleKey,
 } from '../src/calendar-overview.js';
 
 test('week view starts on Monday and crosses month and year boundaries', () => {
@@ -213,4 +214,10 @@ test('today entries respect person and category filters', () => {
     }).map(entry => entry.title),
     ['Elternabend'],
   );
+});
+
+test('family entry owner drives person color key with Martin fallback', () => {
+  assert.equal(entryOwnerStyleKey({type:'family',title:'Eigener Termin'}), 'martin');
+  assert.equal(entryOwnerStyleKey({type:'family',ownerId:'steffi'}), 'steffi');
+  assert.equal(entryOwnerStyleKey({type:'family',owner:'Anna'}, {anna:'Anna'}), 'anna');
 });
