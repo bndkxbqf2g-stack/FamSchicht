@@ -561,3 +561,9 @@ body.settings-open #account-shell{
   .calendar.week-view .day{min-height:175px}
   .calendar.day-view .day{min-height:340px}
 }
+
+
+/* Rapid shift entry is the primary action on mobile too */
+@media(max-width:820px){
+  .calendar-actions #shift-capture{display:block}
+}
