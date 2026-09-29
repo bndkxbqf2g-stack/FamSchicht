@@ -543,3 +543,21 @@ body.settings-open #account-shell{
   .invitation-form,.invitation-result{grid-template-columns:1fr}
   .invitation-form button,.invitation-result button{width:100%}
 }
+
+
+/* Larger, clearer calendar grid */
+.calendar-panel{padding:24px}
+.calendar{font-size:13px}
+.day,.day.empty{min-height:145px;padding:10px}
+.day>b{font-size:15px}
+.entry{font-size:12px;padding:6px 7px;line-height:1.25}
+.calendar.week-view .day{min-height:270px}
+.calendar.day-view .day{min-height:320px}
+@media(max-width:700px){
+  .calendar-panel{padding:12px}
+  .day,.day.empty{min-height:102px;padding:6px}
+  .day>b{font-size:13px}
+  .entry{font-size:10px;padding:5px 4px}
+  .calendar.week-view .day{min-height:175px}
+  .calendar.day-view .day{min-height:340px}
+}
