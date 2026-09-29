@@ -1,4 +1,4 @@
-import {supabase,sendLoginLink,signOut} from './auth.js';
+import {supabase,sendLoginLink,verifyLoginLink,signOut} from './auth.js';
 import {acceptHouseholdInvitation} from './invitation-service.js';
 import {clearInvitationParam} from './invitation-link.js';
 import {accountStatusText} from './account-status.js';
@@ -53,8 +53,30 @@ function show(user) {
       Falls du bereits angemeldet bist, brauchst du keinen neuen Link.
       ${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}
     </p>
+    <label>Anmeldelink aus der E-Mail einfügen
+      <input id="login-link" type="url" inputmode="url" autocomplete="url"
+        placeholder="https://…">
+    </label>
+    <button id="verify-link" type="button">In dieser App anmelden</button>
   </form>`;
   const form = root.querySelector('#login');
+  const verifyButton = root.querySelector('#verify-link');
+  verifyButton.onclick = async () => {
+    const input = root.querySelector('#login-link');
+    const msg = root.querySelector('#login-message');
+    verifyButton.disabled = true;
+    try {
+      const {error} = await verifyLoginLink(input.value);
+      msg.textContent = error
+        ? 'Anmeldelink ungültig oder bereits verwendet. Bitte einen neuen Link anfordern.'
+        : 'Anmeldung erfolgreich.';
+      if (error) input.focus();
+    } catch {
+      msg.textContent = 'Anmeldelink konnte nicht verarbeitet werden.';
+    } finally {
+      verifyButton.disabled = false;
+    }
+  };
   form.onsubmit = async event => {
     event.preventDefault();
     const button = form.querySelector('button');
