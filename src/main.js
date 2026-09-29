@@ -22,6 +22,7 @@ import {
   shiftCalendarDate,
   shiftOwnerDisplayName,
   shiftOwnerStyleKey,
+  entryOwnerStyleKey,
 } from './calendar-overview.js';
 import {
   loadOwnerEvents,
@@ -159,7 +160,7 @@ function render() {
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
-          .map(e => '<div class="entry ' + h(e.type) + (e.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(e, householdMemberNames)) : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
+          .map(e => '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (e.type === 'family' ? ' data-edit="' + h(e.id) + '"' : '') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') + h(e.title) +
             '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
@@ -209,7 +210,7 @@ function todayOverviewMarkup(today) {
     '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button><button id="shift-capture">+ Dienstplan</button></div></div>' +
     '<div class="today-list">' +
     (items.length
-      ? items.map(entry => '<article class="today-item ' + h(entry.type) + (entry.type === 'shift' ? ' owner-' + h(shiftOwnerStyleKey(entry, householdMemberNames)) : ' ' + h(entry.eventKind || 'event')) + '"' +
+      ? items.map(entry => '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + '"' +
           (entry.type === 'family' ? ' data-edit="' + h(entry.id) + '"' : '') + '>' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
@@ -403,6 +404,7 @@ function dayDialogMarkup() {
     '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +
     '<label class="wide">Termin<input name="title" maxlength="120" required autofocus placeholder="z. B. Elternabend" value="' +
     h(existing?.title || '') + '"></label>' +
+    '<label>Person<select name="ownerId">' + householdMembers.map(member => '<option value="' + h(member.id) + '"' + ((existing?.ownerId || 'martin') === member.id ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') + '</select></label>' +
     '<label class="wide">Art<select name="eventKind">' +
     [['event', 'Allgemeiner Termin'], ['birthday', 'Geburtstag'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgabe']]
       .map(([value, label]) => '<option value="' + value + '"' +
@@ -442,6 +444,7 @@ function handleDayDialogSubmit(event) {
     end: String(data.get('end') || ''),
     recurrence: String(data.get('recurrence') || 'none'),
     eventKind: String(data.get('eventKind') || 'event'),
+    ownerId: String(data.get('ownerId') || 'martin'),
   };
   if (item.eventKind === 'birthday') {
     item.start = '';
