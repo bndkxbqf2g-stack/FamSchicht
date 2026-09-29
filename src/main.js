@@ -220,8 +220,8 @@ function todayOverviewMarkup(today) {
 
 function custodyMarkup() {
   return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
-    '<p>Ersten Donnerstag festlegen; FamSchicht trägt danach jeden zweiten Donnerstag bis Sonntag für 12 Monate ein.</p>' +
-    '<form id="custody-form"><label>Erster Donnerstag<input name="anchor" type="date" required></label>' +
+    '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
+    '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag<input name="endAnchor" type="date" required></label>' +
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
     '<button class="primary wide">Rhythmus eintragen</button></form></section>';
 }
@@ -331,6 +331,7 @@ async function handleCustodySubmit(event) {
   event.preventDefault();
   const formData = new FormData(event.currentTarget);
   const anchor = formData.get('anchor');
+  const endAnchor = formData.get('endAnchor');
   const title = String(formData.get('title')).trim();
   if (!title) {
     alert('Bitte eine Bezeichnung eingeben.');
@@ -339,7 +340,7 @@ async function handleCustodySubmit(event) {
 
   let dates;
   try {
-    dates = generateCustodyDates(anchor, 12);
+    dates = generateCustodyDates(anchor, 12, endAnchor);
   } catch (err) {
     alert(err.message);
     return;
@@ -357,6 +358,7 @@ async function handleCustodySubmit(event) {
       end: '',
       source: 'custody',
       anchor,
+      endAnchor,
     }));
 
   try {
