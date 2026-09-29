@@ -79,3 +79,10 @@ test('persisted household members reject duplicate ids', () => {
     /duplicate member id/,
   );
 });
+
+test('bootstrap household includes Anna as non-shift coparent', () => {
+  const anna = bootstrapHouseholdMembers.find(member => member.id === 'anna');
+  assert.equal(anna.name, 'Anna');
+  assert.equal(anna.shiftEligible, false);
+  assert.equal(anna.colorKey, 'anna');
+});
