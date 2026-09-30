@@ -100,31 +100,27 @@ Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials au�
 - [ ] Dokumentation
 - [ ] finaler Repo-/CI-/UX-Audit
 
-## Autopilot-Befehl
+## Arbeitsmodi A/N/Q/U
 
-### `A`
-Wenn der Nutzer nur `A` sendet, arbeitet ChatGPT im aktuellen Chat-Turn maximal selbstständig an **beiden aktiven Projekten**: FamSchicht und SparzamApp.
+Die Kürzel gelten für das vom Nutzer genannte Repository. Sind mehrere Repositories ausdrücklich genannt, bearbeite sie jeweils getrennt.
 
-Dabei gilt ausdrücklich auch für Problembehebung:
-1. CI und aktuellen Stand beider Projekte prüfen.
-2. Bei Fehlern nicht nur melden, sondern die Ursache selbstständig analysieren.
-3. Eindeutig belegte Fehler direkt korrigieren.
-4. Regressionstests ergänzen oder anpassen.
-5. Änderungen committen und pushen.
-6. CI erneut prüfen.
-7. Solange weitere sichere Korrekturen möglich sind, im selben Turn weiterarbeiten.
-8. Erst stoppen, wenn CI grün ist oder eine echte externe Grenze erreicht ist (z. B. fehlende Credentials, riskante Migration, Kostenfreigabe, Tool-/Turn-Grenze).
+### `A` — Autopilot
+Erledige den vereinbarten Umfang in diesem Repository maximal selbstständig: aktuellen Branch und CI prüfen, Ursachen klären, Implementierung und Regressionstests ergänzen, relevante CI ausführen und klare Folgefehler beheben. Arbeite bis die Checks grün sind oder eine echte externe Grenze erreicht ist. Keine unbeauftragte Scope-Erweiterung; keine riskante Datenänderung, kein Merge und kein Release allein aufgrund des Kürzels.
 
-### `N`
-Normaler Entwicklungsblock für **beide aktiven Projekte** nach der bisherigen Regel: typischerweise bis zu 5 logisch zusammengehörige Schritte pro Projekt, danach relevante CI.
+### `N` — Normaler Entwicklungsblock
+Arbeite einen begrenzten Block von typischerweise bis zu fünf logisch zusammenhängenden Schritten ab. Führe danach die passenden Tests und CI aus und berichte den nächsten sinnvollen Schritt.
 
-### `U`
-Nur **Status prüfen**. Keine neue Feature-Entwicklung und keine eigenständige Problembehebung starten. Aktuellen CI-/Projektstatus beider aktiven Projekte kurz mit Ampel ausgeben.
+### `Q` — Qualitätssicherung
+Prüfe den benannten Bereich oder vorhandenen Diff, führe passende Tests aus und behebe nur klar reproduzierbare Fehler mit Regressionstest. Keine neuen Features.
+
+### `U` — Update
+Prüfe nur Repository-, Branch-, Test- und CI-Status und berichte ihn kompakt mit Ampel. Keine Änderungen und keine eigenständige Fehlerbehebung.
 
 ## Bestehende Kurzbefehle
-- `A`: maximal selbstständige Umsetzung **und Problembehebung** in FamSchicht + SparzamApp
-- `N`: normaler Entwicklungsblock für beide aktiven Projekte
-- `U`: nur Status beider aktiven Projekte prüfen
+- `A`: maximal selbstständige Umsetzung und Problembehebung im jeweils genannten Repository
+- `N`: begrenzter Entwicklungsblock im jeweils genannten Repository
+- `Q`: fokussierte Qualitätssicherung ohne neue Features
+- `U`: Statusbericht ohne Änderungen
 
 ## Reihenfolge ab aktuellem Stand
 Phase 1 vollständig abschließen → Phase 2 → Phase 3 vervollständigen → Phase 4 → Phase 5 → Phase 6.
