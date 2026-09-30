@@ -7,6 +7,13 @@
 - Filter sind einklappbar, Umgangsrhythmus ist in Einstellungen, und das Querformat hat ein kompaktes eigenes Layout.
 - Umgangsblöcke sind standardmäßig Freitag bis Sonntag, können aber über Start- und Enddatum frei verschoben werden. Live-Rechte/RLS bleiben unverändert owner-only.
 
+## Update 30.09.2026 – Lokaler Dienstplanimport (in Prüfung)
+- Dienstplanbilder werden clientseitig per deutscher OCR ausgewertet und vor dem Speichern manuell überprüfbar gemacht.
+- Bestätigte Schichten bleiben ausschließlich auf dem Gerät. Die eigene Zeile wird bei eindeutiger Zuordnung zu einem Schichtmitglied in die Kalenderansicht projiziert.
+- Die Dienste-Kachel zeigt zeitlich überlappende Namen (nur Vornamen); nicht angerechnete OZ-Dienste stehen separat. SG wird ignoriert.
+- Keine Schema-, RLS-, Auth- oder Supabase-Änderung.
+- Status: Feature-Branch; 107 Tests und PR-CI (einschließlich Build) sind grün. Sichtbare Prüfung der Desktop- und iPhone-Ansicht steht noch aus.
+
 Stand: 28.09.2026
 
 ## Ziel

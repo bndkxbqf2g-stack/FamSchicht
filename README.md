@@ -8,6 +8,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Monats-, Wochen-, Tages- und Heute-Ansicht.
 - Familien- und Schichttermine inklusive Wiederholungen und mehrtägigen Ereignissen.
 - Schicht-Schnellerfassung für Frühdienst, Spätdienst, Zwischendienst, Nachtdienst, SG-Tag, Urlaub und Fortbildung.
+- Dienstplanfotos können lokal per OCR gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.
 - Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen Mitglieder-IDs.
 - Personenfilter und Schichtauswahl werden aus diesem Modell erzeugt.
 - Neue Schichten speichern neben dem Anzeigenamen eine stabile `ownerId`; ältere Einträge mit nur `owner` bleiben lesbar.
@@ -31,6 +32,8 @@ npm run build
 ```
 
 GitHub ist die technische Wahrheit. Vor Änderungen zuerst `docs/PROJECT_STATUS.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md` und `docs/DECISIONS.md` prüfen.
+
+Details zu OCR, Kürzeln, lokaler Speicherung und manueller Prüfung: [`docs/SHIFT_ROSTER_IMPORT.md`](docs/SHIFT_ROSTER_IMPORT.md).
 
 **Datenschutz:** Keine Supabase-Service-Role-/Secret-Schlüssel oder unnötige sensible Familieninformationen im Repository speichern.
 
