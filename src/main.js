@@ -11,6 +11,7 @@ import {
 } from './household-members.js';
 import {ensureOwnerHouseholdMembers} from './household-member-service.js';
 import {
+  compareAgendaItems,
   calendarDates,
   calendarTitle,
   entriesForDay,
@@ -259,11 +260,7 @@ function homeOverviewMarkup(today) {
     });
     dayEntries.forEach(entry => upcoming.push({entry, date: key, offset}));
   }
-  upcoming.sort((a, b) =>
-    a.date.localeCompare(b.date) ||
-    (a.entry.start || '').localeCompare(b.entry.start || '') ||
-    (a.entry.type === 'shift' ? -1 : 1),
-  );
+  upcoming.sort(compareAgendaItems);
   const nextShift = upcoming.find(item => item.entry.type === 'shift');
   const appointments = upcoming.filter(item => item.entry.type !== 'shift').slice(0, 4);
   const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
