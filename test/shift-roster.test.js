@@ -32,6 +32,14 @@ test('maps roster codes to the agreed shift times', () => {
   });
 });
 
+test('corrects common one-character OCR confusions in shift abbreviations', () => {
+  assert.equal(parseRosterCell('Fl')?.code, 'F1');
+  assert.equal(parseRosterCell('SI')?.code, 'S1');
+  assert.equal(parseRosterCell('NS')?.code, 'N5');
+  assert.equal(parseRosterCell('ZI')?.code, 'Z1');
+  assert.equal(parseRosterCell('SL')?.kind, 'leadership-service');
+});
+
 test('OZ marks a real duty as not counted without removing it from overlap results', () => {
   assert.deepEqual(parseRosterCell('OZ + F1'), {
     code: 'F1', title: 'Frühdienst', start: '06:00', end: '14:12',

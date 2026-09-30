@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   extractRosterPage,
+  extractBestRosterPage,
   mergeRosterPages,
   parseRosterPeriod,
 } from '../src/shift-roster-import.js';
@@ -35,4 +36,30 @@ test('merges duplicate rows from page images by employee and date', () => {
   const standard = {name:'Ada Beispiel', date:'2026-11-02', code:'F1', title:'Frühdienst', start:'06:00', end:'14:12', notCounted:false};
   const marked = {...standard, notCounted:true};
   assert.deepEqual(mergeRosterPages([[standard], [marked]]), [marked]);
+});
+
+test('selects the OCR pass that recovers the most safely mapped roster entries', () => {
+  const weak = [word('Ada', 80, 160), word('Beispiel', 132, 160)];
+  const stronger = [
+    ...weak,
+    word('F1', 256, 160),
+    word('S1', 280, 160),
+  ];
+  const result = extractBestRosterPage({
+    width:1280,
+    height:960,
+    words:weak,
+    alternatives:[{words:stronger}],
+  }, '2026-11');
+  assert.deepEqual(result.map(entry => entry.code), ['F1', 'S1']);
+});
+
+test('groups name words with modest vertical OCR baseline drift', () => {
+  const words = [
+    word('Ada', 80, 160), word('Beispiel', 132, 173),
+    word('F1', 256, 160),
+  ];
+  const result = extractRosterPage({words, width:1280, height:960, period:'2026-11'});
+  assert.equal(result[0]?.name, 'Ada Beispiel');
+  assert.equal(result[0]?.code, 'F1');
 });

@@ -6,7 +6,8 @@ const SERVICE_TYPES = {
   Z1: {title: 'Zwischendienst', start: '11:48', end: '20:00'},
 };
 
-const CODE_PATTERN = /\b(OZ|F1|S1|N5|NX|Z1|FA|SL|SG|U|O)\b/gi;
+const CODE_PATTERN = /\b(OZ|F1|FL|FI|S1|SI|N5|NS|NX|Z1|ZI|FA|SL|SG|U|O)\b/gi;
+const OCR_SERVICE_ALIASES = {FL:'F1', FI:'F1', SI:'S1', NS:'N5', ZI:'Z1'};
 
 export function firstName(fullName) {
   return String(fullName || '').trim().split(/\s+/u)[0] || '';
@@ -23,7 +24,8 @@ export function normalizeRosterName(name) {
 
 export function parseRosterCell(value) {
   const codes = [...String(value || '').matchAll(CODE_PATTERN)]
-    .map(match => match[0].toUpperCase());
+    .map(match => match[0].toUpperCase())
+    .map(code => OCR_SERVICE_ALIASES[code] || code);
   const serviceCode = codes.find(code => SERVICE_TYPES[code]);
 
   if (!serviceCode) {

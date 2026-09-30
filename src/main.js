@@ -33,7 +33,7 @@ import {
   deleteOwnerEvent,
 } from './calendar-service.js';
 import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
-import {extractRosterPage, mergeRosterPages, parseRosterPeriod} from './shift-roster-import.js';
+import {extractBestRosterPage, mergeRosterPages, parseRosterPeriod} from './shift-roster-import.js';
 import {recognizeRosterImages} from './shift-roster-ocr.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
 import {
@@ -365,7 +365,7 @@ function rosterReviewMarkup(importData, fileInput, privacy) {
       ((importData.selfMemberId || suggestedRosterMemberId(importData.selfName, shiftMembers)) === member.id ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') +
     '</select></label><label>Deine Zeile im Plan<input name="selfName" list="roster-name-options" required value="' + h(importData.selfName || '') + '" placeholder="Name wie im Dienstplan"><datalist id="roster-name-options">' +
     names.map(name => '<option value="' + h(name) + '"></option>').join('') + '</datalist></label></div>' +
-    '<p class="roster-review-note">Prüfe besonders Datum, Kürzel und „nicht angerechnet“. Angezeigt werden später nur Vornamen. Fotos werden nach der Erkennung verworfen.</p>' +
+    '<p class="roster-review-note">Die Erkennung kann einzelne Dienste oder Personen übersehen. Vergleiche die Vorschau vollständig mit dem Foto und ergänze fehlende Dienste. Prüfe besonders Datum, Kürzel und „nicht angerechnet“. Fotos werden nach der Erkennung verworfen.</p>' +
     '<div class="roster-add-row"><label>Person<input id="roster-new-name" type="text" placeholder="Name im Plan"></label>' +
     '<label>Datum<input id="roster-new-date" type="date" value="' + h(importData.month + '-01') + '"></label>' +
     '<label>Dienst<select id="roster-new-code">' + ['F1','S1','N5','Nx','Z1'].map(code =>
@@ -632,9 +632,10 @@ async function handleRosterFilesChange(event) {
   render();
   try {
     const pages = await recognizeRosterImages(files, updateRosterOcrProgress);
-    const detectedPeriods = pages.map(page => parseRosterPeriod(page.text)).filter(Boolean);
+    const detectedPeriods = pages.flatMap(page => [page.text, ...(page.alternatives || []).map(item => item.text)]
+      .map(parseRosterPeriod).filter(Boolean));
     const period = mostCommon(detectedPeriods) || dateKey(new Date()).slice(0, 7);
-    const entriesByPage = pages.map(page => extractRosterPage({...page, period}));
+    const entriesByPage = pages.map(page => extractBestRosterPage(page, period));
     const entries = mergeRosterPages(entriesByPage);
     if (!entries.length) {
       throw new Error('Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto wählen.');
@@ -655,6 +656,8 @@ function updateRosterOcrProgress(message) {
   if (!status || !message) return;
   if (message.status === 'recognizing') {
     status.textContent = `Foto ${message.page} von ${message.pages} wird ausgewertet …`;
+  } else if (message.status === 'enhancing') {
+    status.textContent = `Foto ${message.page} von ${message.pages}: Schriftbild wird verbessert …`;
   } else if (message.status === 'loading language traineddata') {
     status.textContent = 'Deutsche Texterkennung wird geladen …';
   }
