@@ -33,6 +33,26 @@ import {
 } from './calendar-service.js';
 import './styles.css';
 
+if ('serviceWorker' in navigator) {
+  const appBase = import.meta.env.BASE_URL;
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController) window.location.reload();
+  }, {once: true});
+
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register(`${appBase}sw.js`, {
+        scope: appBase,
+        updateViaCache: 'none',
+      });
+      await registration.update();
+    } catch (error) {
+      console.warn('App-Updates konnten nicht aktiviert werden', error);
+    }
+  }, {once: true});
+}
+
 let entries = load();
 let month = new Date();
 let focusedDate = new Date();
