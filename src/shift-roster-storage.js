@@ -32,5 +32,6 @@ function isStoredRoster(roster) {
     /^\d{4}-(0[1-9]|1[0-2])$/.test(roster.month) &&
     Array.isArray(roster.entries) &&
     roster.entries.every(entry => entry && typeof entry.name === 'string' &&
-      typeof entry.date === 'string' && typeof entry.code === 'string'));
+      typeof entry.date === 'string' && typeof entry.code === 'string') &&
+    (roster.selfMemberId === undefined || typeof roster.selfMemberId === 'string'));
 }

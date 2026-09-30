@@ -36,7 +36,10 @@ import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './
 import {extractRosterPage, mergeRosterPages, parseRosterPeriod} from './shift-roster-import.js';
 import {recognizeRosterImages} from './shift-roster-ocr.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
-import {importedRosterCalendarEntries as projectRosterEntries} from './shift-roster-calendar.js';
+import {
+  importedRosterCalendarEntries as projectRosterEntries,
+  suggestedRosterMemberId,
+} from './shift-roster-calendar.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -357,7 +360,10 @@ function rosterReviewMarkup(importData, fileInput, privacy) {
     importData.entries.length + ' Dienste</p><h2>Vor dem Speichern prüfen</h2></div></div>' +
     '<form id="roster-review-form"><div class="roster-review-fields">' +
     '<label>Monat des Plans<input name="month" type="month" required value="' + h(importData.month) + '"></label>' +
-    '<label>Deine Zeile im Plan<input name="selfName" list="roster-name-options" required value="' + h(importData.selfName || '') + '" placeholder="Name wie im Dienstplan"><datalist id="roster-name-options">' +
+    '<label>Deine Person in FamSchicht<select name="selfMemberId" required><option value="">Person auswählen</option>' +
+    shiftMembers.map(member => '<option value="' + h(member.id) + '"' +
+      ((importData.selfMemberId || suggestedRosterMemberId(importData.selfName, shiftMembers)) === member.id ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') +
+    '</select></label><label>Deine Zeile im Plan<input name="selfName" list="roster-name-options" required value="' + h(importData.selfName || '') + '" placeholder="Name wie im Dienstplan"><datalist id="roster-name-options">' +
     names.map(name => '<option value="' + h(name) + '"></option>').join('') + '</datalist></label></div>' +
     '<p class="roster-review-note">Prüfe besonders Datum, Kürzel und „nicht angerechnet“. Angezeigt werden später nur Vornamen. Fotos werden nach der Erkennung verworfen.</p>' +
     '<div class="roster-add-row"><label>Person<input id="roster-new-name" type="text" placeholder="Name im Plan"></label>' +
@@ -456,6 +462,14 @@ function bindControls() {
     render();
   });
   app.querySelector('#roster-review-form')?.addEventListener('submit', handleRosterImportSubmit);
+  app.querySelector('#roster-review-form [name="selfName"]')?.addEventListener('change', event => {
+    rosterImport.selfName = event.currentTarget.value.trim();
+    const suggested = suggestedRosterMemberId(rosterImport.selfName, shiftMembers);
+    if (suggested) app.querySelector('#roster-review-form [name="selfMemberId"]').value = suggested;
+  });
+  app.querySelector('#roster-review-form [name="selfMemberId"]')?.addEventListener('change', event => {
+    rosterImport.selfMemberId = event.currentTarget.value;
+  });
   app.querySelector('#roster-add-duty')?.addEventListener('click', addRosterPreviewDuty);
   app.querySelectorAll('[data-roster-row]').forEach(row => {
     row.querySelectorAll('[data-roster-field]').forEach(field => {
@@ -625,7 +639,7 @@ async function handleRosterFilesChange(event) {
     if (!entries.length) {
       throw new Error('Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto wählen.');
     }
-    rosterImport = {month:period, selfName:'', entries};
+  rosterImport = {month:period, selfName:'', selfMemberId:'', entries};
     rosterImportError = '';
   } catch (error) {
     rosterImportError = error.message || 'Der Dienstplan konnte nicht gelesen werden.';
@@ -688,8 +702,10 @@ function handleRosterImportSubmit(event) {
   const form = event.currentTarget;
   const monthValue = String(new FormData(form).get('month') || '');
   const selfName = String(new FormData(form).get('selfName') || '').trim();
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue) || !selfName) {
-    alert('Bitte Monat und deine Zeile ausfüllen.');
+  const selfMemberId = String(new FormData(form).get('selfMemberId') || '');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue) || !selfName ||
+      !shiftMembers.some(member => member.id === selfMemberId)) {
+    alert('Bitte Monat, deine Person in FamSchicht und deine Zeile im Plan auswählen.');
     return;
   }
 
@@ -705,7 +721,7 @@ function handleRosterImportSubmit(event) {
 
   const existing = shiftRosters.find(roster => roster.month === monthValue);
   if (existing && !confirm('Der Dienstplan für ' + monthLabel(monthValue) + ' ist bereits gespeichert. Soll er ersetzt werden?')) return;
-  const replacement = {month:monthValue, selfName, entries};
+  const replacement = {month:monthValue, selfName, selfMemberId, entries};
   try {
     shiftRosters = saveShiftRosters(replaceShiftRosterMonth(shiftRosters, replacement));
     rosterImport = null;

@@ -1,5 +1,20 @@
 import {firstName, normalizeRosterName, parseRosterCell} from './shift-roster.js';
 
+const ROSTER_NAME_ALIASES = {stefanie:'steffi'};
+
+export function suggestedRosterMemberId(rosterName, members) {
+  const first = normalizeRosterName(firstName(rosterName));
+  const memberList = members || [];
+  const exactMatches = memberList.filter(member =>
+    normalizeRosterName(firstName(member.name)) === first);
+  if (exactMatches.length === 1) return exactMatches[0].id;
+  if (exactMatches.length > 1) return '';
+  const identity = ROSTER_NAME_ALIASES[first];
+  if (!identity) return '';
+  const matches = memberList.filter(member => normalizeRosterName(firstName(member.name)) === identity);
+  return matches.length === 1 ? matches[0].id : '';
+}
+
 /**
  * Build calendar-only entries from the selected person's locally stored roster.
  * A stable household member match is required; ambiguous names are skipped.
@@ -8,8 +23,8 @@ export function importedRosterCalendarEntries(rosters, members, existingEntries 
   const result = [];
   for (const roster of rosters || []) {
     const selfKey = normalizeRosterName(roster.selfName);
-    const matchingMembers = (members || []).filter(member =>
-      normalizeRosterName(member.name) === normalizeRosterName(firstName(roster.selfName)));
+    const memberId = roster.selfMemberId || suggestedRosterMemberId(roster.selfName, members);
+    const matchingMembers = (members || []).filter(member => member.id === memberId);
     if (!selfKey || matchingMembers.length !== 1) continue;
     const member = matchingMembers[0];
 
