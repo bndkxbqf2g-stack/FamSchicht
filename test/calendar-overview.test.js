@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  compareAgendaItems,
   calendarDates,
   calendarTitle,
   entriesForDay,
@@ -220,4 +221,22 @@ test('family entry owner drives person color key with Martin fallback', () => {
   assert.equal(entryOwnerStyleKey({type:'family',title:'Eigener Termin'}), 'martin');
   assert.equal(entryOwnerStyleKey({type:'family',ownerId:'steffi'}), 'steffi');
   assert.equal(entryOwnerStyleKey({type:'family',owner:'Anna'}, {anna:'Anna'}), 'anna');
+});
+
+test('upcoming agenda order is deterministic for entries at the same time', () => {
+  const items = [
+    {date: '2026-09-30', entry: {type: 'family', title: 'Sport', start: '16:00'}},
+    {date: '2026-09-30', entry: {type: 'family', title: 'Arzt', start: '16:00'}},
+    {date: '2026-09-30', entry: {type: 'shift', title: 'Spätdienst', start: '16:00'}},
+    {date: '2026-10-01', entry: {type: 'family', title: 'Schule', start: '08:00'}},
+  ];
+
+  assert.deepEqual(
+    items.sort(compareAgendaItems).map(item => item.entry.title),
+    ['Spätdienst', 'Arzt', 'Sport', 'Schule'],
+  );
+  assert.equal(
+    compareAgendaItems(items[1], items[2]),
+    -compareAgendaItems(items[2], items[1]),
+  );
 });

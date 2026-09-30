@@ -20,6 +20,20 @@ export function visibleEntriesForDay(
   return entriesForDay(filterCalendarEntries(entries, filters), date);
 }
 
+export function compareAgendaItems(a, b) {
+  const byDate = a.date.localeCompare(b.date);
+  if (byDate) return byDate;
+
+  const byStart = (a.entry.start || '').localeCompare(b.entry.start || '');
+  if (byStart) return byStart;
+
+  if (a.entry.type !== b.entry.type) {
+    return a.entry.type === 'shift' ? -1 : 1;
+  }
+
+  return (a.entry.title || '').localeCompare(b.entry.title || '');
+}
+
 export function filterCalendarEntries(
   entries,
   {person = 'all', category = 'all', personNamesById = {}} = {},
