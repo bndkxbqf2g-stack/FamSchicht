@@ -13,20 +13,70 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
   try {
     for (let index = 0; index < files.length; index += 1) {
       onProgress({status:'recognizing', page:index + 1, pages:files.length, progress:0});
-      const image = await imageDimensions(files[index]);
-      const {data} = await worker.recognize(files[index]);
-      pages.push({
-        width:image.width,
-        height:image.height,
-        text:data.text || '',
-        words:Array.isArray(data.words) ? data.words : [],
-      });
+      const image = await loadImage(files[index]);
+      try {
+        const {data} = await worker.recognize(image.source);
+        const alternatives = [];
+        if (countServiceCodeWords(data.words) < 18) {
+          const enhanced = makeEnhancedCanvas(image.source, image.width, image.height);
+          let nameCanvas;
+          let gridCanvas;
+          try {
+            for (const pageMode of ['11', '6']) {
+              onProgress({status:'enhancing', page:index + 1, pages:files.length, progress:0});
+              await worker.setParameters({tessedit_pageseg_mode:pageMode});
+              const result = await worker.recognize(enhanced.canvas);
+              alternatives.push({text:result.data.text || '', words:Array.isArray(result.data.words) ? result.data.words : []});
+            }
+
+            nameCanvas = makeEnhancedCanvas(image.source, image.width, image.height, {
+              x:image.width * 0.025, y:image.height * 0.08,
+              regionWidth:image.width * 0.165, regionHeight:image.height * 0.8,
+              scaleFactor:4,
+            });
+            gridCanvas = makeEnhancedCanvas(image.source, image.width, image.height, {
+              x:image.width * 0.17, y:image.height * 0.08,
+              regionWidth:image.width * 0.68, regionHeight:image.height * 0.8,
+              scaleFactor:4,
+            });
+            await worker.setParameters({tessedit_pageseg_mode:'11'});
+            const nameResult = await worker.recognize(nameCanvas.canvas);
+            await worker.setParameters({tessedit_pageseg_mode:'6'});
+            const gridResult = await worker.recognize(gridCanvas.canvas);
+            alternatives.push({
+              text:`${nameResult.data.text || ''} ${gridResult.data.text || ''}`.trim(),
+              words:[
+                ...mapCropWords(nameResult.data.words, nameCanvas),
+                ...mapCropWords(gridResult.data.words, gridCanvas),
+              ],
+            });
+          } finally {
+            disposeCanvas(enhanced.canvas);
+            if (nameCanvas) disposeCanvas(nameCanvas.canvas);
+            if (gridCanvas) disposeCanvas(gridCanvas.canvas);
+            await worker.setParameters({tessedit_pageseg_mode:'3'});
+          }
+        }
+        pages.push({
+          width:image.width,
+          height:image.height,
+          text:data.text || '',
+          words:Array.isArray(data.words) ? data.words : [],
+          alternatives,
+        });
+      } finally {
+        image.dispose();
+      }
       onProgress({status:'page-complete', page:index + 1, pages:files.length, progress:1});
     }
     return pages;
   } finally {
     await worker.terminate();
   }
+}
+
+function countServiceCodeWords(words) {
+  return (words || []).filter(word => /^(?:F1|FL|FI|S1|SI|N5|NS|NX|Z1|ZI)$/i.test(String(word?.text || '').trim())).length;
 }
 
 function loadTesseract() {
@@ -51,21 +101,88 @@ function loadTesseract() {
   return tesseractPromise;
 }
 
-async function imageDimensions(file) {
+async function loadImage(file) {
   if (globalThis.createImageBitmap) {
     const bitmap = await createImageBitmap(file);
-    const dimensions = {width:bitmap.width, height:bitmap.height};
-    bitmap.close();
-    return dimensions;
+    return {source:bitmap, width:bitmap.width, height:bitmap.height, dispose:() => bitmap.close()};
   }
 
   const url = URL.createObjectURL(file);
+  const image = new Image();
+  image.src = url;
   try {
-    const image = new Image();
-    image.src = url;
     await image.decode();
-    return {width:image.naturalWidth, height:image.naturalHeight};
-  } finally {
+    return {
+      source:image,
+      width:image.naturalWidth,
+      height:image.naturalHeight,
+      dispose:() => URL.revokeObjectURL(url),
+    };
+  } catch (error) {
     URL.revokeObjectURL(url);
+    throw error;
   }
+}
+
+function makeEnhancedCanvas(source, width, height, region = {}) {
+  const x = region.x || 0;
+  const y = region.y || 0;
+  const regionWidth = region.regionWidth || width;
+  const regionHeight = region.regionHeight || height;
+  const scale = Math.min(region.scaleFactor || 3, 4096 / Math.max(regionWidth, regionHeight));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(regionWidth * scale);
+  canvas.height = Math.round(regionHeight * scale);
+  const context = canvas.getContext('2d', {willReadFrequently:true});
+  if (!context) throw new Error('Das Foto konnte für die Texterkennung nicht vorbereitet werden.');
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+  context.drawImage(source, x, y, regionWidth, regionHeight, 0, 0, canvas.width, canvas.height);
+
+  const image = context.getImageData(0, 0, canvas.width, canvas.height);
+  const histogram = new Uint32Array(256);
+  for (let index = 0; index < image.data.length; index += 4) {
+    const gray = Math.round(image.data[index] * 0.299 + image.data[index + 1] * 0.587 + image.data[index + 2] * 0.114);
+    histogram[gray] += 1;
+  }
+  const low = histogramPercentile(histogram, image.data.length / 4, 0.01);
+  const high = histogramPercentile(histogram, image.data.length / 4, 0.99);
+  const range = Math.max(1, high - low);
+  for (let index = 0; index < image.data.length; index += 4) {
+    const gray = Math.round(image.data[index] * 0.299 + image.data[index + 1] * 0.587 + image.data[index + 2] * 0.114);
+    const contrast = Math.max(0, Math.min(255, Math.round((gray - low) * 255 / range)));
+    const value = contrast;
+    image.data[index] = value;
+    image.data[index + 1] = value;
+    image.data[index + 2] = value;
+  }
+  context.putImageData(image, 0, 0);
+  return {canvas, x, y, scale};
+}
+
+function mapCropWords(words, crop) {
+  return Array.isArray(words) ? words.filter(word => word?.bbox).map(word => ({
+    ...word,
+    bbox:{
+      x0:crop.x + word.bbox.x0 / crop.scale,
+      x1:crop.x + word.bbox.x1 / crop.scale,
+      y0:crop.y + word.bbox.y0 / crop.scale,
+      y1:crop.y + word.bbox.y1 / crop.scale,
+    },
+  })) : [];
+}
+
+function disposeCanvas(canvas) {
+  canvas.width = 0;
+  canvas.height = 0;
+}
+
+function histogramPercentile(histogram, total, percentile) {
+  const target = total * percentile;
+  let count = 0;
+  for (let value = 0; value < histogram.length; value += 1) {
+    count += histogram[value];
+    if (count >= target) return value;
+  }
+  return 255;
 }

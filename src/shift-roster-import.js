@@ -21,7 +21,7 @@ export function extractRosterPage({words, width, height, period}) {
   const [year, month] = period.split('-').map(Number);
   const dayCount = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const nameWords = words.filter(word => wordText(word) && word.bbox &&
-    centerX(word) < width * 0.175 && centerY(word) > height * 0.12 && centerY(word) < height * 0.86);
+    centerX(word) < width * 0.19 && centerY(word) > height * 0.12 && centerY(word) < height * 0.86);
   const rows = groupNameWords(nameWords, height)
     .filter(row => row.name.length >= 4 && normalizeRosterName(row.name) !== 'name')
     .sort((a, b) => a.y - b.y);
@@ -30,7 +30,7 @@ export function extractRosterPage({words, width, height, period}) {
   const firstColumnCenter = width * 0.2;
   const lastColumnCenter = width * 0.822;
   const recognizedWords = words.filter(word => wordText(word) && word.bbox &&
-    centerX(word) >= width * 0.18 && centerX(word) <= width * 0.84 &&
+    centerX(word) >= width * 0.17 && centerX(word) <= width * 0.85 &&
     (parseRosterCell(wordText(word)) || /^OZ$/i.test(wordText(word))));
   const cells = new Map();
 
@@ -76,6 +76,13 @@ export function extractRosterPage({words, width, height, period}) {
   return entries.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name, 'de'));
 }
 
+export function extractBestRosterPage(page, period) {
+  const candidates = [page?.words, ...(page?.alternatives || []).map(item => item?.words)]
+    .filter(Array.isArray)
+    .map(words => extractRosterPage({...page, words, period}));
+  return candidates.reduce((best, entries) => entries.length > best.length ? entries : best, []);
+}
+
 export function mergeRosterPages(pages) {
   const byIdentity = new Map();
   for (const entry of pages.flat()) {
@@ -92,7 +99,7 @@ function groupNameWords(words, height) {
   const lines = [];
   for (const word of sorted) {
     const y = centerY(word);
-    let line = lines.find(candidate => Math.abs(candidate.y - y) <= height * 0.013);
+    let line = lines.find(candidate => Math.abs(candidate.y - y) <= height * 0.02);
     if (!line) {
       line = {y, words: []};
       lines.push(line);
