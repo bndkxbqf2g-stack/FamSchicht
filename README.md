@@ -33,3 +33,8 @@ npm run build
 GitHub ist die technische Wahrheit. Vor Änderungen zuerst `docs/PROJECT_STATUS.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md` und `docs/DECISIONS.md` prüfen.
 
 **Datenschutz:** Keine Supabase-Service-Role-/Secret-Schlüssel oder unnötige sensible Familieninformationen im Repository speichern.
+
+
+## Release 0.3.1
+
+Die freigegebene helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht; Fachlogik und owner-only RLS bleiben unverändert.
