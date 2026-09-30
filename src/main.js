@@ -57,7 +57,7 @@ let entries = load();
 let month = new Date();
 let focusedDate = new Date();
 let calendarMode = 'month';
-let view = 'all';
+let view = 'home';
 let personFilter = 'all';
 let categoryFilter = 'all';
 let cloud = null;
@@ -195,21 +195,22 @@ function render() {
     (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
   const todayMarkup = todayOverviewMarkup(today);
-  const body = view === 'today' ? todayMarkup :
+  const body = view === 'home' ? homeOverviewMarkup(today) :
+    view === 'today' ? todayMarkup :
     (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + calendarMarkup;
 
   app.innerHTML =
     '<div class="familycal-shell view-' + view + '">' +
-    '<aside class="app-sidebar"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.1</small></div></div>' +
+    '<aside class="app-sidebar"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.2</small></div></div>' +
     '<nav class="side-nav">' +
-    [['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
+    [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"><span>' + icon + '</span>' + label + '</button>')
       .join('') +
     '</nav><div class="sidebar-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' +
     (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></aside>' +
     '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1>' +
-    (view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : 'Kalender') +
-    '</h1></div><div class="member-legend">' +
+    (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender') +
+    '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button><div class="member-legend">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '">' + h(member.name) + '</span>').join('') +
     '</div><div class="mobile-sync-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' + (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></header>' +
     body +
@@ -244,6 +245,53 @@ function todayOverviewMarkup(today) {
     '</div></section>';
 }
 
+function homeOverviewMarkup(today) {
+  const base = new Date(today + 'T12:00:00');
+  const upcoming = [];
+  for (let offset = 0; offset < 21; offset += 1) {
+    const date = new Date(base);
+    date.setDate(base.getDate() + offset);
+    const key = dateKey(date);
+    const dayEntries = visibleEntriesForDay(entries, key, {
+      person: personFilter,
+      category: categoryFilter,
+      personNamesById: householdMemberNames,
+    });
+    dayEntries.forEach(entry => upcoming.push({entry, date: key, offset}));
+  }
+  upcoming.sort((a, b) =>
+    a.date.localeCompare(b.date) ||
+    (a.entry.start || '').localeCompare(b.entry.start || '') ||
+    (a.entry.type === 'shift' ? -1 : 1),
+  );
+  const nextShift = upcoming.find(item => item.entry.type === 'shift');
+  const appointments = upcoming.filter(item => item.entry.type !== 'shift').slice(0, 4);
+  const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
+    new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
+  const nextShiftMarkup = nextShift
+    ? '<article class="next-shift-card owner-' + h(entryOwnerStyleKey(nextShift.entry, householdMemberNames)) + '" data-edit="' + h(nextShift.entry.id) + '" role="button" tabindex="0">' +
+      '<div class="next-shift-copy"><span class="home-kicker">Dein nächster Dienst</span><h2>' + h(nextShift.entry.title) + '</h2>' +
+      '<p>' + h(dateLabel(nextShift.date, nextShift.offset)) + (nextShift.entry.start ? ' · ' + h(eventTimeLabel(nextShift.entry)) : '') + '</p></div>' +
+      '<span class="shift-owner-chip">' + h(shiftOwnerDisplayName(nextShift.entry, householdMemberNames) || 'Nicht zugeordnet') + '</span></article>'
+    : '<article class="next-shift-card next-shift-empty"><span class="home-kicker">Dein nächster Dienst</span><h2>Kein Dienst eingetragen</h2><p>Deine nächsten Dienste erscheinen hier.</p></article>';
+  const appointmentMarkup = appointments.length
+    ? appointments.map(item => '<article class="home-agenda-item ' + h(item.entry.type) + ' owner-' + h(entryOwnerStyleKey(item.entry, householdMemberNames)) +
+      (item.entry.type === 'shift' ? '' : ' ' + h(item.entry.eventKind || 'event')) + '" data-edit="' + h(item.entry.id) + '" role="button" tabindex="0">' +
+      '<time><strong>' + h(dateLabel(item.date, item.offset)) + '</strong><span>' + h(eventTimeLabel(item.entry)) + '</span></time>' +
+      '<span class="agenda-marker" aria-hidden="true"></span><span class="agenda-copy"><strong>' + h(item.entry.title) + '</strong>' +
+      '<small>' + h(item.entry.type === 'shift' ? (shiftOwnerDisplayName(item.entry, householdMemberNames) || 'Dienst') : 'Familie') + '</small></span><span class="agenda-arrow">›</span></article>').join('')
+    : '<div class="home-empty"><span class="home-empty-mark">✓</span><strong>Alles im Blick</strong><span>Es stehen noch keine Termine an.</span></div>';
+  return '<section class="home-dashboard"><div class="home-welcome"><div><p class="home-kicker">' +
+    h(new Date(today + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'})) +
+    '</p><h2>Hallo zusammen.</h2><p>Hier ist euer Familienplan auf einen Blick.</p></div>' +
+    '<button id="home-add-event" class="home-add-button" type="button"><span>＋</span> Termin</button></div>' +
+    '<div class="home-highlights">' + nextShiftMarkup + '</div>' +
+    '<section class="home-agenda"><div class="home-section-heading"><div><span class="home-kicker">Die nächsten Tage</span><h2>Anstehende Termine</h2></div>' +
+    '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
+    '<div class="home-agenda-list">' + appointmentMarkup + '</div></section>' +
+    '<div class="home-footer-note"><span class="home-sync-dot"></span>' + (cloud ? 'Euer Plan ist synchronisiert' : 'Dein Plan auf diesem Gerät') + '</div></section>';
+}
+
 function custodyMarkup() {
   return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
@@ -276,6 +324,9 @@ function bindControls() {
     render();
   });
   app.querySelector('#add-today')?.addEventListener('click', () => {
+    openDayDialog(dateKey(new Date()));
+  });
+  app.querySelector('#home-add-event')?.addEventListener('click', () => {
     openDayDialog(dateKey(new Date()));
   });
   app.querySelector('#quick-event')?.addEventListener('click', () => {

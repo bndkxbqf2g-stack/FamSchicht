@@ -709,3 +709,87 @@ body.settings-open #account-shell{
   .view-all .day,.view-all .day.empty{min-height:70px}
   .view-all .calendar-panel{padding:10px}
 }
+
+/* FamSchicht calm mobile-first overview */
+:root{--home-ink:#21342e;--home-muted:#78867f;--home-canvas:#f4f6f2;--home-green:#315f52;--home-line:#e5eae5}
+body{background:var(--home-canvas)}
+.view-home .app-workspace{max-width:1040px;margin:0 auto}
+.view-home .app-topbar{padding-bottom:8px}
+.view-home .app-topbar .eyebrow{display:block;color:var(--home-muted)}
+.view-home .app-topbar h1{font-size:clamp(28px,4vw,36px);letter-spacing:-.045em;color:var(--home-ink)}
+.view-home .app-sidebar{background:#fff;border-color:var(--home-line)}
+.view-home .side-nav button.active{background:#e8f1eb;color:var(--home-green)}
+.view-home .app-topbar .mobile-settings{display:none}
+.home-dashboard{display:grid;gap:22px;padding:8px 0 32px;color:var(--home-ink)}
+.home-welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:10px 2px 0}
+.home-kicker{display:block;margin:0 0 7px;color:var(--home-muted);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.home-welcome h2{margin:0;font-size:clamp(27px,4vw,36px);letter-spacing:-.045em}
+.home-welcome p:not(.home-kicker){margin:7px 0 0;color:var(--home-muted);font-size:15px}
+.home-add-button{display:inline-flex;align-items:center;gap:7px;min-height:46px;padding:0 17px;border:0;border-radius:15px;background:var(--home-green);color:#fff;font-weight:800;box-shadow:0 7px 18px #315f5222}
+.home-add-button span{font-size:21px;line-height:1}
+.home-highlights{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.next-shift-card{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;min-height:176px;padding:24px;border:1px solid #d7e7db;border-radius:25px;background:radial-gradient(circle at 90% 20%,#ffffffa8,transparent 32%),linear-gradient(135deg,#dcebe0,#f0f6ee);color:var(--home-ink);cursor:pointer;box-shadow:0 12px 30px #315f520c}
+.next-shift-card h2{margin:0;font-size:clamp(25px,4vw,34px);letter-spacing:-.04em}
+.next-shift-card p{margin:9px 0 0;color:#52675d;font-weight:700}
+.next-shift-empty{align-items:flex-start;flex-direction:column;justify-content:center;min-height:140px}
+.shift-owner-chip{padding:8px 12px;border:1px solid #ffffffaa;border-radius:99px;background:#ffffff99;color:var(--home-green);font-size:13px;font-weight:800;white-space:nowrap}
+.home-agenda{padding:22px;border:1px solid var(--home-line);border-radius:24px;background:#fff;box-shadow:0 8px 26px #21342e08}
+.home-section-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px}
+.home-section-heading h2{margin:0;font-size:22px;letter-spacing:-.035em}
+.home-text-button{padding:7px 0;border:0;background:none;color:var(--home-green);font-weight:800;white-space:nowrap}
+.home-text-button span{padding-left:3px;font-size:20px}
+.home-agenda-list{display:grid}
+.home-agenda-item{display:grid;grid-template-columns:70px 10px minmax(0,1fr) 18px;align-items:center;gap:12px;min-height:70px;border-bottom:1px solid #edf0ed;cursor:pointer}
+.home-agenda-item:last-child{border-bottom:0}
+.home-agenda-item time{display:grid;gap:3px;color:var(--home-ink);font-size:13px}
+.home-agenda-item time span,.home-agenda-item small{color:var(--home-muted);font-size:12px}
+.agenda-marker{width:9px;height:9px;border-radius:50%;background:#83a292;box-shadow:0 0 0 4px #edf4ef}
+.home-agenda-item.shift .agenda-marker{background:#315f52}
+.home-agenda-item .agenda-copy{display:grid;gap:4px;min-width:0}
+.home-agenda-item .agenda-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda-arrow{color:#9aa69f;font-size:23px}
+.home-empty{display:grid;justify-items:center;gap:5px;padding:24px;color:var(--home-muted);text-align:center}
+.home-empty strong{color:var(--home-ink)}
+.home-empty-mark{display:grid;place-items:center;width:36px;height:36px;margin-bottom:4px;border-radius:50%;background:#e8f1eb;color:var(--home-green);font-size:19px}
+.home-footer-note{display:flex;align-items:center;gap:8px;padding:0 4px;color:var(--home-muted);font-size:12px}
+.home-sync-dot{width:8px;height:8px;border-radius:50%;background:#62a27d}
+@media(max-width:700px){
+ body{background:#f4f6f2}
+ .familycal-shell{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+ .view-home .app-workspace{padding:12px 16px calc(18px + env(safe-area-inset-bottom))}
+ .view-home .app-topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 2px 4px}
+ .view-home .app-topbar>div:first-child{display:block}
+ .view-home .app-topbar .eyebrow{display:none}
+ .view-home .app-topbar h1{font-size:21px}
+ .view-home .app-topbar .member-legend,.view-home .mobile-sync-status{display:none}
+ .view-home .app-topbar .mobile-settings{display:grid;place-items:center;width:42px;height:42px;padding:0;border:1px solid var(--home-line);border-radius:15px;background:#fff;color:var(--home-green);font-size:20px}
+ .home-dashboard{gap:16px;padding-top:5px}
+ .home-welcome{align-items:center;padding:3px 1px 2px}
+ .home-welcome h2{font-size:27px}
+ .home-welcome p:not(.home-kicker){max-width:235px;font-size:13px;line-height:1.4}
+ .home-welcome .home-kicker{font-size:10px;margin-bottom:5px}
+ .home-add-button{min-height:42px;padding:0 12px;border-radius:13px;font-size:13px}
+ .next-shift-card{min-height:150px;padding:19px;border-radius:21px}
+ .next-shift-card h2{font-size:27px}
+ .shift-owner-chip{font-size:11px;padding:7px 9px}
+ .home-agenda{padding:17px 15px;border-radius:21px}
+ .home-section-heading{align-items:center}
+ .home-section-heading h2{font-size:19px}
+ .home-section-heading .home-kicker{font-size:10px}
+ .home-text-button{font-size:12px}
+ .home-agenda-item{grid-template-columns:60px 9px minmax(0,1fr) 12px;gap:9px;min-height:67px}
+ .home-agenda-item .agenda-copy strong{font-size:14px}
+ .home-agenda-item time{font-size:12px}
+ .home-agenda-item time span,.home-agenda-item small{font-size:11px}
+ .home-footer-note{font-size:11px}
+ .side-nav{grid-template-columns:repeat(5,1fr)}
+ .side-nav button[data-view="settings"]{display:none}
+ .side-nav button{min-height:57px;padding:5px 2px;font-size:10px}
+ .side-nav button span{font-size:18px}
+}
+@media(max-width:380px){
+ .home-welcome h2{font-size:24px}
+ .home-welcome p:not(.home-kicker){max-width:180px}
+ .home-add-button{gap:3px;padding:0 9px}
+ .next-shift-card{align-items:flex-start;flex-direction:column}
+}
