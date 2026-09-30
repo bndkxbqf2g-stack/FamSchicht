@@ -12,7 +12,7 @@
 - Bestätigte Schichten bleiben ausschließlich auf dem Gerät. Die eigene Zeile wird bei eindeutiger Zuordnung zu einem Schichtmitglied in die Kalenderansicht projiziert.
 - Die Dienste-Kachel zeigt zeitlich überlappende Namen (nur Vornamen); nicht angerechnete OZ-Dienste stehen separat. SG wird ignoriert.
 - Keine Schema-, RLS-, Auth- oder Supabase-Änderung.
-- Status: Feature-Branch; 104 Tests und PR-CI (einschließlich Build) sind grün. Sichtbare Prüfung der Desktop- und iPhone-Ansicht steht noch aus.
+- Status: Feature-Branch; 107 Tests und PR-CI (einschließlich Build) sind grün. Sichtbare Prüfung der Desktop- und iPhone-Ansicht steht noch aus.
 
 Stand: 28.09.2026
 
