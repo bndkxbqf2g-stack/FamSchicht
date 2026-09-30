@@ -32,6 +32,11 @@ import {
   updateOwnerEvent,
   deleteOwnerEvent,
 } from './calendar-service.js';
+import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
+import {extractRosterPage, mergeRosterPages, parseRosterPeriod} from './shift-roster-import.js';
+import {recognizeRosterImages} from './shift-roster-ocr.js';
+import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
+import {importedRosterCalendarEntries as projectRosterEntries} from './shift-roster-calendar.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -70,6 +75,10 @@ let householdMembers = [...bootstrapHouseholdMembers];
 let shiftMembers = shiftEligibleMembers(householdMembers);
 let householdMemberNames = memberNamesById(householdMembers);
 let shiftOwnerId = shiftMembers[0]?.id || '';
+let shiftRosters = loadShiftRosters();
+let rosterImport = null;
+let rosterImportBusy = false;
+let rosterImportError = '';
 
 function applyHouseholdMembers(members) {
   householdMembers = members?.length
@@ -137,8 +146,9 @@ async function connectCloud() {
 function render() {
   const days = calendarDates(focusedDate, month, calendarMode);
   const today = dateKey(new Date());
+  const displayEntries = [...entries, ...importedRosterCalendarEntries()];
   const visibleEntries = filterCalendarEntries(
-    entries.filter(entry => canSee(entry, view)),
+    displayEntries.filter(entry => canSee(entry, view)),
     {
       person: personFilter,
       category: categoryFilter,
@@ -183,21 +193,27 @@ function render() {
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
-          .map(e => '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
-            ' data-edit="' + h(e.id) + '" role="button" tabindex="0" aria-label="' + h(e.title) + ' bearbeiten">' +
+          .map(e => {
+            const imported = e.source === 'shift-roster-import';
+            return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
+            (imported ? '' : ' data-edit="' + h(e.id) + '" role="button" tabindex="0" aria-label="' + h(e.title) + ' bearbeiten"') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
             '<span class="entry-label">' + h(calendarMode === 'month' ? (e.type === 'shift' ? shiftShortLabel(e.title) : e.source === 'custody' ? 'Papa' : e.title) : e.title) + '</span>' +
-            '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button></div>')
+            (imported ? '' : '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>') + '</div>';
+          })
           .join('') +
         '</div>'
       : '<div class="day empty" aria-hidden="true"></div>')
       .join('') +
     '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
-    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
+    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => e.source === 'shift-roster-import'
+      ? '<span class="selected-day-entry"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</span>'
+      : '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
-  const todayMarkup = todayOverviewMarkup(today);
-  const body = view === 'home' ? homeOverviewMarkup(today) :
+  const todayMarkup = todayOverviewMarkup(today, displayEntries);
+  const body = view === 'home' ? homeOverviewMarkup(today, displayEntries) :
     view === 'today' ? todayMarkup :
+    (view === 'shift' ? shiftRosterMarkup(today) : '') +
     (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + calendarMarkup;
 
   app.innerHTML =
@@ -224,8 +240,8 @@ function render() {
   bindControls();
 }
 
-function todayOverviewMarkup(today) {
-  const items = visibleEntriesForDay(entries, today, {
+function todayOverviewMarkup(today, displayEntries = entries) {
+  const items = visibleEntriesForDay(displayEntries, today, {
     person: personFilter,
     category: categoryFilter,
     personNamesById: householdMemberNames,
@@ -238,22 +254,22 @@ function todayOverviewMarkup(today) {
     '<div class="today-list">' +
     (items.length
       ? items.map(entry => '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + '"' +
-          ' data-edit="' + h(entry.id) + '" role="button" tabindex="0">' +
+          (entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(entry.id) + '" role="button" tabindex="0"') + '>' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
-          '</small></div><button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button></article>').join('')
+          '</small></div>' + (entry.source === 'shift-roster-import' ? '' : '<button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button>') + '</article>').join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
 }
 
-function homeOverviewMarkup(today) {
+function homeOverviewMarkup(today, displayEntries = entries) {
   const base = new Date(today + 'T12:00:00');
   const upcoming = [];
   for (let offset = 0; offset < 21; offset += 1) {
     const date = new Date(base);
     date.setDate(base.getDate() + offset);
     const key = dateKey(date);
-    const dayEntries = visibleEntriesForDay(entries, key, {
+    const dayEntries = visibleEntriesForDay(displayEntries, key, {
       person: personFilter,
       category: categoryFilter,
       personNamesById: householdMemberNames,
@@ -266,14 +282,16 @@ function homeOverviewMarkup(today) {
   const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
     new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
   const nextShiftMarkup = nextShift
-    ? '<article class="next-shift-card owner-' + h(entryOwnerStyleKey(nextShift.entry, householdMemberNames)) + '" data-edit="' + h(nextShift.entry.id) + '" role="button" tabindex="0">' +
+    ? '<article class="next-shift-card owner-' + h(entryOwnerStyleKey(nextShift.entry, householdMemberNames)) + '"' +
+      (nextShift.entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(nextShift.entry.id) + '" role="button" tabindex="0"') + '>' +
       '<div class="next-shift-copy"><span class="home-kicker">Dein nächster Dienst</span><h2>' + h(nextShift.entry.title) + '</h2>' +
       '<p>' + h(dateLabel(nextShift.date, nextShift.offset)) + (nextShift.entry.start ? ' · ' + h(eventTimeLabel(nextShift.entry)) : '') + '</p></div>' +
       '<span class="shift-owner-chip">' + h(shiftOwnerDisplayName(nextShift.entry, householdMemberNames) || 'Nicht zugeordnet') + '</span></article>'
     : '<article class="next-shift-card next-shift-empty"><span class="home-kicker">Dein nächster Dienst</span><h2>Kein Dienst eingetragen</h2><p>Deine nächsten Dienste erscheinen hier.</p></article>';
   const appointmentMarkup = appointments.length
     ? appointments.map(item => '<article class="home-agenda-item ' + h(item.entry.type) + ' owner-' + h(entryOwnerStyleKey(item.entry, householdMemberNames)) +
-      (item.entry.type === 'shift' ? '' : ' ' + h(item.entry.eventKind || 'event')) + '" data-edit="' + h(item.entry.id) + '" role="button" tabindex="0">' +
+      (item.entry.type === 'shift' ? '' : ' ' + h(item.entry.eventKind || 'event')) + '"' +
+      (item.entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(item.entry.id) + '" role="button" tabindex="0"') + '>' +
       '<time><strong>' + h(dateLabel(item.date, item.offset)) + '</strong><span>' + h(eventTimeLabel(item.entry)) + '</span></time>' +
       '<span class="agenda-marker" aria-hidden="true"></span><span class="agenda-copy"><strong>' + h(item.entry.title) + '</strong>' +
       '<small>' + h(item.entry.type === 'shift' ? (shiftOwnerDisplayName(item.entry, householdMemberNames) || 'Dienst') : 'Familie') + '</small></span><span class="agenda-arrow">›</span></article>').join('')
@@ -287,6 +305,130 @@ function homeOverviewMarkup(today) {
     '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
     '<div class="home-agenda-list">' + appointmentMarkup + '</div></section>' +
     '<div class="home-footer-note"><span class="home-sync-dot"></span>' + (cloud ? 'Euer Plan ist synchronisiert' : 'Dein Plan auf diesem Gerät') + '</div></section>';
+}
+
+function shiftRosterMarkup(today) {
+  const monthKey = today.slice(0, 7);
+  const roster = shiftRosters.find(item => item.month === monthKey) ||
+    shiftRosters.find(item => item.month > monthKey);
+  const allRosterEntries = shiftRosters.flatMap(item => item.entries);
+  const input = '<input id="roster-files" class="visually-hidden" type="file" accept="image/*" multiple aria-label="Dienstplanfotos auswählen">';
+  const upload = '<button id="roster-upload" type="button" class="primary">Dienstplanfoto hochladen</button>';
+  const privacy = '<p class="roster-privacy">Das Foto wird auf diesem Gerät ausgewertet und nicht gespeichert. Die bestätigten Dienstzeiten bleiben lokal. Die OCR-Komponente wird bei Bedarf aus dem Internet geladen.</p>';
+
+  if (rosterImportBusy) {
+    return '<section class="panel shift-roster"><h2>Dienstplan wird gelesen …</h2>' +
+      '<p id="roster-progress" role="status">' + h(rosterImportError || 'Bitte einen Moment warten.') + '</p>' +
+      '<progress class="roster-progress" max="1" value="0"></progress>' + privacy + '</section>';
+  }
+
+  if (rosterImport) return rosterReviewMarkup(rosterImport, input, privacy);
+
+  const anchor = roster ? nextRosterAnchor(roster, today, allRosterEntries) : null;
+  const colleagues = anchor ? overlappingRosterPeople(anchor, allRosterEntries) : {counted:[], extras:[]};
+  const tile = anchor
+    ? '<div class="roster-team"><p class="roster-kicker">' +
+      (isRosterShiftActive(anchor, new Date()) ? 'Gerade mit dir im Dienst' : 'Mit dir beim nächsten Dienst') +
+      '</p><h3>' + h(anchor.title) + ' · ' + h(anchor.start) + '–' + h(anchor.end) + '</h3>' +
+      '<p>' + h(new Date(anchor.date + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'long'})) + '</p>' +
+      (colleagues.counted.length ? '<div class="roster-names"><strong>Im Dienst</strong><span>' + colleagues.counted.map(h).join(', ') + '</span></div>' : '') +
+      (colleagues.extras.length ? '<div class="roster-names roster-extras"><strong>Zusätzlich · nicht angerechnet</strong><span>' + colleagues.extras.map(h).join(', ') + '</span></div>' : '') +
+      (!colleagues.counted.length && !colleagues.extras.length ? '<p>Keine überlappenden Dienste erkannt.</p>' : '') +
+      '</div>'
+    : '<div class="roster-empty"><strong>' +
+      (roster ? 'Kein eigener Dienst im Plan gefunden.' : 'Noch kein Dienstplan importiert.') +
+      '</strong><span>Lade ein oder mehrere Fotos des Monatsplans hoch. Du kannst die Erkennung prüfen und korrigieren, bevor etwas gespeichert wird.</span></div>';
+
+  return '<section class="panel shift-roster"><div class="roster-heading"><div><p class="roster-kicker">Teamübersicht' +
+    (roster ? ' · ' + h(monthLabel(roster.month)) : '') + '</p><h2>Mit im Dienst</h2></div>' + upload + input + '</div>' +
+    tile + (roster ? '<button id="roster-replace" type="button" class="roster-text-button">Diesen Monat neu importieren</button>' : '') + privacy +
+    (rosterImportError ? '<p class="roster-error" role="alert">' + h(rosterImportError) + '</p>' : '') + '</section>';
+}
+
+function rosterReviewMarkup(importData, fileInput, privacy) {
+  const names = [...new Set(importData.entries.map(entry => entry.name))].sort((a, b) => a.localeCompare(b, 'de'));
+  const groups = new Map();
+  importData.entries.forEach((entry, index) => {
+    const values = groups.get(entry.name) || [];
+    values.push({entry, index});
+    groups.set(entry.name, values);
+  });
+  return '<section class="panel shift-roster roster-review"><div class="roster-heading"><div><p class="roster-kicker">Erkennung prüfen · ' +
+    importData.entries.length + ' Dienste</p><h2>Vor dem Speichern prüfen</h2></div></div>' +
+    '<form id="roster-review-form"><div class="roster-review-fields">' +
+    '<label>Monat des Plans<input name="month" type="month" required value="' + h(importData.month) + '"></label>' +
+    '<label>Deine Zeile im Plan<input name="selfName" list="roster-name-options" required value="' + h(importData.selfName || '') + '" placeholder="Name wie im Dienstplan"><datalist id="roster-name-options">' +
+    names.map(name => '<option value="' + h(name) + '"></option>').join('') + '</datalist></label></div>' +
+    '<p class="roster-review-note">Prüfe besonders Datum, Kürzel und „nicht angerechnet“. Angezeigt werden später nur Vornamen. Fotos werden nach der Erkennung verworfen.</p>' +
+    '<div class="roster-add-row"><label>Person<input id="roster-new-name" type="text" placeholder="Name im Plan"></label>' +
+    '<label>Datum<input id="roster-new-date" type="date" value="' + h(importData.month + '-01') + '"></label>' +
+    '<label>Dienst<select id="roster-new-code">' + ['F1','S1','N5','Nx','Z1'].map(code =>
+      '<option value="' + code + '">' + code + ' · ' + h(parseRosterCell(code).title) + '</option>').join('') + '</select></label>' +
+    '<button id="roster-add-duty" type="button">Dienst ergänzen</button></div>' +
+    '<div class="roster-people">' + [...groups.entries()].map(([name, items]) =>
+      '<details class="roster-person"><summary>' + h(name) + ' · ' + items.length + ' Dienste</summary>' +
+      '<label class="roster-person-name">Erkannte Person<input type="text" data-roster-person-name="' + h(name) + '" required value="' + h(name) + '"></label><div class="roster-table">' +
+      items.map(({entry, index}) => '<div class="roster-row" data-roster-row="' + index + '">' +
+        '<label>Datum<input type="date" data-roster-field="date" required value="' + h(entry.date) + '"></label>' +
+        '<label>Dienst<select data-roster-field="code">' + ['F1','S1','N5','Nx','Z1'].map(code =>
+          '<option value="' + code + '"' + (entry.code === code ? ' selected' : '') + '>' + code + ' · ' + h(parseRosterCell(code).title) + '</option>').join('') + '</select></label>' +
+        '<label class="roster-checkbox"><input type="checkbox" data-roster-field="notCounted"' + (entry.notCounted ? ' checked' : '') + '> Nicht angerechnet</label>' +
+        '<button type="button" class="roster-remove" data-roster-remove="' + index + '" aria-label="Dienst entfernen">×</button></div>').join('') +
+      '</div></details>').join('') + '</div>' +
+    '<div class="roster-actions"><button id="roster-cancel" type="button">Abbrechen</button><button class="primary" type="submit">Prüfen und lokal speichern</button></div></form>' +
+    fileInput + privacy + '</section>';
+}
+
+function monthLabel(month) {
+  return new Date(month + '-01T12:00:00').toLocaleDateString('de-DE', {month:'long', year:'numeric'});
+}
+
+function importedRosterCalendarEntries() {
+  return projectRosterEntries(shiftRosters, shiftMembers, entries);
+}
+
+function nextRosterAnchor(roster, today, allRosterEntries) {
+  const ownName = normalizeRosterName(roster.selfName);
+  if (!ownName) return null;
+  const ownShifts = allRosterEntries.filter(entry => normalizeRosterName(entry.name) === ownName)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start));
+  const now = new Date();
+  return ownShifts.find(entry => isRosterShiftActive(entry, now)) ||
+    ownShifts.find(entry => entry.date >= today) || null;
+}
+
+function isRosterShiftActive(entry, now) {
+  const today = dateKey(now);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const start = timeMinutes(entry.start);
+  const end = timeMinutes(entry.end);
+  if (entry.date === today) return end > start
+    ? nowMinutes >= start && nowMinutes < end
+    : nowMinutes >= start;
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 12);
+  return entry.date === dateKey(yesterday) && end < start && nowMinutes < end;
+}
+
+function overlappingRosterPeople(anchor, entriesForRoster) {
+  const ownName = normalizeRosterName(anchor.name);
+  const people = new Map();
+  for (const entry of entriesForRoster) {
+    const identity = normalizeRosterName(entry.name);
+    if (!identity || identity === ownName || !shiftsOverlap(anchor, entry)) continue;
+    const current = people.get(identity) || {name:firstName(entry.name), counted:false};
+    if (!entry.notCounted) current.counted = true;
+    people.set(identity, current);
+  }
+  const matches = [...people.values()];
+  return {
+    counted:matches.filter(person => person.counted).map(person => person.name),
+    extras:matches.filter(person => !person.counted).map(person => person.name),
+  };
+}
+
+function timeMinutes(value) {
+  const [hours, minutes] = String(value || '').split(':').map(Number);
+  return (hours || 0) * 60 + (minutes || 0);
 }
 
 function custodyMarkup() {
@@ -304,6 +446,40 @@ const shiftAbbreviations = {
 function shiftShortLabel(title) { return shiftAbbreviations[title] || title; }
 
 function bindControls() {
+  app.querySelectorAll('#roster-upload, #roster-replace').forEach(button => {
+    button.addEventListener('click', () => app.querySelector('#roster-files')?.click());
+  });
+  app.querySelector('#roster-files')?.addEventListener('change', handleRosterFilesChange);
+  app.querySelector('#roster-cancel')?.addEventListener('click', () => {
+    rosterImport = null;
+    rosterImportError = '';
+    render();
+  });
+  app.querySelector('#roster-review-form')?.addEventListener('submit', handleRosterImportSubmit);
+  app.querySelector('#roster-add-duty')?.addEventListener('click', addRosterPreviewDuty);
+  app.querySelectorAll('[data-roster-row]').forEach(row => {
+    row.querySelectorAll('[data-roster-field]').forEach(field => {
+      field.addEventListener('change', () => updateRosterPreviewField(row, field));
+    });
+  });
+  app.querySelectorAll('[data-roster-person-name]').forEach(input => {
+    input.addEventListener('change', () => {
+      const previousName = normalizeRosterName(input.dataset.rosterPersonName);
+      const nextName = input.value.trim();
+      if (!nextName) return;
+      rosterImport.entries.forEach(entry => {
+        if (normalizeRosterName(entry.name) === previousName) entry.name = nextName;
+      });
+      input.dataset.rosterPersonName = nextName;
+    });
+  });
+  app.querySelectorAll('[data-roster-remove]').forEach(button => {
+    button.addEventListener('click', () => {
+      const index = Number(button.dataset.rosterRemove);
+      rosterImport.entries.splice(index, 1);
+      render();
+    });
+  });
   app.querySelector('#prev')?.addEventListener('click', () => {
     focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, -1);
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
@@ -424,6 +600,120 @@ function bindControls() {
       render();
     }
   });
+}
+
+async function handleRosterFilesChange(event) {
+  const files = [...(event.currentTarget.files || [])];
+  if (!files.length) return;
+  if (files.length > 4 || files.some(file => !file.type.startsWith('image/')) ||
+      files.reduce((total, file) => total + file.size, 0) > 35 * 1024 * 1024) {
+    rosterImportError = 'Bitte höchstens vier Bilddateien mit zusammen maximal 35 MB auswählen.';
+    render();
+    return;
+  }
+
+  rosterImport = null;
+  rosterImportBusy = true;
+  rosterImportError = 'OCR wird auf diesem Gerät gestartet …';
+  render();
+  try {
+    const pages = await recognizeRosterImages(files, updateRosterOcrProgress);
+    const detectedPeriods = pages.map(page => parseRosterPeriod(page.text)).filter(Boolean);
+    const period = mostCommon(detectedPeriods) || dateKey(new Date()).slice(0, 7);
+    const entriesByPage = pages.map(page => extractRosterPage({...page, period}));
+    const entries = mergeRosterPages(entriesByPage);
+    if (!entries.length) {
+      throw new Error('Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto wählen.');
+    }
+    rosterImport = {month:period, selfName:'', entries};
+    rosterImportError = '';
+  } catch (error) {
+    rosterImportError = error.message || 'Der Dienstplan konnte nicht gelesen werden.';
+  } finally {
+    rosterImportBusy = false;
+    render();
+  }
+}
+
+function updateRosterOcrProgress(message) {
+  const status = app.querySelector('#roster-progress');
+  const progress = app.querySelector('.roster-progress');
+  if (!status || !message) return;
+  if (message.status === 'recognizing') {
+    status.textContent = `Foto ${message.page} von ${message.pages} wird ausgewertet …`;
+  } else if (message.status === 'loading language traineddata') {
+    status.textContent = 'Deutsche Texterkennung wird geladen …';
+  }
+  if (progress && typeof message.progress === 'number') progress.value = message.progress;
+}
+
+function mostCommon(values) {
+  const counts = new Map();
+  values.forEach(value => counts.set(value, (counts.get(value) || 0) + 1));
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+}
+
+function updateRosterPreviewField(row, field) {
+  const index = Number(row.dataset.rosterRow);
+  const entry = rosterImport?.entries[index];
+  if (!entry) return;
+  const key = field.dataset.rosterField;
+  if (key === 'date') entry.date = field.value;
+  if (key === 'notCounted') entry.notCounted = field.checked;
+  if (key === 'code') {
+    const parsed = parseRosterCell(field.value);
+    if (parsed?.start) Object.assign(entry, parsed);
+  }
+}
+
+function addRosterPreviewDuty() {
+  if (!rosterImport) return;
+  const name = app.querySelector('#roster-new-name')?.value.trim();
+  const date = app.querySelector('#roster-new-date')?.value;
+  const code = app.querySelector('#roster-new-code')?.value;
+  const service = parseRosterCell(code);
+  if (!name || !date?.startsWith(rosterImport.month + '-') || !service?.start) {
+    alert('Bitte Person, Datum im importierten Monat und Dienst wählen.');
+    return;
+  }
+  rosterImport.entries.push({name, date, code:service.code, title:service.title,
+    start:service.start, end:service.end, notCounted:false});
+  rosterImport.entries.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name, 'de'));
+  render();
+}
+
+function handleRosterImportSubmit(event) {
+  event.preventDefault();
+  if (!rosterImport) return;
+  const form = event.currentTarget;
+  const monthValue = String(new FormData(form).get('month') || '');
+  const selfName = String(new FormData(form).get('selfName') || '').trim();
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue) || !selfName) {
+    alert('Bitte Monat und deine Zeile ausfüllen.');
+    return;
+  }
+
+  const entries = rosterImport.entries.filter(entry => entry.name.trim());
+  if (!entries.some(entry => normalizeRosterName(entry.name) === normalizeRosterName(selfName))) {
+    alert('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
+    return;
+  }
+  if (entries.some(entry => !entry.date.startsWith(monthValue + '-') || !parseRosterCell(entry.code)?.start)) {
+    alert('Mindestens ein Dienst hat ein ungültiges Datum oder Kürzel. Bitte korrigiere die Vorschau.');
+    return;
+  }
+
+  const existing = shiftRosters.find(roster => roster.month === monthValue);
+  if (existing && !confirm('Der Dienstplan für ' + monthLabel(monthValue) + ' ist bereits gespeichert. Soll er ersetzt werden?')) return;
+  const replacement = {month:monthValue, selfName, entries};
+  try {
+    shiftRosters = saveShiftRosters(replaceShiftRosterMonth(shiftRosters, replacement));
+    rosterImport = null;
+    rosterImportError = '';
+    render();
+  } catch (error) {
+    alert('Dienstplan konnte nicht lokal gespeichert werden: ' + error.message);
+  }
 }
 
 function shiftDialogMarkup() {

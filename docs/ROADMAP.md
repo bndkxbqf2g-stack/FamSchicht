@@ -23,6 +23,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 ## WORK QUEUE
 ### READY
 - Getrennte Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen; danach die Zugriffsmatrix ausführen.
+- Lokalen Dienstplanfoto-Import mit prüfbarer OCR-Vorschau, Teamübersicht und eigener Kalenderprojektion abschließen und nach Branch-CI als Produktumfang bestätigen.
 
 ### WAITING
 - Repo-weites Architektur-/Security-Audit nach Abschluss der ersten sicheren Mehrbenutzer-Synchronisierung.
