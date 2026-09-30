@@ -793,3 +793,136 @@ body{background:var(--home-canvas)}
  .home-add-button{gap:3px;padding:0 9px}
  .next-shift-card{align-items:flex-start;flex-direction:column}
 }
+
+
+/* Shared presentation across calendar, today, shift, and settings views */
+:root{
+  --source-blue:var(--home-green,#315f52);
+  --source-blue-dark:var(--home-green,#315f52);
+  --source-blue-soft:#e8f1eb;
+  --source-canvas:var(--home-canvas,#f4f6f2);
+}
+body{background:var(--home-canvas);color:var(--home-ink)}
+.app-workspace{max-width:1040px}
+.calendar-panel{
+  border-color:var(--home-line);
+  box-shadow:0 8px 26px rgba(33,52,46,.06);
+}
+.calendar-toolbar{border-bottom-color:var(--home-line)}
+.calendar-toolbar .month h2{color:var(--home-ink)}
+.calendar-toolbar .month button,
+.calendar-actions button{
+  border-color:var(--home-line);
+  background:#fff;
+  color:var(--home-green);
+}
+.calendar-toolbar .month button:hover,
+.calendar-actions button:hover{background:#f3f7f3}
+.calendar-actions button.primary{
+  border-color:var(--home-green);
+  background:var(--home-green);
+  color:#fff;
+}
+.calendar-modes{
+  border:1px solid var(--home-line);
+  background:#f5f7f4;
+}
+.calendar-modes button{color:var(--home-muted)}
+.calendar-modes button.active{
+  background:var(--home-green);
+  color:#fff;
+}
+.calendar-summary{background:#f7f8f5;border-color:var(--home-line)}
+.calendar-filters{background:#f7f8f5;border-color:var(--home-line)}
+.calendar{background:var(--home-line);border-color:var(--home-line);border-radius:14px}
+.calendar>b{background:#f7f8f5;color:var(--home-muted)}
+.day,.day.empty{
+  background:#fff;
+  border-color:var(--home-line);
+}
+.day.empty{background:#f7f8f5}
+.day>b{color:var(--home-ink)}
+.today{background:#f4faf5!important;box-shadow:inset 0 0 0 2px var(--home-green)}
+.today>b{background:#e8f1eb;color:var(--home-green)}
+.today-hero{
+  background:linear-gradient(135deg,#fff,#f4f8f4);
+  border-color:var(--home-line);
+}
+.today-hero h2{color:var(--home-ink)}
+.today-item{border-color:var(--home-line);box-shadow:0 4px 16px rgba(33,52,46,.05)}
+.calendar-hint{color:var(--home-muted)}
+.calendar-filter-details summary{
+  color:var(--home-green);
+  background:#e8f1eb;
+}
+.editor-more{border-color:var(--home-line)}
+.editor-more summary{color:var(--home-green)}
+.invitation-result{background:#f7f8f5;border-color:var(--home-line)}
+body.settings-open #account-shell{background:var(--home-canvas)}
+.account-close{border-color:var(--home-line);color:var(--home-green)}
+.view-all .selected-day{
+  border-color:var(--home-line);
+  background:linear-gradient(135deg,#fff,#f4f8f4);
+  color:var(--home-ink);
+}
+.view-all .selected-day>strong{color:var(--home-ink)}
+.view-all .selected-day>button{
+  border-color:var(--home-line);
+  background:#fff;
+  color:var(--home-ink);
+}
+.view-all .selected-day>span{color:var(--home-muted)}
+
+@media(min-width:701px) and (max-width:1100px){
+  .familycal-shell .calendar-toolbar{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:10px;
+  }
+  .familycal-shell .calendar-toolbar .month{
+    width:100%;
+    min-width:0;
+    justify-content:space-between;
+  }
+  .familycal-shell .calendar-actions{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:flex-start;
+    min-width:0;
+  }
+}
+@media(max-width:700px){
+  .familycal-shell .calendar-toolbar{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:8px;
+  }
+  .familycal-shell .calendar-toolbar .month{
+    width:100%;
+    min-width:0;
+    justify-content:space-between;
+  }
+  .familycal-shell .calendar-toolbar .month h2{
+    min-width:0;
+    white-space:nowrap;
+    font-size:clamp(18px,6vw,22px);
+  }
+  .familycal-shell .calendar-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    min-width:0;
+  }
+  .familycal-shell .calendar-actions .calendar-modes{
+    grid-column:1/-1;
+    display:flex;
+  }
+  .familycal-shell .calendar-modes button{flex:1;min-width:0}
+  .familycal-shell .calendar-actions button{
+    min-width:0;
+    min-height:42px;
+    padding:8px;
+    white-space:nowrap;
+  }
+  .familycal-shell .calendar-actions #shift-capture{grid-column:1/-1}
+}
