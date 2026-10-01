@@ -102,16 +102,15 @@ function loadTesseract() {
 }
 
 async function loadImage(file) {
-  if (globalThis.createImageBitmap) {
-    const bitmap = await createImageBitmap(file);
-    return {source:bitmap, width:bitmap.width, height:bitmap.height, dispose:() => bitmap.close()};
-  }
-
   const url = URL.createObjectURL(file);
   const image = new Image();
   image.src = url;
   try {
-    await image.decode();
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error('Das Foto konnte nicht gelesen werden.'));
+      if (image.complete && image.naturalWidth) resolve();
+    });
     return {
       source:image,
       width:image.naturalWidth,
