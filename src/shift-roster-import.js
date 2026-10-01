@@ -6,11 +6,20 @@ const MONTH_NAMES = {
 };
 
 export function parseRosterPeriod(text) {
-  const normalized = normalizeRosterName(text);
-  const year = Number(normalized.match(/\b(20\d{2})\b/)?.[1]) || null;
-  const month = Object.entries(MONTH_NAMES)
-    .find(([name]) => normalized.includes(name))?.[1] || null;
+  const year = parseRosterYear(text);
+  const month = parseRosterMonth(text);
   return year && month ? `${year}-${String(month).padStart(2, '0')}` : null;
+}
+
+export function parseRosterYear(text) {
+  const normalized = normalizeRosterName(text);
+  return Number(normalized.match(/\b(20\d{2})\b/)?.[1]) || null;
+}
+
+export function parseRosterMonth(text) {
+  const normalized = normalizeRosterName(text);
+  return Object.entries(MONTH_NAMES)
+    .find(([name]) => normalized.includes(name))?.[1] || null;
 }
 
 export function extractRosterPage({words, width, height, period}) {

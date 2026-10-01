@@ -33,7 +33,7 @@ import {
   deleteOwnerEvent,
 } from './calendar-service.js';
 import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
-import {extractBestRosterPage, mergeRosterPages, parseRosterPeriod} from './shift-roster-import.js';
+import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear} from './shift-roster-import.js';
 import {recognizeRosterImages} from './shift-roster-ocr.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
 import {
@@ -642,9 +642,13 @@ async function handleRosterFilesChange(event) {
   render();
   try {
     const pages = await recognizeRosterImages(files, updateRosterOcrProgress);
-    const detectedPeriods = pages.flatMap(page => [page.text, ...(page.alternatives || []).map(item => item.text)]
-      .map(parseRosterPeriod).filter(Boolean));
-    const period = mostCommon(detectedPeriods) || dateKey(new Date()).slice(0, 7);
+    const ocrTexts = pages.flatMap(page => [page.text, ...(page.alternatives || []).map(item => item.text)]);
+    const detectedPeriods = ocrTexts.map(parseRosterPeriod).filter(Boolean);
+    const detectedYear = mostCommon(ocrTexts.map(parseRosterYear).filter(Boolean));
+    const detectedMonth = mostCommon(ocrTexts.map(parseRosterMonth).filter(Boolean));
+    const period = detectedYear && detectedMonth
+      ? `${detectedYear}-${String(detectedMonth).padStart(2, '0')}`
+      : mostCommon(detectedPeriods) || dateKey(new Date()).slice(0, 7);
     const entriesByPage = pages.map(page => extractBestRosterPage(page, period));
     const entries = mergeRosterPages(entriesByPage);
     if (!entries.length) {

@@ -4,7 +4,9 @@ import {
   extractRosterPage,
   extractBestRosterPage,
   mergeRosterPages,
+  parseRosterMonth,
   parseRosterPeriod,
+  parseRosterYear,
 } from '../src/shift-roster-import.js';
 
 function word(text, x, y) {
@@ -15,6 +17,11 @@ test('detects German month and year from the roster header', () => {
   assert.equal(parseRosterPeriod('Dienstplan Monat November Jahr 2026'), '2026-11');
   assert.equal(parseRosterPeriod('März 2027'), '2027-03');
   assert.equal(parseRosterPeriod('unbekannter Zeitraum'), null);
+});
+
+test('extracts month and year independently when one OCR header pass is noisy', () => {
+  assert.equal(parseRosterMonth('Monat November'), 11);
+  assert.equal(parseRosterYear('Jahr 2026'), 2026);
 });
 
 test('maps recognized codes to the nearest employee row and calendar day', () => {
