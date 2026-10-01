@@ -73,16 +73,23 @@ async function refresh(user) {
     if (!name) return;
     const button = form.querySelector('button');
     button.disabled = true;
-    const {error: insertError} = await supabase.from('households')
-      .insert({name, owner_id: user.id});
-    if (insertError) {
+    try {
+      const {error: insertError} = await supabase.from('households')
+        .insert({name, owner_id: user.id});
+      if (insertError) {
+        form.querySelector('#household-message').textContent =
+          'Erstellung fehlgeschlagen: ' + insertError.message;
+        button.disabled = false;
+        return;
+      }
+    } catch (error) {
       form.querySelector('#household-message').textContent =
-        'Erstellung fehlgeschlagen: ' + insertError.message;
+        'Erstellung fehlgeschlagen: ' + (error.message || 'Verbindung derzeit nicht erreichbar.');
       button.disabled = false;
       return;
     }
     window.dispatchEvent(new CustomEvent('famschicht:household-created'));
-    refresh(user);
+    void safeRefresh(user);
   };
 }
 
@@ -128,11 +135,24 @@ function bindInvitationForm(householdId) {
   };
 }
 
+async function safeRefresh(user) {
+  try {
+    await refresh(user);
+  } catch (error) {
+    console.warn('Haushalt konnte nicht geladen werden; lokaler Modus bleibt aktiv.', error);
+    message(user
+      ? 'Haushalt derzeit nicht erreichbar. Der lokale Kalender bleibt verfügbar.'
+      : 'Melde dich an, um deinen privaten Familienhaushalt einzurichten.');
+  }
+}
+
 supabase.auth.onAuthStateChange((_event, session) => {
   // Do not await Supabase queries inside the auth callback.
-  void refresh(session?.user || null);
+  void safeRefresh(session?.user || null);
 });
-void supabase.auth.getUser().then(({data}) => refresh(data?.user || null)).catch(error => {
-  console.warn('Haushalt konnte nicht geprüft werden; lokaler Modus bleibt aktiv.', error);
-  refresh(null);
-});
+void supabase.auth.getUser()
+  .then(({data}) => safeRefresh(data?.user || null))
+  .catch(error => {
+    console.warn('Haushalt konnte nicht geprüft werden; lokaler Modus bleibt aktiv.', error);
+    void safeRefresh(null);
+  });
