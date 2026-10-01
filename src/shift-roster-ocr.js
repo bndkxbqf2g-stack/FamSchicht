@@ -21,6 +21,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
         const alternatives = [];
         if (countServiceCodeWords(words) < 18) {
           const enhanced = makeEnhancedCanvas(image.source, image.width, image.height);
+          let headerCanvas;
           let nameCanvas;
           let gridCanvas;
           try {
@@ -34,6 +35,18 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
                 words:mapCropWords(alternativeWords, enhanced),
               });
             }
+
+            headerCanvas = makeEnhancedCanvas(image.source, image.width, image.height, {
+              x:image.width * 0.52, y:image.height * 0.035,
+              regionWidth:image.width * 0.34, regionHeight:image.height * 0.13,
+              scaleFactor:4,
+            });
+            await worker.setParameters({tessedit_pageseg_mode:'6'});
+            const headerResult = await worker.recognize(headerCanvas.canvas, {}, OCR_OUTPUT);
+            alternatives.push({
+              text:headerResult.data.text || '',
+              words:mapCropWords(wordsFromOcr(headerResult.data), headerCanvas),
+            });
 
             nameCanvas = makeEnhancedCanvas(image.source, image.width, image.height, {
               x:image.width * 0.025, y:image.height * 0.08,
@@ -60,6 +73,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
             });
           } finally {
             disposeCanvas(enhanced.canvas);
+            if (headerCanvas) disposeCanvas(headerCanvas.canvas);
             if (nameCanvas) disposeCanvas(nameCanvas.canvas);
             if (gridCanvas) disposeCanvas(gridCanvas.canvas);
             await worker.setParameters({tessedit_pageseg_mode:'3'});
