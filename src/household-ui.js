@@ -132,4 +132,7 @@ supabase.auth.onAuthStateChange((_event, session) => {
   // Do not await Supabase queries inside the auth callback.
   void refresh(session?.user || null);
 });
-void supabase.auth.getUser().then(({data}) => refresh(data?.user || null));
+void supabase.auth.getUser().then(({data}) => refresh(data?.user || null)).catch(error => {
+  console.warn('Haushalt konnte nicht geprüft werden; lokaler Modus bleibt aktiv.', error);
+  refresh(null);
+});

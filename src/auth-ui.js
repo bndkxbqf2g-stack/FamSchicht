@@ -110,4 +110,7 @@ supabase.auth.onAuthStateChange((_event, session) => show(session?.user));
 void supabase.auth.getUser().then(({data, error}) => {
   if (error) console.warn('Auth session:', error.message);
   show(data?.user);
+}).catch(error => {
+  console.warn('Auth session konnte nicht geprüft werden; lokaler Modus bleibt aktiv.', error);
+  show(null);
 });

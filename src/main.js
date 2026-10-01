@@ -243,6 +243,16 @@ function render() {
   bindControls();
 }
 
+function startCloudConnection() {
+  void connectCloud().catch(error => {
+    console.warn('Cloud-Synchronisierung nicht verfügbar; lokaler Plan bleibt aktiv.', error);
+    cloud = null;
+    applyHouseholdMembers(bootstrapHouseholdMembers);
+    entries = load();
+    render();
+  });
+}
+
 function todayOverviewMarkup(today, displayEntries = entries) {
   const items = visibleEntriesForDay(displayEntries, today, {
     person: personFilter,
@@ -1002,11 +1012,11 @@ async function saveEntry(item, afterSave, afterError) {
 }
 
 render();
-void connectCloud();
+startCloudConnection();
 supabase.auth.onAuthStateChange(() => {
-  void connectCloud();
+  startCloudConnection();
 });
 window.addEventListener('famschicht:household-created', () => {
-  void connectCloud();
+  startCloudConnection();
 });
 window.__famschichtReady?.();
