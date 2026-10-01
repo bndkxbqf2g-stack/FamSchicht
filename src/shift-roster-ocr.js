@@ -18,13 +18,13 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
       try {
         const {data} = await worker.recognize(image.source, {}, OCR_OUTPUT);
         const words = wordsFromOcr(data);
-        console.info('FamSchicht OCR-Diagnose', {
+        console.info('FamSchicht OCR-Diagnose ' + JSON.stringify({
           page:index + 1,
           text:String(data.text || '').slice(0, 240),
           blockCount:Array.isArray(data.blocks) ? data.blocks.length : 0,
           wordCount:words.length,
           sample:words.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
-        });
+        }));
         const alternatives = [];
         if (countServiceCodeWords(words) < 18) {
           const enhanced = makeEnhancedCanvas(image.source, image.width, image.height);
@@ -36,14 +36,14 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
               await worker.setParameters({tessedit_pageseg_mode:pageMode});
               const result = await worker.recognize(enhanced.canvas, {}, OCR_OUTPUT);
               const alternativeWords = wordsFromOcr(result.data);
-              console.info('FamSchicht OCR-Diagnose Alternative', {
+              console.info('FamSchicht OCR-Diagnose Alternative ' + JSON.stringify({
                 page:index + 1,
                 mode:pageMode,
                 text:String(result.data.text || '').slice(0, 240),
                 blockCount:Array.isArray(result.data.blocks) ? result.data.blocks.length : 0,
                 wordCount:alternativeWords.length,
                 sample:alternativeWords.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
-              });
+              }));
               alternatives.push({text:result.data.text || '', words:alternativeWords});
             }
 
@@ -63,7 +63,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
             const gridResult = await worker.recognize(gridCanvas.canvas, {}, OCR_OUTPUT);
             const nameWords = wordsFromOcr(nameResult.data);
             const gridWords = wordsFromOcr(gridResult.data);
-            console.info('FamSchicht OCR-Diagnose Ausschnitte', {
+            console.info('FamSchicht OCR-Diagnose Ausschnitte ' + JSON.stringify({
               page:index + 1,
               nameText:String(nameResult.data.text || '').slice(0, 240),
               gridText:String(gridResult.data.text || '').slice(0, 240),
@@ -71,7 +71,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
               gridWordCount:gridWords.length,
               nameSample:nameWords.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
               gridSample:gridWords.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
-            });
+            }));
             alternatives.push({
               text:`${nameResult.data.text || ''} ${gridResult.data.text || ''}`.trim(),
               words:[
