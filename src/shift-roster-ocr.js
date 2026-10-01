@@ -1,4 +1,5 @@
 const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
+const OCR_OUTPUT = {blocks:true};
 
 let tesseractPromise;
 
@@ -15,9 +16,10 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
       onProgress({status:'recognizing', page:index + 1, pages:files.length, progress:0});
       const image = await loadImage(files[index]);
       try {
-        const {data} = await worker.recognize(image.source);
+        const {data} = await worker.recognize(image.source, {}, OCR_OUTPUT);
+        const words = wordsFromOcr(data);
         const alternatives = [];
-        if (countServiceCodeWords(data.words) < 18) {
+        if (countServiceCodeWords(words) < 18) {
           const enhanced = makeEnhancedCanvas(image.source, image.width, image.height);
           let nameCanvas;
           let gridCanvas;
@@ -25,8 +27,8 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
             for (const pageMode of ['11', '6']) {
               onProgress({status:'enhancing', page:index + 1, pages:files.length, progress:0});
               await worker.setParameters({tessedit_pageseg_mode:pageMode});
-              const result = await worker.recognize(enhanced.canvas);
-              alternatives.push({text:result.data.text || '', words:Array.isArray(result.data.words) ? result.data.words : []});
+              const result = await worker.recognize(enhanced.canvas, {}, OCR_OUTPUT);
+              alternatives.push({text:result.data.text || '', words:wordsFromOcr(result.data)});
             }
 
             nameCanvas = makeEnhancedCanvas(image.source, image.width, image.height, {
@@ -40,14 +42,14 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
               scaleFactor:4,
             });
             await worker.setParameters({tessedit_pageseg_mode:'11'});
-            const nameResult = await worker.recognize(nameCanvas.canvas);
+            const nameResult = await worker.recognize(nameCanvas.canvas, {}, OCR_OUTPUT);
             await worker.setParameters({tessedit_pageseg_mode:'6'});
-            const gridResult = await worker.recognize(gridCanvas.canvas);
+            const gridResult = await worker.recognize(gridCanvas.canvas, {}, OCR_OUTPUT);
             alternatives.push({
               text:`${nameResult.data.text || ''} ${gridResult.data.text || ''}`.trim(),
               words:[
-                ...mapCropWords(nameResult.data.words, nameCanvas),
-                ...mapCropWords(gridResult.data.words, gridCanvas),
+                ...mapCropWords(wordsFromOcr(nameResult.data), nameCanvas),
+                ...mapCropWords(wordsFromOcr(gridResult.data), gridCanvas),
               ],
             });
           } finally {
@@ -61,7 +63,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
           width:image.width,
           height:image.height,
           text:data.text || '',
-          words:Array.isArray(data.words) ? data.words : [],
+          words,
           alternatives,
         });
       } finally {
@@ -73,6 +75,13 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
   } finally {
     await worker.terminate();
   }
+}
+
+function wordsFromOcr(data) {
+  if (Array.isArray(data?.words)) return data.words;
+  return (data?.blocks || []).flatMap(block =>
+    (block.paragraphs || []).flatMap(paragraph =>
+      (paragraph.lines || []).flatMap(line => line.words || [])));
 }
 
 function countServiceCodeWords(words) {
