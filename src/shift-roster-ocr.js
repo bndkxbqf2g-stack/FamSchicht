@@ -18,6 +18,13 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
       try {
         const {data} = await worker.recognize(image.source, {}, OCR_OUTPUT);
         const words = wordsFromOcr(data);
+        console.info('FamSchicht OCR-Diagnose', {
+          page:index + 1,
+          text:String(data.text || '').slice(0, 240),
+          blockCount:Array.isArray(data.blocks) ? data.blocks.length : 0,
+          wordCount:words.length,
+          sample:words.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
+        });
         const alternatives = [];
         if (countServiceCodeWords(words) < 18) {
           const enhanced = makeEnhancedCanvas(image.source, image.width, image.height);
@@ -28,7 +35,16 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
               onProgress({status:'enhancing', page:index + 1, pages:files.length, progress:0});
               await worker.setParameters({tessedit_pageseg_mode:pageMode});
               const result = await worker.recognize(enhanced.canvas, {}, OCR_OUTPUT);
-              alternatives.push({text:result.data.text || '', words:wordsFromOcr(result.data)});
+              const alternativeWords = wordsFromOcr(result.data);
+              console.info('FamSchicht OCR-Diagnose Alternative', {
+                page:index + 1,
+                mode:pageMode,
+                text:String(result.data.text || '').slice(0, 240),
+                blockCount:Array.isArray(result.data.blocks) ? result.data.blocks.length : 0,
+                wordCount:alternativeWords.length,
+                sample:alternativeWords.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
+              });
+              alternatives.push({text:result.data.text || '', words:alternativeWords});
             }
 
             nameCanvas = makeEnhancedCanvas(image.source, image.width, image.height, {
@@ -45,11 +61,22 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
             const nameResult = await worker.recognize(nameCanvas.canvas, {}, OCR_OUTPUT);
             await worker.setParameters({tessedit_pageseg_mode:'6'});
             const gridResult = await worker.recognize(gridCanvas.canvas, {}, OCR_OUTPUT);
+            const nameWords = wordsFromOcr(nameResult.data);
+            const gridWords = wordsFromOcr(gridResult.data);
+            console.info('FamSchicht OCR-Diagnose Ausschnitte', {
+              page:index + 1,
+              nameText:String(nameResult.data.text || '').slice(0, 240),
+              gridText:String(gridResult.data.text || '').slice(0, 240),
+              nameWordCount:nameWords.length,
+              gridWordCount:gridWords.length,
+              nameSample:nameWords.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
+              gridSample:gridWords.slice(0, 12).map(word => ({text:word?.text, bbox:word?.bbox})),
+            });
             alternatives.push({
               text:`${nameResult.data.text || ''} ${gridResult.data.text || ''}`.trim(),
               words:[
-                ...mapCropWords(wordsFromOcr(nameResult.data), nameCanvas),
-                ...mapCropWords(wordsFromOcr(gridResult.data), gridCanvas),
+                ...mapCropWords(nameWords, nameCanvas),
+                ...mapCropWords(gridWords, gridCanvas),
               ],
             });
           } finally {
