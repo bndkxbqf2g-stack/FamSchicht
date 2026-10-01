@@ -39,13 +39,23 @@
 <main id="app"></main>
 <script>
 (function(){
+var appReady=false;
 function report(message){
+ if(appReady){console.warn('FamSchicht-Laufzeitfehler:',message);return;}
  var el=document.getElementById('startup'),detail=document.getElementById('startup-detail');
  if(el&&detail){el.style.display='block';detail.textContent='Startfehler: '+message;}
 }
-window.addEventListener('error',function(e){report(e.message||'Eine App-Datei konnte nicht geladen werden.');});
-window.addEventListener('unhandledrejection',function(e){report(e.reason&&e.reason.message||'Ein Modul konnte nicht gestartet werden.');});
-window.__famschichtReady=function(){var el=document.getElementById('startup');if(el)el.style.display='none';};
+window.addEventListener('error',function(e){
+ report(e.message||'Eine App-Datei konnte nicht geladen werden.');
+});
+window.addEventListener('unhandledrejection',function(e){
+ report(e.reason&&e.reason.message||'Ein Modul konnte nicht gestartet werden.');
+});
+window.__famschichtReady=function(){
+ appReady=true;
+ var el=document.getElementById('startup');
+ if(el)el.style.display='none';
+};
 })();
 </script>
 <script type="module" src="./src/auth-ui.js?v=0.3.2"></script>
