@@ -201,7 +201,7 @@ function render() {
             return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (imported ? '' : ' data-edit="' + h(e.id) + '" role="button" tabindex="0" aria-label="' + h(e.title) + ' bearbeiten"') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
-            '<span class="entry-label">' + h(calendarMode === 'month' ? (e.type === 'shift' ? shiftShortLabel(e.title) : e.source === 'custody' ? 'Papa' : e.title) : e.title) + '</span>' +
+            '<span class="entry-label">' + h(e.title) + '</span>' +
             (imported ? '' : '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>') + '</div>';
           })
           .join('') +

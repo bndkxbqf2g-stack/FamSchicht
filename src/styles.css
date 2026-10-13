@@ -959,3 +959,48 @@ body.settings-open #account-shell{background:var(--home-canvas)}
 .roster-remove{width:36px;height:40px;padding:0;border:0;background:transparent;color:#8b5651;font-size:20px}
 .roster-actions{display:flex;justify-content:flex-end;gap:9px;position:sticky;bottom:0;padding:10px 0;background:#fff}
 @media(max-width:700px){.roster-heading{align-items:flex-start;flex-direction:column}.roster-heading>button{width:100%}.roster-review-fields,.roster-add-row{grid-template-columns:1fr}.roster-row{grid-template-columns:1fr 1fr}.roster-row .roster-checkbox{grid-column:1}.roster-remove{grid-column:2;justify-self:end}.roster-actions{display:grid;grid-template-columns:1fr 1fr}.roster-people{max-height:45vh}}
+
+
+/* Modern mobile calendar and quick-capture finish */
+.entry-label{display:block;overflow-wrap:anywhere;word-break:normal}
+@media(min-width:701px){
+  .calendar.month-view .day{min-height:132px}
+  .calendar.month-view .entry{font-size:11px;line-height:1.25}
+  .calendar.month-view .entry-label{display:block}
+  .shift-buttons{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .shift-buttons button{min-height:58px;padding:10px 8px;line-height:1.15}
+}
+@media(max-width:700px){
+  .view-all .app-workspace,.view-shift .app-workspace{padding-top:12px}
+  .calendar-panel{padding:12px;border-radius:22px}
+  .calendar-toolbar{padding:2px 2px 11px}
+  .calendar-toolbar .month h2{font-size:22px;font-weight:850}
+  .calendar-actions button{border-radius:13px;font-weight:800}
+  .calendar-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:9px;border-radius:14px;text-align:center}
+  .calendar-summary span{display:grid;gap:2px;font-size:10px}
+  .calendar-summary strong{font-size:15px}
+  .calendar-filter-details{margin-bottom:10px}
+  .calendar-filter-details summary{min-height:42px;padding:10px 12px;border-radius:13px;font-weight:800}
+  .calendar{border-radius:16px}
+  .calendar>b{padding:8px 2px;font-size:10px;font-weight:850}
+  .calendar.month-view .day{min-height:108px;padding:6px 5px}
+  .calendar.month-view .day>b{font-size:11px}
+  .calendar.month-view .entry{display:block;margin-top:5px;padding:5px 5px;border-left-width:3px;border-radius:8px;font-size:10px;line-height:1.18;white-space:normal;overflow:visible;text-overflow:clip}
+  .calendar.month-view .entry-time{display:block;margin:0 0 2px;font-size:9px;font-weight:800}
+  .calendar.month-view .entry-label{display:block;max-height:3.55em;overflow:hidden}
+  .calendar.month-view .entry button{display:none}
+  .shift-capture{position:static;margin-top:14px;padding:16px;border-radius:22px;background:linear-gradient(145deg,#fff,#f7faf8)}
+  .shift-capture h2{font-size:25px;line-height:1.05;letter-spacing:-.035em;margin-bottom:18px}
+  .shift-capture>label{gap:7px;font-weight:750;color:var(--home-ink,var(--text))}
+  .shift-capture input{min-height:52px;border-radius:15px;text-align:center;font-size:17px;font-weight:800}
+  .shift-capture .note{font-size:12px;line-height:1.45;margin:12px 0 15px}
+  .shift-owner{gap:8px;margin-bottom:14px}
+  .shift-owner button{min-height:52px;border-radius:14px;font-weight:800}
+  .shift-buttons{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .shift-buttons button{min-height:58px;padding:8px 4px;border-radius:14px;font-size:13px;font-weight:850;line-height:1.12;white-space:normal}
+}
+@media(max-width:380px){
+  .calendar.month-view .day{min-height:98px}
+  .calendar.month-view .entry{font-size:9px}
+  .shift-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
