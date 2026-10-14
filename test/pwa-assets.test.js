@@ -32,7 +32,7 @@ test('app viewport enables iPhone safe-area layout', () => {
 
 test('visible application version matches the current cache-bust release', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-  assert.match(main, /Familienplaner · v0\\.3\\.5/);
+  assert.match(main, /Familienplaner · v0\.3\.5/);
 });
 
 test('app shell exposes keyboard navigation and account dialog semantics', () => {
