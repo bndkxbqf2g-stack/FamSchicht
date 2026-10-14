@@ -10,6 +10,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Schicht-Schnellerfassung für Frühdienst, Spätdienst, Zwischendienst, Nachtdienst, SG-Tag, Urlaub und Fortbildung.
 - Monatsübersicht der Dienste je Person, getrennte OZ-Stunden und Konflikthinweise bei Familien-/Kinderterminen; zusätzlich ist `Krank` als ganztägiger Status erfassbar.
 - Schichtserien über Wochentage sowie wiederverwendbare lokale Vorlagen für Zeitdienste und Statuswerte.
+- Optionale Monats-Sollstunden je Person mit lokaler Speicherung und sichtbarer Ist-/Soll-Differenz.
 - Gemeinsame Aufgaben mit Zuweisung, Fälligkeit, Priorität und Erledigt-Status direkt in der Übersicht; wiederkehrende Aufgaben werden je Vorkommen geführt.
 - JSON-Sicherung sowie ICS-Import und -Export für den lokalen Kalenderaustausch.
 - Installierbare PWA-Shell mit network-first Offline-/Retry-Fallback.

@@ -53,7 +53,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Schnellaufnahme mit automatischem Tagesfortschritt
 - [x] Schichtserie aus Dienstplan schneller erfassen
 - [x] Monatsübersicht Schichten je Person
-- [ ] Soll-/Ist-Stunden optional
+- [x] Soll-/Ist-Stunden optional
 - [x] freie Tage / Urlaub / Fortbildung / Krank
 - [x] Kollisionshinweise mit Familien- oder Kinderterminen
 - [x] Schichtfilter und kompakte Legende

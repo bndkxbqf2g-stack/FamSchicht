@@ -11,6 +11,11 @@
 - Die Serienerfassung berücksichtigt Nachtdienste, ganztägige Statuswerte und den bestehenden Konflikthinweis für Familien-/Kindertermine; Supabase-Schema, RLS und Edge Functions bleiben unverändert.
 - Lokale Regressionstests: 135 bestanden; Produktions-Build erfolgreich. Die Serien-/Vorlageninteraktion wurde auf Desktop sowie im 390×844-Viewport geprüft; horizontaler Überlauf trat nicht auf.
 
+## Update 14.10.2026 – Optionale Soll-/Ist-Stunden
+- Die Monatsübersicht kann pro schichtberechtigter Person ein optionales Monats-Soll anzeigen und die Differenz zu den tatsächlich erfassten Ist-Stunden als unter/erreicht/über Soll ausweisen.
+- Sollwerte werden ausdrücklich nur lokal auf dem Gerät gespeichert; Kalenderereignisse, Supabase-Schema, RLS und Edge Functions bleiben unverändert.
+- Lokale Regressionstests: 138 bestanden; Produktions-Build erfolgreich. Das Speichern eines synthetischen Sollwerts und die mobile Darstellung wurden sichtbar geprüft.
+
 ## Update 14.10.2026 – Wiederkehrende Aufgaben
 - Wiederkehrende Aufgaben werden im Übersichts-Dashboard als einzelne Vorkommen für Heute, überfällige Tage und die nächsten Wochen angezeigt.
 - Das Erledigen eines Vorkommens speichert nur dessen Datum in `completedDates`; künftige Vorkommen bleiben offen. Einzelaufgaben behalten den bisherigen booleschen `completed`-Vertrag.
@@ -76,7 +81,6 @@ Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach 
 - Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
 - Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
-- Soll-/Ist-Stunden sind noch nicht umgesetzt.
 - Haushaltsroutinen sowie ein separates Routinen-/Belohnungsmodul sind noch nicht umgesetzt.
 - Google-/Outlook-OAuth und bidirektionale externe Synchronisation sind noch nicht umgesetzt; ICS bleibt der lokale, dateibasierte Austauschweg.
 

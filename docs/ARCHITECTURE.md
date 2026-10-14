@@ -14,6 +14,7 @@ Vite-basierte JavaScript-Web-App.
 - src/auth-ui.js: Anmeldung/Abmeldung.
 - src/household-ui.js: Haushalts-Setup.
 - src/shift-roster-*.js: Dienstplan-OCR, lokale Speicherung, Schichtlogik und Kalenderprojektion.
+- src/shift-hours.js: optionale lokale Monats-Sollstunden und Ist-/Soll-Differenzen.
 
 ## Backend
 Supabase/PostgreSQL mit:
@@ -28,6 +29,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 
 ## Datenfluss heute
 - Offline/Fallback: lokale Kalendereinträge + Bootstrap-Mitglieder -> Kalender-UI.
+- Optionale Sollstunden: Monatsziele pro schichtberechtigter Person -> lokaler Gerätespeicher -> Dienstplanübersicht; diese Werte werden nicht als Kalenderereignisse oder Supabase-Daten synchronisiert.
 - Importierte Dienstpläne: Foto -> OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos werden nach der OCR nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
 - Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.
 - `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.

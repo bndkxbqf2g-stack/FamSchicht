@@ -42,6 +42,12 @@ import {
 } from './shift-roster-calendar.js';
 import {buildShiftSeries, findShiftConflicts, summarizeShiftMonth} from './shift-planning.js';
 import {
+  loadShiftTargets,
+  normalizeShiftTargetHours,
+  saveShiftTargets,
+  shiftTargetDifference,
+} from './shift-hours.js';
+import {
   loadShiftTemplates,
   normalizeShiftTemplate,
   saveShiftTemplates,
@@ -94,11 +100,13 @@ let householdMemberNames = memberNamesById(householdMembers);
 let shiftOwnerId = shiftMembers[0]?.id || '';
 let shiftRosters = loadShiftRosters();
 let shiftTemplates = loadShiftTemplates();
+let shiftTargets = loadShiftTargets();
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
 let shiftConflict = null;
 let shiftSeriesStatus = '';
+let shiftTargetStatus = '';
 let dataTransferStatus = '';
 
 function applyHouseholdMembers(members) {
@@ -405,10 +413,7 @@ function shiftRosterMarkup(today) {
 
   const summary = '<section class="shift-month-summary" aria-label="Monatsübersicht Dienste"><div class="roster-heading"><div><p class="roster-kicker">Monatsübersicht · ' +
     h(monthLabel(monthKey)) + '</p><h3>Stunden und Dienste</h3></div></div><div class="shift-summary-grid">' +
-    shiftSummary.map(item => '<article class="shift-summary-card"><strong>' + h(item.name) + '</strong><span>' +
-      shiftSummaryLabel(item) + ' · ' + formatHours(item.hours) + '</span>' + (item.notCountedHours
-        ? '<small>+' + formatHours(item.notCountedHours) + ' OZ nicht angerechnet</small>'
-        : '') + '</article>').join('') + '</div></section>';
+    shiftSummary.map(shiftSummaryCardMarkup).join('') + '</div>' + shiftTargetSettingsMarkup() + '</section>';
 
   return '<section class="panel shift-roster"><div class="roster-heading"><div><p class="roster-kicker">Teamübersicht' +
     (roster ? ' · ' + h(monthLabel(roster.month)) : '') + '</p><h2>Mit im Dienst</h2></div>' + upload + input + '</div>' +
@@ -452,6 +457,35 @@ function shiftSummaryLabel(item) {
   if (item.statusShifts) labels.push(`${item.statusShifts} ${item.statusShifts === 1 ? 'Status' : 'Statuswerte'}`);
   if (item.notCountedShifts) labels.push(`${item.notCountedShifts} OZ`);
   return labels.join(' · ') || 'Keine Dienste';
+}
+
+function shiftSummaryCardMarkup(item) {
+  const target = shiftTargets[item.memberId];
+  const difference = shiftTargetDifference(item.hours, target);
+  const targetLine = difference === null ? '' : '<small class="shift-target-line">Soll ' + h(formatHours(target)) + ' · ' +
+    h(shiftTargetDifferenceLabel(difference)) + '</small>';
+  return '<article class="shift-summary-card"><strong>' + h(item.name) + '</strong><span>' +
+    shiftSummaryLabel(item) + ' · ' + formatHours(item.hours) + '</span>' + (item.notCountedHours
+      ? '<small>+' + formatHours(item.notCountedHours) + ' OZ nicht angerechnet</small>'
+      : '') + targetLine + '</article>';
+}
+
+function shiftTargetDifferenceLabel(difference) {
+  if (difference === 0) return 'Soll erreicht';
+  return difference > 0
+    ? '+' + formatHours(difference) + ' über Soll'
+    : formatHours(Math.abs(difference)) + ' unter Soll';
+}
+
+function shiftTargetSettingsMarkup() {
+  return '<details class="shift-targets-panel"><summary>Monatliches Soll hinterlegen</summary>' +
+    '<p class="shift-targets-note">Optional: Das Soll wird nur auf diesem Gerät gespeichert. Die Ist-Stunden stammen aus den bestätigten Diensten.</p>' +
+    '<form id="shift-targets-form" class="shift-targets-form"><div class="shift-target-grid">' +
+    shiftMembers.map(member => '<label>' + h(member.name) + '<span class="field-hint">Stunden / Monat</span><input type="number" min="0" max="744" step="0.25" inputmode="decimal" data-shift-target="' +
+      h(member.id) + '" value="' + h(shiftTargets[member.id] ?? '') + '" placeholder="z. B. 160"></label>').join('') +
+    '</div><div class="dialog-actions"><button class="primary">Soll speichern</button></div>' +
+    (shiftTargetStatus ? '<p class="shift-target-status" role="status">' + h(shiftTargetStatus) + '</p>' : '') +
+    '</form></details>';
 }
 
 function rosterReviewMarkup(importData, fileInput, privacy) {
@@ -573,6 +607,7 @@ function bindControls() {
   app.querySelector('#shift-series-form [name="templateId"]')?.addEventListener('change', event => {
     applyShiftTemplate(event.currentTarget.value);
   });
+  app.querySelector('#shift-targets-form')?.addEventListener('submit', handleShiftTargetsSubmit);
   app.querySelector('#roster-cancel')?.addEventListener('click', () => {
     rosterImport = null;
     rosterImportError = '';
@@ -871,6 +906,28 @@ function handleShiftTemplateSave() {
     render();
   } catch (error) {
     alert(error.message || 'Vorlage konnte nicht gespeichert werden.');
+  }
+}
+
+function handleShiftTargetsSubmit(event) {
+  event.preventDefault();
+  const targets = {};
+  for (const input of event.currentTarget.querySelectorAll('[data-shift-target]')) {
+    const raw = String(input.value || '').trim();
+    const normalized = normalizeShiftTargetHours(raw);
+    if (raw && normalized === null) {
+      alert('Bitte pro Person ein Soll zwischen 0 und 744 Stunden eingeben.');
+      input.focus();
+      return;
+    }
+    if (normalized !== null) targets[input.dataset.shiftTarget] = normalized;
+  }
+  try {
+    shiftTargets = saveShiftTargets(targets);
+    shiftTargetStatus = 'Sollstunden wurden auf diesem Gerät gespeichert.';
+    render();
+  } catch (error) {
+    alert(error.message || 'Sollstunden konnten nicht gespeichert werden.');
   }
 }
 
