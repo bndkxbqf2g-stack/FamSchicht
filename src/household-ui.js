@@ -34,6 +34,21 @@ function reportHouseholdError(context, error) {
   console.warn(context, error);
 }
 
+function invitationErrorMessage(context, error, fallback) {
+  reportHouseholdError(context, error);
+  const safeMessages = {
+    'valid invitation email is required': 'Bitte eine gültige E-Mail-Adresse eingeben.',
+    'unsupported invitation role': 'Bitte eine unterstützte Rolle auswählen.',
+    'householdId is required': 'Privater Haushalt ist noch nicht bereit.',
+    'invitationId is required': 'Diese Einladung ist nicht mehr verfügbar.',
+    'Einladungsdienst derzeit nicht erreichbar.': 'Einladungsdienst derzeit nicht erreichbar. Bitte später erneut versuchen.',
+    'Einladung konnte nicht erstellt werden.': 'Einladung konnte nicht erstellt werden.',
+    'Einladung konnte nicht widerrufen werden.': 'Einladung konnte nicht widerrufen werden.',
+    'Einladungsdienst lieferte keine Antwort.': 'Einladungsdienst konnte keine verwertbare Antwort liefern.',
+  };
+  return safeMessages[String(error?.message || '').trim()] || fallback;
+}
+
 function focusHouseholdControl(selector) {
   window.setTimeout(() => root.querySelector(selector)?.focus(), 0);
 }
@@ -312,14 +327,22 @@ function bindInvitationForm(householdId) {
           setHouseholdMessage(messageEl, outcome.message);
           form.querySelector('[name="email"]')?.focus();
         } catch (error) {
-          setHouseholdMessage(messageEl, error.message || 'Einladung konnte nicht widerrufen werden.', 'error');
+          setHouseholdMessage(messageEl, invitationErrorMessage(
+            'Einladung konnte nicht widerrufen werden.',
+            error,
+            'Einladung konnte nicht widerrufen werden.',
+          ), 'error');
           revokeButton.disabled = false;
           revokeButton.focus();
         }
       });
       form.reset();
     } catch (error) {
-      setHouseholdMessage(messageEl, error.message || 'Einladung konnte nicht erstellt werden.', 'error');
+      setHouseholdMessage(messageEl, invitationErrorMessage(
+        'Einladung konnte nicht erstellt werden.',
+        error,
+        'Einladung konnte nicht erstellt werden.',
+      ), 'error');
       form.querySelector('[name="email"]')?.focus();
     } finally {
       button.disabled = false;
@@ -348,3 +371,4 @@ void supabase.auth.getUser()
     console.warn('Haushalt konnte nicht geprüft werden; lokaler Modus bleibt aktiv.', error);
     void safeRefresh(null);
   });
+
