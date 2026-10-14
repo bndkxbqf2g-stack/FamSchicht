@@ -40,7 +40,13 @@ import {
   importedRosterCalendarEntries as projectRosterEntries,
   suggestedRosterMemberId,
 } from './shift-roster-calendar.js';
-import {findShiftConflicts, summarizeShiftMonth} from './shift-planning.js';
+import {buildShiftSeries, findShiftConflicts, summarizeShiftMonth} from './shift-planning.js';
+import {
+  loadShiftTemplates,
+  normalizeShiftTemplate,
+  saveShiftTemplates,
+  upsertShiftTemplate,
+} from './shift-templates.js';
 import {eventsToIcs, parseIcs} from './calendar-ics.js';
 import {
   isTaskCompletedOnDate,
@@ -87,10 +93,12 @@ let shiftMembers = shiftEligibleMembers(householdMembers);
 let householdMemberNames = memberNamesById(householdMembers);
 let shiftOwnerId = shiftMembers[0]?.id || '';
 let shiftRosters = loadShiftRosters();
+let shiftTemplates = loadShiftTemplates();
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
 let shiftConflict = null;
+let shiftSeriesStatus = '';
 let dataTransferStatus = '';
 
 function applyHouseholdMembers(members) {
@@ -404,8 +412,32 @@ function shiftRosterMarkup(today) {
 
   return '<section class="panel shift-roster"><div class="roster-heading"><div><p class="roster-kicker">Teamübersicht' +
     (roster ? ' · ' + h(monthLabel(roster.month)) : '') + '</p><h2>Mit im Dienst</h2></div>' + upload + input + '</div>' +
-    summary + tile + (roster ? '<button id="roster-replace" type="button" class="roster-text-button">Diesen Monat neu importieren</button>' : '') + privacy +
+    shiftSeriesMarkup(today) + summary + tile + (roster ? '<button id="roster-replace" type="button" class="roster-text-button">Diesen Monat neu importieren</button>' : '') + privacy +
     (rosterImportError ? '<p class="roster-error" role="alert">' + h(rosterImportError) + '</p>' : '') + '</section>';
+}
+
+function shiftSeriesMarkup(today) {
+  const defaultTemplate = shiftTemplates[0] || {id: 'custom', name: 'Eigener Dienst', title: 'Frühdienst', start: '06:00', end: '14:12'};
+  const monthEnd = new Date(`${today.slice(0, 7)}-01T12:00:00`);
+  monthEnd.setMonth(monthEnd.getMonth() + 1, 0);
+  const days = [[1, 'Mo'], [2, 'Di'], [3, 'Mi'], [4, 'Do'], [5, 'Fr'], [6, 'Sa'], [0, 'So']];
+  return '<details class="shift-series-panel"><summary>Serie planen oder Vorlage nutzen</summary>' +
+    '<form id="shift-series-form" class="shift-series-form">' +
+    '<label>Vorlage<select name="templateId">' + shiftTemplates.map(template =>
+      '<option value="' + h(template.id) + '">' + h(template.name) + '</option>').join('') + '</select></label>' +
+    '<label>Vorlagenname für eigene Vorlage<input name="templateName" maxlength="60" placeholder="z. B. Bereitschaft"></label>' +
+    '<label>Dienst<input name="title" maxlength="120" required value="' + h(defaultTemplate.title) + '"></label>' +
+    '<label>Person<select name="ownerId" required>' + shiftMembers.map(member =>
+      '<option value="' + h(member.id) + '">' + h(member.name) + '</option>').join('') + '</select></label>' +
+    '<label>Beginn<input name="start" type="time" value="' + h(defaultTemplate.start) + '"></label>' +
+    '<label>Ende<input name="end" type="time" value="' + h(defaultTemplate.end) + '"></label>' +
+    '<label>Von<input name="startDate" type="date" required value="' + h(today) + '"></label>' +
+    '<label>Bis<input name="endDate" type="date" required value="' + h(dateKey(monthEnd)) + '"></label>' +
+    '<fieldset class="weekday-grid wide"><legend>Wochentage</legend>' + days.map(([value, label]) =>
+      '<label><input type="checkbox" name="weekday" value="' + value + '"' + (value >= 1 && value <= 5 ? ' checked' : '') + '> ' + label + '</label>').join('') + '</fieldset>' +
+    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button class="primary">Serie eintragen</button></div>' +
+    (shiftSeriesStatus ? '<p class="shift-series-status wide" role="status">' + h(shiftSeriesStatus) + '</p>' : '') +
+    '</form></details>';
 }
 
 function formatHours(hours) {
@@ -536,6 +568,11 @@ function bindControls() {
     button.addEventListener('click', () => app.querySelector('#roster-files')?.click());
   });
   app.querySelector('#roster-files')?.addEventListener('change', handleRosterFilesChange);
+  app.querySelector('#shift-series-form')?.addEventListener('submit', handleShiftSeriesSubmit);
+  app.querySelector('#shift-template-save')?.addEventListener('click', handleShiftTemplateSave);
+  app.querySelector('#shift-series-form [name="templateId"]')?.addEventListener('change', event => {
+    applyShiftTemplate(event.currentTarget.value);
+  });
   app.querySelector('#roster-cancel')?.addEventListener('click', () => {
     rosterImport = null;
     rosterImportError = '';
@@ -796,6 +833,89 @@ function updateRosterPreviewField(row, field) {
   if (key === 'code') {
     const parsed = parseRosterCell(field.value);
     if (parsed?.start) Object.assign(entry, parsed);
+  }
+}
+
+function shiftSeriesFormData() {
+  const form = app.querySelector('#shift-series-form');
+  return form ? new FormData(form) : null;
+}
+
+function applyShiftTemplate(templateId) {
+  const template = shiftTemplates.find(item => item.id === templateId);
+  const form = app.querySelector('#shift-series-form');
+  if (!template || !form) return;
+  form.elements.title.value = template.title;
+  form.elements.start.value = template.start;
+  form.elements.end.value = template.end;
+}
+
+function handleShiftTemplateSave() {
+  const data = shiftSeriesFormData();
+  if (!data) return;
+  const title = String(data.get('title') || '').trim();
+  const start = String(data.get('start') || '');
+  const end = String(data.get('end') || '');
+  const name = String(data.get('templateName') || title).trim();
+  try {
+    const template = normalizeShiftTemplate({
+      id: `custom-${Date.now()}`,
+      name,
+      title,
+      start,
+      end,
+    });
+    if (!template) throw new Error('Bitte Vorlagenname, Dienst und gültige Zeiten eingeben.');
+    shiftTemplates = saveShiftTemplates(upsertShiftTemplate(shiftTemplates, template));
+    shiftSeriesStatus = `Vorlage „${template.name}“ wurde auf diesem Gerät gespeichert.`;
+    render();
+  } catch (error) {
+    alert(error.message || 'Vorlage konnte nicht gespeichert werden.');
+  }
+}
+
+async function handleShiftSeriesSubmit(event) {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  const ownerId = String(data.get('ownerId') || '');
+  const owner = shiftMembers.find(member => member.id === ownerId);
+  let series;
+  try {
+    series = buildShiftSeries({
+      startDate: String(data.get('startDate') || ''),
+      endDate: String(data.get('endDate') || ''),
+      weekdays: data.getAll('weekday'),
+      title: String(data.get('title') || ''),
+      start: String(data.get('start') || ''),
+      end: String(data.get('end') || ''),
+      ownerId,
+      owner: owner?.name,
+      existing: entries,
+    });
+  } catch (error) {
+    alert(error.message || 'Die Serie ist ungültig.');
+    return;
+  }
+  if (!series.length) {
+    shiftSeriesStatus = 'Alle ausgewählten Dienste existieren in diesem Zeitraum bereits.';
+    render();
+    return;
+  }
+
+  const conflicts = series.flatMap(shift => findShiftConflicts(shift, entries)
+    .map(conflict => `${conflict.date}: ${conflict.entry.title}`));
+  if (conflicts.length && !confirm(
+    `${series.length} Dienste werden angelegt. ${conflicts.length} Familienkonflikt(e) wurden erkannt. Trotzdem eintragen?`,
+  )) return;
+
+  try {
+    if (cloud) await saveOwnerEvents(supabase, series, cloud.householdId, cloud.userId);
+    entries.push(...series);
+    if (!cloud) save(entries);
+    shiftSeriesStatus = `${series.length} Dienste wurden als Serie eingetragen.`;
+    render();
+  } catch (error) {
+    alert('Serie konnte nicht gespeichert werden: ' + error.message);
   }
 }
 

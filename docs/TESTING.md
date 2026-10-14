@@ -21,6 +21,7 @@ npm run build
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.
 - Dienstplanung: Monatsstunden pro stabiler Besitzer-ID, OZ-Stunden getrennt, ganztägige Statuswerte sowie Konflikthinweise für zeitliche Überschneidungen mit ganztägigen, mehrtägigen und über Mitternacht laufenden Familienterminen.
+- Schichtserien und Vorlagen: Wochentagsexpansion mit stabiler `ownerId`, Duplikatvermeidung, Nachtdienst-/Statuswerte, lokale Vorlagenvalidierung und sicherer Speicher-Roundtrip.
 - ICS-Domänenvertrag: Export/Import von ganztägigen, mehrtägigen, wiederkehrenden und über Mitternacht laufenden Einträgen sowie Escaping und erledigte Aufgaben.
 - Aufgaben-Domänenvertrag: wiederkehrende Vorkommen, unabhängige `completedDates`, Legacy-Einzelaufgaben und Persistenz-/ICS-Roundtrip.
 - PWA-Vertrag: Manifest, Standalone-Startkonfiguration, Icon und network-first Service-Worker-Fallback.

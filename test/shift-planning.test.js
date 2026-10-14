@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  buildShiftSeries,
   findShiftConflicts,
   shiftDurationMinutes,
   summarizeShiftMonth,
@@ -69,4 +70,37 @@ test('multi-day family event remains a conflict on its middle day', () => {
 
   assert.equal(conflicts.length, 1);
   assert.equal(conflicts[0].date, '2026-10-05');
+});
+
+test('shift series creates concrete weekday entries with stable ownership', () => {
+  const entries = buildShiftSeries({
+    startDate: '2026-10-05',
+    endDate: '2026-10-16',
+    weekdays: [1, 3, 5],
+    title: 'Frühdienst',
+    start: '06:00',
+    end: '14:12',
+    ownerId: 'martin',
+    owner: 'Martin',
+    idFactory: (() => { let index = 0; return () => `series-${++index}`; })(),
+  });
+
+  assert.deepEqual(entries.map(entry => [entry.id, entry.date, entry.ownerId]), [
+    ['series-1', '2026-10-05', 'martin'],
+    ['series-2', '2026-10-07', 'martin'],
+    ['series-3', '2026-10-09', 'martin'],
+    ['series-4', '2026-10-12', 'martin'],
+    ['series-5', '2026-10-14', 'martin'],
+    ['series-6', '2026-10-16', 'martin'],
+  ]);
+});
+
+test('shift series skips equivalent existing rows and supports all-day statuses', () => {
+  const entries = buildShiftSeries({
+    startDate: '2026-10-05', endDate: '2026-10-07', weekdays: [1, 2, 3],
+    title: 'Krank', start: '', end: '', ownerId: 'steffi',
+    existing: [{type: 'shift', date: '2026-10-06', title: 'Krank', start: '', end: '', ownerId: 'steffi'}],
+    idFactory: () => 'new-status',
+  });
+  assert.deepEqual(entries.map(entry => entry.date), ['2026-10-05', '2026-10-07']);
 });

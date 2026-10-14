@@ -94,6 +94,52 @@ export function findShiftConflicts(shift, entries, {ignoreId = ''} = {}) {
   );
 }
 
+/**
+ * Expand a weekday-based shift series into independent calendar entries.
+ * Shifts stay as concrete rows so editing one date never mutates the series
+ * or another owner's duty. Existing equivalent rows are skipped.
+ */
+export function buildShiftSeries({
+  startDate,
+  endDate,
+  weekdays = [],
+  title,
+  start = '',
+  end = '',
+  ownerId,
+  owner,
+  existing = [],
+  idFactory = defaultId,
+}) {
+  if (!isDate(startDate) || !isDate(endDate) || startDate > endDate) {
+    throw new Error('Die Serie braucht einen gültigen Datumsbereich.');
+  }
+  if (!String(title || '').trim() || !ownerId) {
+    throw new Error('Dienst und Person sind für eine Serie erforderlich.');
+  }
+  if (!validTimeOrEmpty(start) || !validTimeOrEmpty(end)) {
+    throw new Error('Die Dienstzeiten sind ungültig.');
+  }
+
+  const selectedDays = new Set((weekdays || []).map(Number).filter(day => day >= 0 && day <= 6));
+  if (!selectedDays.size) throw new Error('Bitte mindestens einen Wochentag auswählen.');
+
+  const known = new Set((existing || []).filter(entry => entry?.type === 'shift').map(shiftKey));
+  const result = [];
+  let current = startDate;
+  while (current <= endDate) {
+    const weekday = new Date(`${current}T12:00:00`).getDay();
+    const candidate = {type: 'shift', title: String(title).trim(), date: current, start, end, ownerId, owner};
+    if (selectedDays.has(weekday) && !known.has(shiftKey(candidate))) {
+      const entry = {id: idFactory(), ...candidate};
+      result.push(entry);
+      known.add(shiftKey(entry));
+    }
+    current = addDays(current, 1);
+  }
+  return result;
+}
+
 function shiftInterval(shift) {
   if (!shift?.date || !shift.start || !shift.end) return null;
   const start = localDateTime(shift.date, shift.start);
@@ -158,4 +204,21 @@ function timeToMinutes(value) {
   const [hours, minutes] = String(value).split(':').map(Number);
   if (hours > 23 || minutes > 59) return null;
   return hours * 60 + minutes;
+}
+
+function shiftKey(entry) {
+  return [entry.date, entry.ownerId || entry.owner || '', entry.title, entry.start || '', entry.end || ''].join('|');
+}
+
+function isDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value));
+}
+
+function validTimeOrEmpty(value) {
+  return value === '' || timeToMinutes(value) !== null;
+}
+
+function defaultId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `shift-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }

@@ -51,13 +51,13 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Früh-/Spät-/Nachtdienst
 - [x] Martin-/Steffi-Zuordnung
 - [x] Schnellaufnahme mit automatischem Tagesfortschritt
-- [ ] Schichtserie aus Dienstplan schneller erfassen
+- [x] Schichtserie aus Dienstplan schneller erfassen
 - [x] Monatsübersicht Schichten je Person
 - [ ] Soll-/Ist-Stunden optional
 - [x] freie Tage / Urlaub / Fortbildung / Krank
 - [x] Kollisionshinweise mit Familien- oder Kinderterminen
-- [ ] Schichtfilter und kompakte Legende
-- [ ] wiederverwendbare Schichtvorlagen
+- [x] Schichtfilter und kompakte Legende
+- [x] wiederverwendbare Schichtvorlagen
 
 ### Phase 4 – Aufgaben und Routinen
 - [x] gemeinsame Aufgabenliste

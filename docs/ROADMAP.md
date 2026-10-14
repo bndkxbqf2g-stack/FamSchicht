@@ -47,6 +47,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Fehlende FK-Indizes live ergänzt und im Repository gespiegelt.
 - Lokale Dienstplan-Monatsübersicht pro schichtberechtigter Person mit getrennten angerechneten/OZ-Stunden.
 - Konflikthinweise bei Schichterfassung für Familien-/Kindertermine sowie expliziter ganztägiger Status `Krank`.
+- Schichtserien über Wochentage und lokale, wiederverwendbare Schichtvorlagen.
 - Gemeinsame Aufgabenliste mit Person, Fälligkeit, Priorität, Erledigt-Status und Übersichts-Dashboard.
 - Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
 - Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.
