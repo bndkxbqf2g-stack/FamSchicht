@@ -302,9 +302,12 @@ function focusAfterRender(selector) {
 
 function focusDatasetControl(attribute, value) {
   const datasetKey = attribute.replace(/^data-/, '').replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-  window.setTimeout(() => [...document.querySelectorAll('[' + attribute + ']')]
-    .find(element => element.dataset?.[datasetKey] === value)
-    ?.focus(), 0);
+  window.setTimeout(() => {
+    const element = [...document.querySelectorAll('[' + attribute + ']')]
+      .find(candidate => candidate.dataset?.[datasetKey] === value);
+    element?.closest('details')?.setAttribute('open', '');
+    element?.focus();
+  }, 0);
 }
 
 function focusViewHeading() {
