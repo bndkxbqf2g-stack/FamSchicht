@@ -495,7 +495,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.9</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.10</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -1326,7 +1326,12 @@ function bindControls() {
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {
-    button.onclick = () => { shiftOwnerId = button.dataset.owner; shiftConflict = null; render(); };
+    button.onclick = () => {
+      shiftOwnerId = button.dataset.owner;
+      shiftConflict = null;
+      render();
+      focusDatasetControl('data-owner', button.dataset.owner);
+    };
   });
   app.querySelectorAll('[data-shift]').forEach(button => {
     button.onclick = () => handleShiftChoice(button.dataset.shift);
@@ -1433,6 +1438,7 @@ function bindControls() {
       focusedDate = new Date(shiftCaptureDate + 'T12:00:00');
       month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
       render();
+      focusAfterRender('#capture-date');
     }
   });
 }
@@ -2281,6 +2287,7 @@ function startShiftCapture() {
     ? new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12)
     : new Date(month.getFullYear(), month.getMonth(), 1, 12));
   render();
+  focusAfterRender('#capture-date');
 }
 
 function shiftCaptureMarkup() {
@@ -2317,6 +2324,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     shiftCaptureDate = null;
     shiftConflict = null;
     render();
+    focusAfterRender('#shift-capture');
     return;
   }
   if (choice === 'skip') {
@@ -2336,6 +2344,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     if (conflicts.length) {
       shiftConflict = {choice, conflicts};
       render();
+      focusAfterRender('[data-shift-confirm="save"]');
       return;
     }
   }
@@ -2371,6 +2380,7 @@ function advanceShiftCapture() {
   const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
   shiftCaptureDate = nextDate;
   render();
+  focusAfterRender(shiftCaptureDate ? '[data-shift]' : '#shift-capture');
 }
 
 async function updateEntry(item) {
