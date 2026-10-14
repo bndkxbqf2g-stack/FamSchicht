@@ -259,7 +259,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v2/);
+  assert.match(source, /famschicht-shell-v0\.3\.8/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
