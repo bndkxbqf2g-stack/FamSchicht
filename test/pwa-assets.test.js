@@ -100,6 +100,17 @@ test('runtime errors remain visible and dialogs restore keyboard focus', () => {
   assert.match(main, /write-error/);
 });
 
+test('local points and rewards stay separate from the cloud calendar path', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const rewards = fs.readFileSync(path.join(root, 'src', 'rewards.js'), 'utf8');
+  assert.match(main, /Punkte & Belohnungen/);
+  assert.match(main, /reward-form/);
+  assert.match(main, /pointsByMember/);
+  assert.match(rewards, /famschicht-rewards-v1/);
+  assert.match(rewards, /pointsForCompletedTask/);
+  assert.doesNotMatch(rewards, /supabase|calendar_events/i);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);

@@ -82,6 +82,15 @@ import {
   taskOccurrences,
   toggleTaskOccurrence,
 } from './task-planning.js';
+import {
+  loadRewardState,
+  normalizePoints,
+  pointsByMember,
+  removeReward,
+  rewardProgress,
+  saveRewardState,
+  upsertReward,
+} from './rewards.js';
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
 import './styles.css';
@@ -132,6 +141,10 @@ let shiftTemplates = loadShiftTemplates();
 let shiftTargets = loadShiftTargets();
 let holidayRegion = loadHolidayRegion();
 let displayMode = loadDisplayMode();
+const initialRewardState = loadRewardState();
+let rewards = initialRewardState.rewards;
+let rewardStorageStatus = initialRewardState.status;
+let rewardStatus = '';
 let icsSourceMemberId = '';
 let rosterImport = null;
 let rosterImportBusy = false;
@@ -540,6 +553,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
     '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
     '<div class="home-agenda-list">' + appointmentMarkup + '</div></section>' +
     taskOverviewMarkup(today, displayEntries) +
+    rewardsOverviewMarkup(displayEntries) +
     '<div class="home-footer-note"><span class="home-sync-dot"></span>' +
     h(syncState === 'synced' ? 'Euer Plan ist synchronisiert' : syncStatusLabel(syncState)) + '</div></section>';
 }
@@ -566,6 +580,7 @@ function taskOverviewMarkup(today, displayEntries = entries) {
       '<button type="button" data-task-toggle="' + h(task.id) + '" data-task-date="' + h(occurrence.date) + '" aria-pressed="false" aria-label="' +
       h(task.title + ' (' + kindLabel + ') als erledigt markieren') + '"><span aria-hidden="true">○</span></button><div><strong>' +
       h(task.title) + '</strong><small>' + h(dueLabel(occurrence.date)) + ' · ' + kindLabel + ' · ' +
+      (task.points ? h(task.points + ' Punkte · ') : '') +
       h(householdMemberNames[task.ownerId] || 'Familie') + '</small></div><span class="task-priority">' +
       h(priorityLabel[task.priority] || priorityLabel.normal) + '</span></article>';
     }).join('')
@@ -573,6 +588,33 @@ function taskOverviewMarkup(today, displayEntries = entries) {
   return '<section class="home-tasks"><div class="home-section-heading"><div><span class="home-kicker">Gemeinsam erledigen</span><h2>Aufgaben & Routinen</h2></div>' +
     '<button type="button" data-task-new="true" class="home-text-button">＋ Aufgabe <span>›</span></button></div>' +
     '<div class="home-task-list">' + content + '</div></section>';
+}
+
+function rewardsOverviewMarkup(displayEntries = entries) {
+  const totals = pointsByMember(displayEntries, householdMembers);
+  const activeTotals = totals.filter(item => item.points > 0);
+  if (!rewards.length && !activeTotals.length) return '';
+
+  const pointsMarkup = activeTotals.length
+    ? '<div class="reward-points-grid">' + activeTotals.map(item =>
+      '<article class="reward-points-card"><span class="home-kicker">Punkte</span><strong>' + h(item.points) + '</strong><small>' + h(item.name) + '</small></article>').join('') + '</div>'
+    : '<p class="reward-empty">Erledigte Aufgaben oder Routinen mit Punktwert erscheinen hier.</p>';
+
+  const goalMarkup = rewards.length && activeTotals.length
+    ? '<div class="reward-goal-list">' + rewards.flatMap(reward => activeTotals.map(item => {
+      const progress = rewardProgress(item.points, reward);
+      return '<article class="reward-goal"><div class="reward-goal-heading"><strong>' + h(reward.title) + '</strong><small>' +
+        h(item.name) + ' · ' + h(progress.points + ' / ' + progress.target + ' Punkte') + '</small></div>' +
+        '<div class="reward-progress" role="progressbar" aria-label="' + h(item.name + ': ' + reward.title) + '" aria-valuemin="0" aria-valuemax="' +
+        h(progress.target) + '" aria-valuenow="' + h(progress.points) + '"><span style="width:' + progress.percent + '%"></span></div>' +
+        '<small class="reward-goal-status">' + h(progress.complete ? 'Belohnung erreicht' : progress.remaining + ' Punkte bis zum Ziel') + '</small></article>';
+    })).join('') + '</div>'
+    : rewards.length
+      ? '<p class="reward-empty">Lege Punktwerte bei Aufgaben fest, damit der Fortschritt je Person sichtbar wird.</p>'
+      : '';
+
+  return '<section class="home-rewards" aria-label="Punkte und Belohnungen"><div class="home-section-heading"><div><span class="home-kicker">Motivation</span><h2>Punkte & Belohnungen</h2></div>' +
+    '<button type="button" data-view="settings" class="home-text-button">Verwalten <span>›</span></button></div>' + pointsMarkup + goalMarkup + '</section>';
 }
 
 function shiftRosterMarkup(today) {
@@ -812,11 +854,31 @@ function custodyMarkup() {
     '<form id="display-settings-form" class="display-settings-form"><label>Ansicht<select name="mode">' + displayOptions + '</select></label><button class="primary" type="submit">Übernehmen</button></form>' +
     (displayStatus ? '<p class="data-transfer-status" role="status">' + h(displayStatus) + '</p>' : '') +
     '</section>' +
+    rewardsSettingsMarkup() +
     '<section class="panel holiday-tools-card"><h2>Feiertage</h2>' +
     '<p>Lokale Feiertage werden automatisch als read-only Termine angezeigt. Wähle dafür das passende Bundesland oder nur die bundesweiten Feiertage.</p>' +
     '<form id="holiday-settings-form" class="holiday-settings-form"><label>Bundesland<select name="region">' + holidayOptions + '</select></label><button class="primary" type="submit">Übernehmen</button></form>' +
     (holidayStatus ? '<p class="data-transfer-status" role="status">' + h(holidayStatus) + '</p>' : '') +
     '</section>';
+}
+
+function rewardsSettingsMarkup() {
+  const storageNote = rewardStorageStatus === 'corrupt'
+    ? '<p class="data-transfer-status warning" role="alert">Lokale Belohnungen konnten nicht gelesen werden und wurden nicht überschrieben.</p>'
+    : rewardStorageStatus === 'unavailable'
+      ? '<p class="data-transfer-status warning" role="alert">Der lokale Speicher ist für Belohnungsziele nicht verfügbar.</p>'
+      : '';
+  const rewardList = rewards.length
+    ? '<ul class="reward-settings-list">' + rewards.map(reward =>
+      '<li><span><strong>' + h(reward.title) + '</strong><small>' + h(reward.points + ' Punkte') + '</small></span>' +
+      '<button type="button" data-reward-remove="' + h(reward.id) + '" aria-label="Belohnung ' + h(reward.title) + ' löschen">Löschen</button></li>').join('') + '</ul>'
+    : '<p class="reward-empty">Noch keine Belohnungsziele angelegt.</p>';
+  return '<section class="panel rewards-tools-card"><h2>Punkte & Belohnungen</h2>' +
+    '<p>Vergib bei Aufgaben oder Routinen einen Punktwert. Die Punkte und Belohnungsziele bleiben nur auf diesem Gerät und werden nicht in Supabase gespeichert.</p>' +
+    '<form id="reward-form" class="reward-form"><label>Belohnung<input name="title" maxlength="120" required placeholder="z. B. Ausflug aussuchen"></label>' +
+    '<label>Punkte<input name="points" type="number" min="1" max="10000" step="1" required placeholder="z. B. 50"></label>' +
+    '<button class="primary">Belohnung anlegen</button></form>' + storageNote + rewardList +
+    (rewardStatus ? '<p class="data-transfer-status" role="status">' + h(rewardStatus) + '</p>' : '') + '</section>';
 }
 
 function moveEntryToDate(id, sourceDate, targetDate) {
@@ -1148,6 +1210,10 @@ function bindControls() {
   });
   document.querySelector('#holiday-settings-form')?.addEventListener('submit', handleHolidaySettingsSubmit);
   document.querySelector('#display-settings-form')?.addEventListener('submit', handleDisplaySettingsSubmit);
+  document.querySelector('#reward-form')?.addEventListener('submit', handleRewardSubmit);
+  document.querySelectorAll('[data-reward-remove]').forEach(button => {
+    button.addEventListener('click', () => handleRewardRemove(button.dataset.rewardRemove));
+  });
   app.querySelector('#exit-wall-mode')?.addEventListener('click', () => {
     displayMode = saveDisplayMode('standard');
     displayStatus = 'Wandmodus wurde beendet.';
@@ -1604,6 +1670,48 @@ function handleDisplaySettingsSubmit(event) {
   render();
 }
 
+function handleRewardSubmit(event) {
+  event.preventDefault();
+  const data = new FormData(event.currentTarget);
+  const title = String(data.get('title') || '').trim();
+  const points = normalizePoints(data.get('points'));
+  if (!title || points === null) {
+    rewardStatus = 'Bitte einen Namen und eine ganze Punktzahl zwischen 1 und 10000 eingeben.';
+    render();
+    return;
+  }
+  try {
+    rewards = saveRewardState(upsertReward(rewards, {
+      id: rewardId(),
+      title,
+      points,
+    }));
+    rewardStorageStatus = 'loaded';
+    rewardStatus = `Belohnung „${title}“ wurde auf diesem Gerät gespeichert.`;
+  } catch (error) {
+    rewardStatus = userError(error, 'Belohnung konnte nicht gespeichert werden.');
+  }
+  render();
+}
+
+function handleRewardRemove(id) {
+  const reward = rewards.find(item => item.id === id);
+  if (!reward || !confirm(`Belohnung „${reward.title}“ löschen?`)) return;
+  try {
+    rewards = saveRewardState(removeReward(rewards, id));
+    rewardStorageStatus = 'loaded';
+    rewardStatus = 'Belohnung wurde gelöscht.';
+  } catch (error) {
+    rewardStatus = userError(error, 'Belohnung konnte nicht gelöscht werden.');
+  }
+  render();
+}
+
+function rewardId() {
+  return 'reward-' + (globalThis.crypto?.randomUUID?.() ||
+    Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8));
+}
+
 function downloadFile(name, content, type) {
   const url = URL.createObjectURL(new Blob([content], {type}));
   const link = document.createElement('a');
@@ -1700,7 +1808,8 @@ function dayDialogMarkup() {
     '<div class="task-options wide" data-task-options' + (isTaskLikeEntry(existing) ? '' : ' hidden') + '><label>Priorität<select name="priority">' +
     [['low', 'Niedrig'], ['normal', 'Normal'], ['high', 'Hoch']].map(([value, label]) =>
       '<option value="' + value + '"' + ((existing?.priority || 'normal') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
-    '</select></label><label class="task-checkbox"><input name="completed" type="checkbox"' + (taskCompleted ? ' checked' : '') + '> ' + h(taskCompletionLabel) + '</label></div>' +
+    '</select></label><label>Punkte<input name="points" type="number" min="0" max="10000" step="1" value="' + h(existing?.points ?? 0) + '" inputmode="numeric"></label>' +
+    '<label class="task-checkbox"><input name="completed" type="checkbox"' + (taskCompleted ? ' checked' : '') + '> ' + h(taskCompletionLabel) + '</label></div>' +
     (!existing ? '<label>Beginn<input name="start" type="time"></label><label>Ende<input name="end" type="time"></label>' : '') +
     '<label class="wide">Wiederholung<select name="recurrence">' +
     [['none', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']]
@@ -1745,6 +1854,13 @@ function handleDayDialogSubmit(event) {
   }
   if (isTaskLikeEntry(item)) {
     item.priority = String(data.get('priority') || 'normal');
+    const points = normalizePoints(data.get('points'), {allowZero: true});
+    if (points === null) {
+      showAppNotice('Bitte für Punkte eine ganze Zahl zwischen 0 und 10000 eingeben.');
+      return;
+    }
+    if (points) item.points = points;
+    else delete item.points;
     const completed = data.get('completed') === 'on';
     const completedItem = setTaskOccurrenceCompleted(item, date, completed);
     item.completed = completedItem.completed;
@@ -1752,6 +1868,7 @@ function handleDayDialogSubmit(event) {
     else delete item.completedDates;
   } else {
     delete item.priority;
+    delete item.points;
     delete item.completed;
     delete item.completedDates;
   }

@@ -67,7 +67,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] wiederkehrende Aufgaben mit eigenem Erledigt-Status je Vorkommen
 - [x] Erledigt-Status
 - [x] Heute-/Wochen-Dashboard mit offenen Aufgaben und Vorkommensdatum
-- [ ] optional Punkte-/Belohnungssystem für Kinder
+- [x] optionales lokales Punkte-/Belohnungssystem für erledigte Aufgaben und Routinen
 - [x] Haushaltsroutinen
 
 ### Phase 5 – Externe Kalender und Synchronisation

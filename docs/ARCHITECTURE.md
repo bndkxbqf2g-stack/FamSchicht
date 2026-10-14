@@ -24,6 +24,7 @@ Vite-basierte JavaScript-Web-App.
 - src/holidays.js: deterministische deutsche Feiertage mit Bundesland-Auswahl und lokaler Gerätespeicherung.
 - src/display-preferences.js: lokale Darstellungspräferenz für Standard- und reversiblen read-only-Wandmodus.
 - src/sync-status.js: erlaubte Synchronisationszustände sowie nutzerfreundliche Statuslabels und CSS-Klassen.
+- src/rewards.js: lokale Punktwerte aus erledigten Aufgaben/Routinen und Belohnungsziele je Kalenderperson.
 
 ## Backend
 Supabase/PostgreSQL mit:
@@ -44,6 +45,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Datensicherung: JSON-Datei -> Format-/Datums-/Uhrzeitvalidierung -> ID-/Inhalts-Duplikat- und Konfliktentscheidung -> bestätigter lokaler oder owner-scoped Speicherpfad.
 - Feiertage: lokales Bundesland -> `holidays.js` -> deterministische bundesweite/regional ergänzte read-only Termine. Die berechneten Feiertage werden nicht als eigene Supabase-Zeilen gespeichert und können nicht bearbeitet, gelöscht oder verschoben werden.
 - Wandmodus: lokale Darstellungspräferenz -> `display-preferences.js` -> Kalenderansicht mit ausgeblendeter Navigation, größeren Karten und deaktivierten Änderungszielen. Der Modus hat einen sichtbaren Rückweg und verändert weder Termine noch Cloud-Daten.
+- Punkte/Belohnungen: Aufgabe oder Routine mit Punktwert -> erledigter Einzel-/Vorkommensstatus -> `rewards.js` -> lokaler Fortschritt je Kalenderperson und lokal verwaltete Belohnungsziele; kein Supabase-Pfad.
 - Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.
 - Owner-Mitgliederverwaltung: Einstellungen -> `ensureOwnerHouseholdMembers`/`saveOwnerHouseholdMembers` -> `household_members`; neue Personen erhalten eine stabile ID, bestehende `ownerId`-Referenzen werden beim Bearbeiten nicht geändert.
 - `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.

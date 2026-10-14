@@ -63,4 +63,5 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Reversibler read-only-Wand-/Tablet-Modus für große gemeinsame Displays.
 - Lokale Storage-Recovery mit sichtbaren Lade-/Schreibfehlern, ohne beschädigte Daten still zu überschreiben.
 - Zugängliche Live-Fehlermeldungen sowie Fokus-Rückgabe für Termin-, Verschiebe- und Schichtdialoge.
+- Lokales Punkte-/Belohnungsmodul für erledigte Aufgaben und Routinen mit Fortschritt je Kalenderperson.
 

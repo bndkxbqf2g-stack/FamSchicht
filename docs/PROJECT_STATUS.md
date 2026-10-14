@@ -5,6 +5,13 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Lokale Punkte und Belohnungen
+- Aufgaben und Routinen können einen ganzzahligen Punktwert erhalten; erledigte Einzelaufgaben sowie erledigte Vorkommen wiederkehrender Einträge werden je stabiler Kalenderperson summiert.
+- Belohnungsziele werden in den Einstellungen angelegt, lokal gespeichert und im Übersichts-Dashboard mit Fortschrittsbalken je Person dargestellt.
+- Der Datenfluss bleibt bewusst lokal (`rewards.js`/`localStorage`); es gibt keine Supabase-, RLS- oder Auth-Erweiterung und keine Behauptung geräteübergreifender Synchronisierung.
+- Sichtprüfung: synthetisches 10-Punkte-Ziel, synthetische erledigte 5-Punkte-Aufgabe, Fortschritt 5/10 und 390×844 ohne horizontalen Überlauf.
+- Lokale Regressionstests: 189 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Accessibility- und lokale Recovery-Härtung
 - Lokale Kalenderdaten werden jetzt mit einem expliziten Ladezustand gelesen: beschädigte oder nicht verfügbare Browser-Speicher werden nicht still als leer behandelt und nicht automatisch überschrieben.
 - Schreibfehler im lokalen Modus zeigen einen zugänglichen, schließbaren Live-Hinweis mit JSON-Wiederherstellung als nächstem sicheren Schritt; die bisherigen Cloud-/Offline-Fallbacks bleiben erhalten.
@@ -88,7 +95,7 @@
 ## Update 14.10.2026 – Haushaltsroutinen
 - Wiederkehrende Routine-Einträge können einer Person zugewiesen, im Kalender gefiltert und pro Vorkommen erledigt werden; Aufgaben und Routinen teilen sich dabei denselben sicheren Completion-Roundtrip.
 - Routine-Vorkommen erscheinen im Übersichts-Dashboard neben Aufgaben, werden im ICS-Austausch als eigene Kategorie erhalten und bleiben im bestehenden owner-only Datenfluss.
-- Das optionale Punkte-/Belohnungsmodul ist weiterhin bewusst offen.
+- Der damalige Stand ließ das optionale Punkte-/Belohnungsmodul noch offen; es ist inzwischen als lokaler Punkte-/Belohnungsblock ergänzt (siehe aktuellen Status oben).
 
 ## Update 14.10.2026 – Wiederkehrende Aufgaben
 - Wiederkehrende Aufgaben werden im Übersichts-Dashboard als einzelne Vorkommen für Heute, überfällige Tage und die nächsten Wochen angezeigt.
@@ -106,7 +113,7 @@
 - Aufgaben werden als eigener Termintyp mit Personenzuweisung, Fälligkeit, Priorität und Erledigt-Status geführt.
 - Offene Aufgaben erscheinen im Übersichts-Dashboard und können dort ohne erneutes Öffnen des Editors als erledigt markiert werden.
 - Aufgabenfelder werden über die bestehende Kalender-Persistenz roundtrip-sicher in `metadata` gespeichert; RLS und Schema bleiben unverändert.
-- Ein optionales Punkte-/Belohnungsmodul ist weiterhin offen.
+- Der damalige Aufgabenstand ließ Punkte noch offen; Punktwerte und lokale Belohnungsziele sind inzwischen ergänzt (siehe aktuellen Status oben).
 
 ## Update 14.10.2026 – Lokaler Daten-/ICS-Austausch
 - Einstellungen bieten JSON-Sicherung, ICS-Export und einen bestätigungspflichtigen ICS-Import mit Duplikatprüfung.
@@ -155,7 +162,7 @@ Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach 
 - Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
 - Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
-- Ein separates Routinen-/Belohnungsmodul für Punkte ist noch nicht umgesetzt.
+- Punkte-/Belohnungsziele sind als bewusst lokaler Block umgesetzt; sie werden nicht nach Supabase synchronisiert.
 - Google-/Outlook-OAuth und bidirektionale externe Synchronisation sind noch nicht umgesetzt; ICS bleibt der lokale, dateibasierte Austauschweg.
 
 ## Update 14.10.2026 – PWA-Shell und Offline-Fallback
