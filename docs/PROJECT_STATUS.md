@@ -10,7 +10,7 @@
 - Schichtvorlagen, Sollstunden, Dienstplan-OCR, JSON-/ICS-Transfer, Feiertage, Darstellung und Belohnungen behalten nach Status-Rerendern ihren Tastaturkontext; laufende OCR meldet den Fortschritt zusätzlich als programmatisch fokussierbaren Status.
 - Fehlerpfade in Schichtvorlagen, Sollstunden, Dienstplanprüfung, Umgangsrhythmus und Termindialogen öffnen nach der Meldung das betroffene Korrekturfeld; Fokusziele in Disclosure-Bereichen öffnen deren Bereich vorher.
 - Beim Öffnen der Dienste-Ansicht bleibt der Einstiegsfokus auf dem sichtbaren Starttag-Feld der Schnellerfassung.
-- Beim Aktivieren des Wall-Modus wandert der Fokus auf den sichtbaren Rückweg; beim Zurückwechseln auf den Übernehmen-Button.
+- Beim Aktivieren des Wall-Modus wandert der Fokus auf den sichtbaren Rückweg; beim Zurückwechseln auf die Kalenderüberschrift.
 - Der lokale Kalenderdialog-Audit mit synthetischem Termin bestätigt Bearbeiten, Verschieben und Löschbestätigung mit Rückwärts-Tab, Escape-Rückgabe und stabilen Auslösern; eine Löschung wurde nicht bestätigt.
 - Ein zusätzlicher Laptop-/390×844-Browserlauf bestätigt Familie, Heute, Dienste und Einstellungen: Ansichtswechsel fokussieren die Überschrift, die Dienstplan-Schnellerfassung das sichtbare Starttag-Feld, der Einstellungsdialog hält den Fokus über 34 Tab-Schritte und Escape gibt ihn an den Auslöser zurück; horizontaler Überlauf trat nicht auf. Die vollständige Tastaturabnahme aller Interaktionen und die echte iPhone-Home-Screen-Prüfung bleiben offen.
 - Ein synthetischer Umgangs-Bestätigungsablauf bestätigt zusätzlich den Recovery-Fallback: Nach dem Eintragen wechselt die App in „Familie“, der verschwundene Formular-Auslöser wird nicht mehr fokussiert und die neue Ansichtsüberschrift erhält den Fokus.
