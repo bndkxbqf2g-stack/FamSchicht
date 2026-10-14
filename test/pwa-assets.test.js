@@ -300,6 +300,8 @@ test('household database errors stay user-safe in the settings UI', () => {
   assert.match(household, /Datenbank derzeit nicht erreichbar\. Der lokale Kalender bleibt verfügbar\./);
   assert.match(household, /Privater Haushalt konnte derzeit nicht erstellt werden\. Bitte später erneut versuchen\./);
   assert.match(household, /reportHouseholdError/);
+  assert.match(household, /function invitationErrorMessage\(context, error, fallback\)/);
+  assert.doesNotMatch(household, /setHouseholdMessage\(messageEl, error\.message\s*\|\|/);
   assert.match(household, /focusHouseholdControl\('#household-form \[name="name"\]'\)/);
   assert.match(household, /focusHouseholdControl\('#household-member-add-form \[name="name"\]'\)/);
   assert.doesNotMatch(household, /Datenbank derzeit nicht erreichbar:\s*'\s*\+\s*error\.message/);
