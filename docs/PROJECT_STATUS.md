@@ -21,6 +21,11 @@
 - Die Dialoge bleiben als eigene `aria-modal="true"`-Ziele erreichbar, während die bestehende Fokus-Rückgabe beim Abbrechen, Speichern und Escape erhalten bleibt.
 - Sichtprüfung: Termin-Dialog im 390×844-Viewport mit isoliertem Hintergrund und ohne horizontalen Überlauf; lokale Regressionstests: 192 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – Dienstplan-Dateivalidierung
+- Der lokale Fotoimport akzeptiert jetzt vor dem OCR-Start ausschließlich JPEG-/PNG-Dateien, begrenzt vier Dateien auf insgesamt 35 MB und weist SVG bzw. andere Formate mit einer verständlichen Fehlermeldung ab.
+- Die Prüfung liegt als eigener Domänenhelfer vor und berücksichtigt auch Browserfälle mit leerem MIME-Typ, sofern die Dateiendung eindeutig JPEG/PNG ist.
+- Sichtprüfung mit synthetischem SVG: sofortige Ablehnung ohne OCR-Start; lokale Regressionstests: 193 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Lokale Punkte und Belohnungen
 - Aufgaben und Routinen können einen ganzzahligen Punktwert erhalten; erledigte Einzelaufgaben sowie erledigte Vorkommen wiederkehrender Einträge werden je stabiler Kalenderperson summiert.
 - Belohnungsziele werden in den Einstellungen angelegt, lokal gespeichert und im Übersichts-Dashboard mit Fortschrittsbalken je Person dargestellt.

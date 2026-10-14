@@ -4,6 +4,26 @@ const MONTH_NAMES = {
   januar:1, februar:2, maerz:3, marz:3, april:4, mai:5, juni:6,
   juli:7, august:8, september:9, oktober:10, november:11, dezember:12,
 };
+const MAX_ROSTER_FILES = 4;
+const MAX_ROSTER_BYTES = 35 * 1024 * 1024;
+
+export function validateRosterFiles(files) {
+  const selected = [...(files || [])];
+  const unsupported = selected.some(file => {
+    const type = String(file?.type || '').toLowerCase();
+    const name = String(file?.name || '').toLowerCase();
+    const hasExtension = /\.[a-z0-9]+$/.test(name);
+    const supportedExtension = /\.(?:jpe?g|png)$/.test(name);
+    if (hasExtension && !supportedExtension) return true;
+    return !['image/jpeg', 'image/jpg', 'image/png'].includes(type) &&
+      !(type === '' && supportedExtension);
+  });
+  const totalBytes = selected.reduce((total, file) => total + Math.max(0, Number(file?.size) || 0), 0);
+  if (selected.length > MAX_ROSTER_FILES || unsupported || totalBytes > MAX_ROSTER_BYTES) {
+    return 'Bitte höchstens vier JPEG- oder PNG-Bilddateien mit zusammen maximal 35 MB auswählen.';
+  }
+  return '';
+}
 
 export function parseRosterPeriod(text) {
   const year = parseRosterYear(text);
@@ -127,3 +147,4 @@ function wordText(word) {
 }
 function centerX(word) { return (word.bbox.x0 + word.bbox.x1) / 2; }
 function centerY(word) { return (word.bbox.y0 + word.bbox.y1) / 2; }
+

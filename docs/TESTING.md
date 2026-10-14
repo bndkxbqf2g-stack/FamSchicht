@@ -22,6 +22,7 @@ npm run build
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.
 - Dienstplanimport-Recovery: verständliche Bild-/OCR-Fehler, keine Provider-Interna in der UI und erneute Auswahl derselben Datei nach einem fehlgeschlagenen Lauf.
+- Dienstplan-Dateigrenzen: ausschließlich JPEG/PNG, maximal vier Dateien und maximal 35 MB; nicht unterstützte Formate werden vor dem OCR-Start abgewiesen.
 - Dienstplanung: Monatsstunden pro stabiler Besitzer-ID, OZ-Stunden getrennt, ganztägige Statuswerte sowie Konflikthinweise für zeitliche Überschneidungen mit ganztägigen, mehrtägigen und über Mitternacht laufenden Familienterminen.
 - Schichtserien und Vorlagen: Wochentagsexpansion mit stabiler `ownerId`, Duplikatvermeidung, Nachtdienst-/Statuswerte, lokale Vorlagenvalidierung und sicherer Speicher-Roundtrip.
 - Soll-/Ist-Stunden: optionale lokale Monatsziele, Dezimalkomma-Normalisierung, Grenzwerte, Speicher-Roundtrip und Differenzberechnung.

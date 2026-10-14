@@ -34,7 +34,7 @@ import {
   deleteOwnerEvent,
 } from './calendar-service.js';
 import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
-import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear} from './shift-roster-import.js';
+import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear, validateRosterFiles} from './shift-roster-import.js';
 import {recognizeRosterImages} from './shift-roster-ocr.js';
 import {rosterImportErrorMessage} from './shift-roster-errors.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
@@ -1264,9 +1264,9 @@ async function handleRosterFilesChange(event) {
   // photo again after an OCR error or an explicitly cancelled import.
   input.value = '';
   if (!files.length) return;
-  if (files.length > 4 || files.some(file => !file.type.startsWith('image/')) ||
-      files.reduce((total, file) => total + file.size, 0) > 35 * 1024 * 1024) {
-    rosterImportError = 'Bitte höchstens vier Bilddateien mit zusammen maximal 35 MB auswählen.';
+  const validationError = validateRosterFiles(files);
+  if (validationError) {
+    rosterImportError = validationError;
     render();
     return;
   }
