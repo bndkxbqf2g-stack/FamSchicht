@@ -23,7 +23,6 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 ## WORK QUEUE
 ### READY
 - Getrennte Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen; danach die Zugriffsmatrix ausführen.
-- Lokalen Dienstplanfoto-Import mit prüfbarer OCR-Vorschau, Teamübersicht und eigener Kalenderprojektion abschließen und nach Branch-CI als Produktumfang bestätigen.
 
 ### WAITING
 - Nach Abschluss/Merge des Dienstplanimports: Coparent-Kalenderansicht für Anna, ausschließlich lesend und begrenzt auf Umgangszeiten mit den Kindern (`source: custody`), Schule, Hobbys/Sport und Geburtstage bzw. ausdrücklich freigegebene Kinderfeiern. Schichten/Dienstpläne, allgemeine oder private Termine sowie Einstellungen und Verwaltungsfunktionen bleiben verborgen. Umsetzung erst nach Zugriffsmatrix mit getrennten Konten; RLS muss denselben Filter serverseitig erzwingen. Bis dahin bleibt Live owner-only.
@@ -64,4 +63,5 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Lokale Storage-Recovery mit sichtbaren Lade-/Schreibfehlern, ohne beschädigte Daten still zu überschreiben.
 - Zugängliche Live-Fehlermeldungen sowie Fokus-Rückgabe für Termin-, Verschiebe- und Schichtdialoge.
 - Lokales Punkte-/Belohnungsmodul für erledigte Aufgaben und Routinen mit Fortschritt je Kalenderperson.
+- Lokaler Dienstplanfoto-Import mit prüfbarer OCR-Vorschau, Teamübersicht, eigener Kalenderprojektion, Dateigrenzen und gemeinsamer Vorschau-/Speichervalidierung.
 
