@@ -24,8 +24,10 @@ const memberTypeOptions = [
   ['guest', 'Gast'],
 ];
 
-function message(text) {
-  root.innerHTML = '<p class="note">' + escapeHtml(text) + '</p>';
+function message(text, kind = 'status') {
+  const role = kind === 'error' ? 'alert' : 'status';
+  const live = kind === 'error' ? 'assertive' : 'polite';
+  root.innerHTML = '<p class="note" role="' + role + '" aria-live="' + live + '">' + escapeHtml(text) + '</p>';
 }
 
 function reportHouseholdError(context, error) {
@@ -34,6 +36,13 @@ function reportHouseholdError(context, error) {
 
 function focusHouseholdControl(selector) {
   window.setTimeout(() => root.querySelector(selector)?.focus(), 0);
+}
+
+function setHouseholdMessage(element, text, kind = 'status') {
+  if (!element) return;
+  element.textContent = text;
+  element.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  element.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
 }
 
 function invitationMarkup() {
@@ -54,7 +63,7 @@ function invitationMarkup() {
           </select>
         </label>
         <button class="primary" type="submit">Einladung erstellen</button>
-        <p id="invitation-message" class="note wide" aria-live="polite"></p>
+        <p id="invitation-message" class="note wide" role="status" aria-live="polite"></p>
       </form>
     </div>`;
 }
@@ -90,7 +99,7 @@ function memberManagementMarkup(members, errorMessage = '') {
     '<p class="note">Kalenderpersonen bleiben vom Login getrennt. Nur der Owner kann Namen, Typ, Farbe und Dienstberechtigung ändern.</p>' +
     '<form id="household-members-form" class="member-editor-form">' + rows +
     '<button class="primary" type="submit">Änderungen speichern</button>' +
-    '<p id="member-save-message" class="note" role="status"></p></form>' +
+    '<p id="member-save-message" class="note" role="status" aria-live="polite"></p></form>' +
     '<form id="household-member-add-form" class="member-add-form">' +
     '<h4>Weitere Person hinzufügen</h4>' +
     '<label>Name<input name="name" maxlength="80" required placeholder="z. B. Kind oder Oma"></label>' +
@@ -98,7 +107,7 @@ function memberManagementMarkup(members, errorMessage = '') {
     '<label>Farbe<select name="colorKey">' + optionMarkup(memberColorOptions, 'blue') + '</select></label>' +
     '<label class="member-shift-toggle"><input name="shiftEligible" type="checkbox"> Für Dienste auswählbar</label>' +
     '<button class="primary" type="submit">Person hinzufügen</button>' +
-    '<p id="member-add-message" class="note" role="status"></p></form></section>';
+    '<p id="member-add-message" class="note" role="status" aria-live="polite"></p></form></section>';
 }
 
 function householdMarkup(household, members, memberError = '') {
@@ -123,7 +132,7 @@ async function refresh(user) {
   if (current !== requestId) return;
   if (error) {
     reportHouseholdError('Haushalt konnte nicht geladen werden.', error);
-    message('Datenbank derzeit nicht erreichbar. Der lokale Kalender bleibt verfügbar.');
+    message('Datenbank derzeit nicht erreichbar. Der lokale Kalender bleibt verfügbar.', 'error');
     return;
   }
   if (data?.length) {
@@ -147,7 +156,7 @@ async function refresh(user) {
       <input name="name" maxlength="80" required value="Unser Familienkalender">
     </label>
     <button type="submit" class="primary">Privaten Haushalt erstellen</button>
-    <p class="note" id="household-message">Zunächst hast ausschließlich du Zugriff.</p>
+    <p class="note" id="household-message" role="status" aria-live="polite">Zunächst hast ausschließlich du Zugriff.</p>
   </form>`;
   const form = root.querySelector('#household-form');
   form.onsubmit = async event => {
@@ -161,16 +170,18 @@ async function refresh(user) {
         .insert({name, owner_id: user.id});
       if (insertError) {
         reportHouseholdError('Privater Haushalt konnte nicht erstellt werden.', insertError);
-        form.querySelector('#household-message').textContent =
-          'Privater Haushalt konnte derzeit nicht erstellt werden. Bitte später erneut versuchen.';
+        setHouseholdMessage(form.querySelector('#household-message'),
+          'Privater Haushalt konnte derzeit nicht erstellt werden. Bitte später erneut versuchen.', 'error');
         button.disabled = false;
+        focusHouseholdControl('#household-form [name="name"]');
         return;
       }
     } catch (error) {
       reportHouseholdError('Privater Haushalt konnte nicht erstellt werden.', error);
-      form.querySelector('#household-message').textContent =
-        'Privater Haushalt konnte derzeit nicht erstellt werden. Bitte später erneut versuchen.';
+      setHouseholdMessage(form.querySelector('#household-message'),
+        'Privater Haushalt konnte derzeit nicht erstellt werden. Bitte später erneut versuchen.', 'error');
       button.disabled = false;
+      focusHouseholdControl('#household-form [name="name"]');
       return;
     }
     window.dispatchEvent(new CustomEvent('famschicht:household-created'));
@@ -200,16 +211,17 @@ function bindMemberForms(householdId, members, user) {
         shiftEligible: data.get('member-shift-' + index) === 'on',
       }));
       button.disabled = true;
-      messageEl.textContent = 'Mitglieder werden gespeichert …';
+      setHouseholdMessage(messageEl, 'Mitglieder werden gespeichert …');
       const saved = await saveOwnerHouseholdMembers(supabase, updated, householdId);
       members.splice(0, members.length, ...saved);
-      messageEl.textContent = 'Mitglieder gespeichert.';
+      setHouseholdMessage(messageEl, 'Mitglieder gespeichert.');
       window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
       void safeRefresh(user).then(() => focusHouseholdControl('#household-members-form button[type="submit"]'));
     } catch (error) {
-      messageEl.textContent = error.message === 'member name is required'
+      setHouseholdMessage(messageEl, error.message === 'member name is required'
         ? 'Bitte für jede Person einen Namen eingeben.'
-        : 'Mitglieder konnten nicht gespeichert werden.';
+        : 'Mitglieder konnten nicht gespeichert werden.', 'error');
+      focusHouseholdControl('#household-members-form input[name^="member-name-"]');
     } finally {
       button.disabled = false;
     }
@@ -230,17 +242,18 @@ function bindMemberForms(householdId, members, user) {
         shiftEligible: data.get('shiftEligible') === 'on',
       });
       button.disabled = true;
-      messageEl.textContent = 'Person wird gespeichert …';
+      setHouseholdMessage(messageEl, 'Person wird gespeichert …');
       const saved = await saveOwnerHouseholdMembers(supabase, [...members, member], householdId);
       members.splice(0, members.length, ...saved);
       form.reset();
-      messageEl.textContent = 'Person hinzugefügt.';
+      setHouseholdMessage(messageEl, 'Person hinzugefügt.');
       window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
       void safeRefresh(user).then(() => focusHouseholdControl('#household-member-add-form [name="name"]'));
     } catch (error) {
-      messageEl.textContent = error.message === 'member name is required'
+      setHouseholdMessage(messageEl, error.message === 'member name is required'
         ? 'Bitte einen Namen eingeben.'
-        : 'Person konnte nicht hinzugefügt werden.';
+        : 'Person konnte nicht hinzugefügt werden.', 'error');
+      focusHouseholdControl('#household-member-add-form [name="name"]');
     } finally {
       button.disabled = false;
     }
@@ -256,7 +269,7 @@ function bindInvitationForm(householdId) {
     const email = String(new FormData(form).get('email') || '').trim();
     const role = String(new FormData(form).get('role') || '');
     button.disabled = true;
-    messageEl.textContent = 'Einladung wird sicher erstellt …';
+    setHouseholdMessage(messageEl, 'Einladung wird sicher erstellt …');
     try {
       const result = await createHouseholdInvitation(supabase, {
         householdId,
@@ -265,7 +278,7 @@ function bindInvitationForm(householdId) {
       });
       const link = buildInvitationLink(window.location.href, result.token);
       form.querySelector('.invitation-result')?.remove();
-      messageEl.textContent = 'Einladung erstellt. Teile diesen persönlichen Link nur mit der eingeladenen Person.';
+      setHouseholdMessage(messageEl, 'Einladung erstellt. Teile diesen persönlichen Link nur mit der eingeladenen Person.');
       const resultBox = document.createElement('div');
       resultBox.className = 'invitation-result';
       resultBox.innerHTML = '<label class="wide">Persönlicher Einladungslink<input class="invitation-link" readonly value="' +
@@ -285,12 +298,12 @@ function bindInvitationForm(householdId) {
       resultBox.querySelector('.revoke-invitation')?.addEventListener('click', async event => {
         const revokeButton = event.currentTarget;
         revokeButton.disabled = true;
-        messageEl.textContent = 'Einladung wird widerrufen …';
+        setHouseholdMessage(messageEl, 'Einladung wird widerrufen …');
         try {
           const revokeResult = await revokeHouseholdInvitation(supabase, result.invitationId);
           const outcome = invitationRevocationOutcome(revokeResult);
           if (!outcome.revoked) {
-            messageEl.textContent = outcome.message;
+            setHouseholdMessage(messageEl, outcome.message);
             revokeButton.disabled = false;
             revokeButton.focus();
             return;
@@ -299,14 +312,14 @@ function bindInvitationForm(householdId) {
           messageEl.textContent = outcome.message;
           form.querySelector('[name="email"]')?.focus();
         } catch (error) {
-          messageEl.textContent = error.message || 'Einladung konnte nicht widerrufen werden.';
+          setHouseholdMessage(messageEl, error.message || 'Einladung konnte nicht widerrufen werden.', 'error');
           revokeButton.disabled = false;
           revokeButton.focus();
         }
       });
       form.reset();
     } catch (error) {
-      messageEl.textContent = error.message || 'Einladung konnte nicht erstellt werden.';
+      setHouseholdMessage(messageEl, error.message || 'Einladung konnte nicht erstellt werden.', 'error');
       form.querySelector('[name="email"]')?.focus();
     } finally {
       button.disabled = false;
@@ -321,7 +334,7 @@ async function safeRefresh(user) {
     console.warn('Haushalt konnte nicht geladen werden; lokaler Modus bleibt aktiv.', error);
     message(user
       ? 'Haushalt derzeit nicht erreichbar. Der lokale Kalender bleibt verfügbar.'
-      : 'Melde dich an, um deinen privaten Familienhaushalt einzurichten.');
+      : 'Melde dich an, um deinen privaten Familienhaushalt einzurichten.', user ? 'error' : 'status');
   }
 }
 
