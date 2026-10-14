@@ -17,9 +17,9 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.16"/);
-  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.16"/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.16"/);
+  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.17"/);
+  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.17"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.17"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -32,7 +32,7 @@ test('app viewport enables iPhone safe-area layout', () => {
 
 test('visible application version matches the current cache-bust release', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-  assert.match(main, /Familienplaner · v0\.3\.16/);
+  assert.match(main, /Familienplaner · v0\.3\.17/);
 });
 
 test('release metadata stays aligned across the app shell', () => {
@@ -40,7 +40,7 @@ test('release metadata stays aligned across the app shell', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.equal(packageJson.version, '0.3.16');
+  assert.equal(packageJson.version, '0.3.17');
   assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
@@ -51,6 +51,13 @@ test('app shell exposes keyboard navigation and account dialog semantics', () =>
   assert.match(html, /class="skip-link" href="#app"/);
   assert.match(html, /id="account-shell" role="dialog" aria-modal="true"/);
   assert.match(html, /<main id="app" tabindex="-1" aria-label="Familienkalender">/);
+});
+
+test('startup failures keep technical details out of the visible shell', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /console\.warn\('FamSchicht-Laufzeitfehler:',message\)/);
+  assert.match(html, /detail\.textContent='Die App konnte nicht geladen werden\. Bitte erneut laden\.'/);
+  assert.doesNotMatch(html, /detail\.textContent='Startfehler: '\+message/);
 });
 
 test('calendar cards keep edit and delete as separate interactive controls', () => {
@@ -382,7 +389,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v0.3.16/);
+  assert.match(source, /famschicht-shell-v0.3.17/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
