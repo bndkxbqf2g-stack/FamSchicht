@@ -21,6 +21,7 @@ npm run build
 - Terminverschiebung: stabile ID/`ownerId`, vollständiger Mehrtagesbereich, Nachtdienstzeiten, wiederkehrende Erledigungsdaten und unveränderter Umgangsserienanker; zusätzlich sichtbarer Desktop-/390×844-Check für Drag-/Touch-/Fallback-Interaktion.
 - Haushaltsmitglieder, stabile `ownerId`, Legacy-`owner`, Personen-/Kategorie-Filter, Initialen-/Farblegende sowie owner-only Anlegen/Bearbeiten von Name, Typ, Farbe und Schichtberechtigung.
 - Authentifizierungsfehler, Magic-Link-Rückkehr und sichere Owner-only Datenflüsse; keine produktiven Konten in Tests.
+- Nutzerfehler: kurze fachliche Validierung bleibt sichtbar, technische Transport-/Datenbankdetails fallen auf neutrale Meldungen zurück.
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.
 - Dienstplanimport-Recovery: verständliche Bild-/OCR-Fehler, keine Provider-Interna in der UI und erneute Auswahl derselben Datei nach einem fehlgeschlagenen Lauf.
