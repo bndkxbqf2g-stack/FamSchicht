@@ -77,7 +77,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] read-only Import zuerst (ICS-Quelle)
 - [x] Konflikt-/Duplikatlogik für read-only ICS-Quellen
 - [ ] anschließend optionaler Zwei-Wege-Sync
-- [ ] Feiertage/Bundesland
+- [x] Feiertage/Bundesland als lokale read-only Quelle
 - [x] ICS Import/Export
 - [x] Sync-Status und Fehleranzeige
 Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials außerhalb des Repositorys.

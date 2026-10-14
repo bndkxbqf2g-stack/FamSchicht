@@ -1134,3 +1134,7 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   .calendar.month-view .entry .entry-edit{display:block}
   .calendar.month-view .entry .entry-move{display:inline-block}
 }
+
+.holiday-settings-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}.holiday-settings-form button{min-height:42px}.holiday-settings-form select{width:100%}
+@media(max-width:700px){.holiday-settings-form{grid-template-columns:1fr}.holiday-settings-form button{width:100%}}
+

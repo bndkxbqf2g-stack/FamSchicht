@@ -20,6 +20,7 @@ Vite-basierte JavaScript-Web-App.
 - src/task-planning.js: wiederkehrende Aufgaben- und Haushaltsroutinen mit Completion je Vorkommen.
 - src/event-move.js: pure Datumsverschiebung für Einzel-, Mehrtages-, Wiederholungs-, Nacht- und Umgangseinträge.
 - src/calendar-sources.js: read-only Quellenvertrag, Provider-Katalog sowie stabile UID-/Duplikat-/Konfliktentscheidung für externe Kalenderimporte.
+- src/holidays.js: deterministische deutsche Feiertage mit Bundesland-Auswahl und lokaler Gerätespeicherung.
 - src/sync-status.js: erlaubte Synchronisationszustände sowie nutzerfreundliche Statuslabels und CSS-Klassen.
 
 ## Backend
@@ -38,6 +39,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Optionale Sollstunden: Monatsziele pro schichtberechtigter Person -> lokaler Gerätespeicher -> Dienstplanübersicht; diese Werte werden nicht als Kalenderereignisse oder Supabase-Daten synchronisiert.
 - Importierte Dienstpläne: Foto -> OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos werden nach der OCR nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
 - Externe Kalender: ICS-Datei -> read-only Quellenvertrag -> stabile externe UID/Fingerprint-Prüfung -> neue Termine oder explizit ausgewiesene Duplikate/Konflikte. Importierte Termine tragen die Quellenmetadaten im bestehenden `metadata`-Roundtrip und bleiben in der Oberfläche nicht bearbeitbar.
+- Feiertage: lokales Bundesland -> `holidays.js` -> deterministische bundesweite/regional ergänzte read-only Termine. Die berechneten Feiertage werden nicht als eigene Supabase-Zeilen gespeichert und können nicht bearbeitet, gelöscht oder verschoben werden.
 - Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.
 - Owner-Mitgliederverwaltung: Einstellungen -> `ensureOwnerHouseholdMembers`/`saveOwnerHouseholdMembers` -> `household_members`; neue Personen erhalten eine stabile ID, bestehende `ownerId`-Referenzen werden beim Bearbeiten nicht geändert.
 - `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.

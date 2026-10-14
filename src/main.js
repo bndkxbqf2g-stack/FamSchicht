@@ -62,6 +62,13 @@ import {
   mergeReadOnlyCalendarEvents,
 } from './calendar-sources.js';
 import {
+  germanHolidayEntries,
+  holidayRegionLabel,
+  holidayRegionOptions,
+  loadHolidayRegion,
+  saveHolidayRegion,
+} from './holidays.js';
+import {
   isTaskCompletedOnDate,
   isTaskLikeEntry,
   setTaskOccurrenceCompleted,
@@ -115,6 +122,7 @@ let shiftOwnerId = shiftMembers[0]?.id || '';
 let shiftRosters = loadShiftRosters();
 let shiftTemplates = loadShiftTemplates();
 let shiftTargets = loadShiftTargets();
+let holidayRegion = loadHolidayRegion();
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
@@ -122,6 +130,7 @@ let shiftConflict = null;
 let shiftSeriesStatus = '';
 let shiftTargetStatus = '';
 let dataTransferStatus = '';
+let holidayStatus = '';
 let suppressMoveClickId = null;
 let suppressMoveClickUntil = 0;
 
@@ -229,7 +238,7 @@ async function connectCloud() {
 function render() {
   const days = calendarDates(focusedDate, month, calendarMode);
   const today = dateKey(new Date());
-  const displayEntries = [...entries, ...importedRosterCalendarEntries()];
+  const displayEntries = [...entries, ...importedRosterCalendarEntries(), ...configuredHolidayEntries()];
   const visibleEntries = filterCalendarEntries(
     displayEntries.filter(entry => canSee(entry, view)),
     {
@@ -630,6 +639,18 @@ function importedRosterCalendarEntries() {
   return projectRosterEntries(shiftRosters, shiftMembers, entries);
 }
 
+function configuredHolidayEntries() {
+  const currentYear = new Date().getFullYear();
+  const years = new Set([
+    currentYear - 1,
+    currentYear,
+    currentYear + 1,
+    month.getFullYear(),
+    focusedDate.getFullYear(),
+  ]);
+  return [...years].flatMap(year => germanHolidayEntries(year, holidayRegion));
+}
+
 function nextRosterAnchor(roster, today, allRosterEntries) {
   const ownName = normalizeRosterName(roster.selfName);
   if (!ownName) return null;
@@ -675,6 +696,8 @@ function timeMinutes(value) {
 }
 
 function custodyMarkup() {
+  const holidayOptions = holidayRegionOptions().map(([value, label]) =>
+    '<option value="' + h(value) + '"' + (holidayRegion === value ? ' selected' : '') + '>' + h(label) + '</option>').join('');
   return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
@@ -685,6 +708,11 @@ function custodyMarkup() {
     '<div class="data-tools-actions"><button type="button" id="export-json">JSON sichern</button><button type="button" id="export-ics">ICS exportieren</button><button type="button" id="import-ics">ICS importieren</button></div>' +
     '<input id="ics-import-file" class="visually-hidden" type="file" accept=".ics,text/calendar" aria-label="ICS-Datei auswählen">' +
     (dataTransferStatus ? '<p class="data-transfer-status" role="status">' + h(dataTransferStatus) + '</p>' : '') +
+    '</section>' +
+    '<section class="panel holiday-tools-card"><h2>Feiertage</h2>' +
+    '<p>Lokale Feiertage werden automatisch als read-only Termine angezeigt. Wähle dafür das passende Bundesland oder nur die bundesweiten Feiertage.</p>' +
+    '<form id="holiday-settings-form" class="holiday-settings-form"><label>Bundesland<select name="region">' + holidayOptions + '</select></label><button class="primary" type="submit">Übernehmen</button></form>' +
+    (holidayStatus ? '<p class="data-transfer-status" role="status">' + h(holidayStatus) + '</p>' : '') +
     '</section>';
 }
 
@@ -1007,6 +1035,7 @@ function bindControls() {
   document.querySelector('#export-ics')?.addEventListener('click', exportIcsData);
   document.querySelector('#import-ics')?.addEventListener('click', () => document.querySelector('#ics-import-file')?.click());
   document.querySelector('#ics-import-file')?.addEventListener('change', handleIcsImport);
+  document.querySelector('#holiday-settings-form')?.addEventListener('submit', handleHolidaySettingsSubmit);
   app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
   app.querySelector('#shift-edit-cancel')?.addEventListener('click', () => { shiftDialogEventId = null; render(); });
   app.querySelector('#capture-date')?.addEventListener('change', event => {
@@ -1391,6 +1420,18 @@ async function handleIcsImport(event) {
     dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
     render();
   }
+}
+
+function handleHolidaySettingsSubmit(event) {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  try {
+    holidayRegion = saveHolidayRegion(formData.get('region'));
+    holidayStatus = `Feiertage für ${holidayRegionLabel(holidayRegion)} sind aktiviert.`;
+  } catch (error) {
+    holidayStatus = error.message || 'Die Feiertagsauswahl konnte nicht gespeichert werden.';
+  }
+  render();
 }
 
 function downloadFile(name, content, type) {

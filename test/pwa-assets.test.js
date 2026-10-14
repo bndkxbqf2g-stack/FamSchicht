@@ -58,6 +58,15 @@ test('external calendar imports keep a read-only source contract', () => {
   assert.match(source, /same-external-id/);
 });
 
+test('holiday settings expose a local read-only calendar source', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'src', 'holidays.js'), 'utf8');
+  assert.match(main, /holiday-settings-form/);
+  assert.match(main, /configuredHolidayEntries/);
+  assert.match(source, /holiday-calendar/);
+  assert.match(source, /germanHolidayEntries/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);
