@@ -7,6 +7,10 @@ import {
   parseRosterMonth,
   parseRosterPeriod,
   parseRosterYear,
+  ROSTER_FILE_VALIDATION_ERROR,
+  isRosterDateInMonth,
+  validateRosterDraft,
+  validateRosterFiles,
 } from '../src/shift-roster-import.js';
 
 function word(text, x, y) {
@@ -22,6 +26,29 @@ test('detects German month and year from the roster header', () => {
 test('extracts month and year independently when one OCR header pass is noisy', () => {
   assert.equal(parseRosterMonth('Monat November'), 11);
   assert.equal(parseRosterYear('Jahr 2026'), 2026);
+});
+
+test('accepts JPEG and PNG roster files but rejects unsupported image formats', () => {
+  assert.equal(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:1024}]), '');
+  assert.equal(validateRosterFiles([{name:'plan.png', type:'', size:1024}]), '');
+  assert.equal(validateRosterFiles([{name:'plan.svg', type:'image/svg+xml', size:1024}]), ROSTER_FILE_VALIDATION_ERROR);
+  assert.equal(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:36 * 1024 * 1024}]), ROSTER_FILE_VALIDATION_ERROR);
+  assert.equal(validateRosterFiles(Array.from({length:5}, (_, index) => ({
+    name:'plan-' + index + '.png', type:'image/png', size:1024,
+  }))), ROSTER_FILE_VALIDATION_ERROR);
+});
+
+test('validates the roster preview before local persistence', () => {
+  const valid = {
+    month:'2026-02', selfName:'Ada Beispiel', selfMemberId:'member-a',
+    entries:[{name:'Ada Beispiel', date:'2026-02-28', code:'F1'}],
+  };
+  assert.equal(validateRosterDraft(valid), '');
+  assert.equal(isRosterDateInMonth('2026-02-28', '2026-02'), true);
+  assert.equal(isRosterDateInMonth('2026-02-29', '2026-02'), false);
+  assert.match(validateRosterDraft({...valid, entries:[{...valid.entries[0], date:'2026-02-29'}]}), /ungültiges Datum/);
+  assert.match(validateRosterDraft({...valid, entries:[{...valid.entries[0], code:'O'}]}), /ungültiges Datum oder Kürzel/);
+  assert.match(validateRosterDraft({...valid, entries:[{...valid.entries[0], name:''}]}), /Namen/);
 });
 
 test('maps recognized codes to the nearest employee row and calendar day', () => {
@@ -70,3 +97,4 @@ test('groups name words with modest vertical OCR baseline drift', () => {
   assert.equal(result[0]?.name, 'Ada Beispiel');
   assert.equal(result[0]?.code, 'F1');
 });
+

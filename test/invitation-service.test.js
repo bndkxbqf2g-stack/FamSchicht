@@ -5,6 +5,7 @@ import {
   createHouseholdInvitation,
   revokeHouseholdInvitation,
 } from '../src/invitation-service.js';
+import {invitationRevocationOutcome} from '../src/invitation-ui.js';
 
 function fakeClient(response = {data: {ok: true}, error: null}) {
   const calls = [];
@@ -83,6 +84,23 @@ test('revoke invitation uses edge boundary and requires an id', async () => {
     () => revokeHouseholdInvitation(client, ''),
     /invitationId is required/,
   );
+});
+
+test('revoke invitation preserves an inactive response for the owner UI', async () => {
+  const client = fakeClient({data: {revoked: false}, error: null});
+
+  assert.deepEqual(
+    await revokeHouseholdInvitation(client, 'invite-1'),
+    {revoked: false},
+  );
+  assert.deepEqual(invitationRevocationOutcome({revoked: false}), {
+    revoked: false,
+    message: 'Einladung ist bereits abgelaufen, widerrufen oder nicht mehr verfügbar.',
+  });
+  assert.deepEqual(invitationRevocationOutcome({revoked: true}), {
+    revoked: true,
+    message: 'Einladung widerrufen. Der persönliche Link ist nicht mehr gültig.',
+  });
 });
 
 test('edge transport errors do not leak provider details', async () => {

@@ -1,6 +1,6 @@
 # FamSchicht Masterplan – FamilyCal-inspired family command center
 
-Stand: 2026-09-25
+Stand: 2026-10-14
 
 ## Ziel
 FamSchicht wird zu einem eigenständigen Familien- und Schichtkalender mit ähnlich ruhiger, großbildtauglicher Bedienlogik wie FamilyCal. Der Fokus bleibt bewusst auf Kalender, Familie, Schichtplanung, Aufgaben/Routinen und externer Kalendersynchronisation. Es werden keine fremden Quellcodes, Markenassets oder proprietären Grafiken kopiert.
@@ -34,69 +34,69 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] mehrtägige Termine
 - [x] Wiederholungen: täglich / wöchentlich / monatlich / jährlich
 - [x] Geburtstage und ganztägige Ereignisse
-- [ ] Drag/Move nur falls stabil auf Touch und Desktop
+- [x] Drag/Move mit Touch-/Desktop-Unterstützung und zugänglichem Zieldatum-Fallback
 
 ### Phase 2 – Familie, Rollen und Sichtbarkeit
-- [ ] Haushaltsmitglieder als eigenes Modell
-- [ ] Martin / Steffi / Kinder / weitere Mitglieder
-- [ ] individuelle Farben und Avatare/Initialen
+- [x] Haushaltsmitglieder als eigenes Modell
+- [x] Martin / Steffi / Kinder / weitere Mitglieder
+- [x] individuelle Farben und Avatare/Initialen
 - [ ] Einladung/Beitritt
 - [ ] Rollen: Owner / Erwachsener / Kind / Gast
 - [ ] Sichtbarkeit pro Ereignis
 - [ ] persönliche vs. gemeinsame Einträge
-- [ ] bestehende Schicht-Owner sauber in Mitgliedsmodell migrieren
+- [x] bestehende Schicht-Owner sauber in Mitgliedsmodell migrieren
 - [ ] Anna später gezielt mit eingeschränktem Bereich/Kind-Kontext einbindbar
 
 ### Phase 3 – Schichtplanung als FamSchicht-Spezialität
 - [x] Früh-/Spät-/Nachtdienst
 - [x] Martin-/Steffi-Zuordnung
 - [x] Schnellaufnahme mit automatischem Tagesfortschritt
-- [ ] Schichtserie aus Dienstplan schneller erfassen
-- [ ] Monatsübersicht Schichten je Person
-- [ ] Soll-/Ist-Stunden optional
-- [ ] freie Tage / Urlaub / Fortbildung / Krank
-- [ ] Kollisionshinweise mit Familien- oder Kinderterminen
-- [ ] Schichtfilter und kompakte Legende
-- [ ] wiederverwendbare Schichtvorlagen
+- [x] Schichtserie aus Dienstplan schneller erfassen
+- [x] Monatsübersicht Schichten je Person
+- [x] Soll-/Ist-Stunden optional
+- [x] freie Tage / Urlaub / Fortbildung / Krank
+- [x] Kollisionshinweise mit Familien- oder Kinderterminen
+- [x] Schichtfilter und kompakte Legende
+- [x] wiederverwendbare Schichtvorlagen
 
 ### Phase 4 – Aufgaben und Routinen
-- [ ] gemeinsame Aufgabenliste
-- [ ] Zuweisung an Person
-- [ ] Fälligkeit
-- [ ] Priorität
-- [ ] wiederkehrende Aufgaben
-- [ ] Erledigt-Status
-- [ ] Heute-/Wochen-Dashboard
-- [ ] optional Punkte-/Belohnungssystem für Kinder
-- [ ] Haushaltsroutinen
+- [x] gemeinsame Aufgabenliste
+- [x] Zuweisung an Person
+- [x] Fälligkeit
+- [x] Priorität
+- [x] wiederkehrende Aufgaben mit eigenem Erledigt-Status je Vorkommen
+- [x] Erledigt-Status
+- [x] Heute-/Wochen-Dashboard mit offenen Aufgaben und Vorkommensdatum
+- [x] optionales lokales Punkte-/Belohnungssystem für erledigte Aufgaben und Routinen
+- [x] Haushaltsroutinen
 
 ### Phase 5 – Externe Kalender und Synchronisation
-- [ ] Google Calendar Architektur
-- [ ] Outlook/Microsoft Calendar Architektur
-- [ ] Kalenderquellen pro Mitglied
-- [ ] read-only Import zuerst
-- [ ] Konflikt-/Duplikatlogik
+- [x] Google Calendar Architektur als read-only-Adaptervertrag (OAuth bleibt externe Freigabe)
+- [x] Outlook/Microsoft Calendar Architektur als read-only-Adaptervertrag (OAuth bleibt externe Freigabe)
+- [x] Kalenderquellen pro Mitglied für read-only-ICS
+- [x] read-only Import zuerst (ICS-Quelle)
+- [x] Konflikt-/Duplikatlogik für read-only ICS-Quellen
 - [ ] anschließend optionaler Zwei-Wege-Sync
-- [ ] Feiertage/Bundesland
-- [ ] ICS Import/Export
-- [ ] Sync-Status und Fehleranzeige
+- [x] Feiertage/Bundesland als lokale read-only Quelle
+- [x] ICS Import/Export
+- [x] Sync-Status und Fehleranzeige
 Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials außerhalb des Repositorys.
 
 ### Phase 6 – Produktreife
-- [ ] PWA installierbar
-- [ ] iPhone Home-Screen optimiert
-- [ ] Wall-/Tablet-Modus
-- [ ] Offline/Retry-Konzept
+- [x] PWA installierbar
+- [x] iPhone Home-Screen optimiert (PWA-Metadaten, Apple-Touch-Icon und iOS-/Browser-Installationshinweis in den Einstellungen)
+- [x] Wall-/Tablet-Modus als reversibler read-only-Wandmodus
+- [x] Offline/Retry-Konzept
 - [ ] Echtzeit-Sync zwischen Haushaltsgeräten
 - [ ] Benachrichtigungen
-- [ ] Accessibility
-- [ ] Ladezeit/Performance
-- [ ] Datenexport
+- [ ] Accessibility (Grundsemantik, Live-Fehlerhinweise und Dialogfokus umgesetzt; Hauptansichten und 390×844 manuell geprüft, vollständige Abnahme aller Interaktionen offen)
+- [ ] Ladezeit/Performance (OCR lazy-loaded und CI-Asset-Budget vorhanden; echte Geräteprofile noch offen)
+- [x] Datenexport
 - [ ] Account-/Haushaltslöschung
 - [ ] Security-/RLS-Audit
 - [ ] Schema-Migrationstest
 - [ ] End-to-End Kernabläufe
-- [ ] Fehlerzustände und Recovery
+- [ ] Fehlerzustände und Recovery (lokale Storage-/Schreibfehler und zentrale UI-Fehlermeldungen umgesetzt; vollständige Abnahme offen)
 - [ ] Dokumentation
 - [ ] finaler Repo-/CI-/UX-Audit
 
@@ -131,4 +131,5 @@ Die FamilyCal-inspirierte App-Shell, Monats-, Wochen- und Tagesansicht, Heute-An
 ## Wiedereinstieg nach dem aktuellen Entwicklungsblock
 Der vollständige Termin-Editor ist umgesetzt: bestehende Familientermine werden über die Supabase-Updateoperation geändert statt dupliziert. Mehrtägige Familientermine werden mit ihrem Datumsbereich persistiert, nach dem Cloud-Roundtrip erhalten und an allen betroffenen Kalendertagen dargestellt. Regressionstests decken Update und Mehrtagstermine ab.
 
-Wiederholungen täglich, wöchentlich, monatlich und jährlich sind umgesetzt, werden in der Terminbearbeitung gewählt, über Metadaten cloudseitig erhalten und in den Kalenderansichten ohne duplizierte Persistenz als Vorkommen dargestellt. Geburtstage sind als eigener ganztägiger Ereignistyp mit jährlicher Wiederholung umgesetzt; bestehende Termine ohne Uhrzeit bleiben als ganztägige Ereignisse erhalten. Der nächste optionale Phase-1-Schritt ist Drag/Move, aber nur wenn die Bedienung auf Touch und Desktop stabil umgesetzt werden kann. Das bestehende Personenmodell bleibt dabei bewusst unverändert; Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
+Wiederholungen täglich, wöchentlich, monatlich und jährlich sind umgesetzt, werden in der Terminbearbeitung gewählt, über Metadaten cloudseitig erhalten und in den Kalenderansichten ohne duplizierte Persistenz als Vorkommen dargestellt. Geburtstage sind als eigener ganztägiger Ereignistyp mit jährlicher Wiederholung umgesetzt; bestehende Termine ohne Uhrzeit bleiben als ganztägige Ereignisse erhalten. Drag/Move ist per Touch-/Desktop-Geste und zugänglichem Zieldatum-Fallback umgesetzt; der bestehende Personenmodell-Vertrag bleibt dabei unverändert. Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
+

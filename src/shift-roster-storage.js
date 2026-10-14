@@ -1,3 +1,6 @@
+import {isRosterDateInMonth} from './shift-roster-import.js';
+import {parseRosterCell} from './shift-roster.js';
+
 const STORAGE_KEY = 'famschicht-shift-rosters-v1';
 
 export function loadShiftRosters(storage = globalThis.localStorage) {
@@ -31,7 +34,9 @@ function isStoredRoster(roster) {
   return Boolean(roster &&
     /^\d{4}-(0[1-9]|1[0-2])$/.test(roster.month) &&
     Array.isArray(roster.entries) &&
-    roster.entries.every(entry => entry && typeof entry.name === 'string' &&
-      typeof entry.date === 'string' && typeof entry.code === 'string') &&
+    roster.entries.every(entry => entry && typeof entry.name === 'string' && entry.name.trim() &&
+      typeof entry.date === 'string' && isRosterDateInMonth(entry.date, roster.month) &&
+      typeof entry.code === 'string' && parseRosterCell(entry.code)?.start) &&
     (roster.selfMemberId === undefined || typeof roster.selfMemberId === 'string'));
 }
+

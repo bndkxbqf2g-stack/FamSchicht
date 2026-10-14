@@ -39,6 +39,47 @@ test('recurring family event keeps recurrence through database round trip', () =
   assert.equal(fromDatabaseEvent(row).recurrence, 'weekly');
 });
 
+test('task assignment, priority and completion survive database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'task-1', type: 'family', title: 'Ranzen packen', date: '2026-09-25',
+    eventKind: 'task', ownerId: 'anna', priority: 'high', completed: true,
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata, {
+    eventKind: 'task', ownerId: 'anna', priority: 'high', completed: true,
+  });
+  const restored = fromDatabaseEvent(row);
+  assert.equal(restored.eventKind, 'task');
+  assert.equal(restored.ownerId, 'anna');
+  assert.equal(restored.priority, 'high');
+  assert.equal(restored.completed, true);
+});
+
+test('recurring task completion dates survive database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'task-repeat', type: 'family', title: 'Müll rausstellen', date: '2026-09-25',
+    recurrence: 'weekly', eventKind: 'task', completed: false,
+    completedDates: ['2026-10-02', '2026-09-25', '2026-10-02', 'invalid'],
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata.completedDates, ['2026-09-25', '2026-10-02']);
+  assert.deepEqual(fromDatabaseEvent(row).completedDates, ['2026-09-25', '2026-10-02']);
+});
+
+test('household routine completion metadata survives database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'routine-1', type: 'family', title: 'Küche aufräumen', date: '2026-09-25',
+    recurrence: 'weekly', eventKind: 'routine', ownerId: 'martin', priority: 'normal',
+    completed: false, completedDates: ['2026-10-02'],
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata, {
+    recurrence: 'weekly', eventKind: 'routine', ownerId: 'martin', priority: 'normal',
+    completed: false, completedDates: ['2026-10-02'],
+  });
+  const restored = fromDatabaseEvent(row);
+  assert.equal(restored.eventKind, 'routine');
+  assert.equal(restored.priority, 'normal');
+  assert.deepEqual(restored.completedDates, ['2026-10-02']);
+});
+
 test('all-day family event remains on the same calendar date after round trip', () => {
   const row=toDatabaseEvent({id:'all-day',type:'family',title:'Ferien',date:'2026-09-24'},'h1','u1');
   const restored=fromDatabaseEvent(row);
@@ -144,13 +185,14 @@ test('overnight shift keeps next-day end through database round trip', () => {
 });
 
 test('supported shifts keep full labels and configured UKW times', () => {
-  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Zwischendienst','Nachtdienst','SG-Tag','Urlaub','Fortbildung']);
+  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Zwischendienst','Nachtdienst','SG-Tag','Urlaub','Fortbildung','Krank']);
   assert.deepEqual(shiftTimes('Frühdienst'), ['06:00','14:12']);
   assert.deepEqual(shiftTimes('Spätdienst'), ['13:30','21:42']);
   assert.deepEqual(shiftTimes('Zwischendienst'), ['11:48', '20:00']);
   assert.deepEqual(shiftTimes('SG-Tag'), ['', '']);
   assert.deepEqual(shiftTimes('Urlaub'), ['', '']);
   assert.deepEqual(shiftTimes('Fortbildung'), ['', '']);
+  assert.deepEqual(shiftTimes('Krank'), ['', '']);
   assert.deepEqual(shiftTimes('Nachtdienst'), ['21:15','06:30']);
 });
 
@@ -290,3 +332,21 @@ test('family entry owner survives database round trip', () => {
   assert.equal(row.metadata.ownerId,'anna');
   assert.equal(fromDatabaseEvent(row).ownerId,'anna');
 });
+
+test('read-only external calendar metadata survives database round trip', () => {
+  const row = toDatabaseEvent({
+    id:'external-1', type:'family', title:'Schule', date:'2026-10-02', eventKind:'school',
+    source:'calendar-import', readOnly:true, calendarSourceId:'ics-file',
+    calendarProvider:'ics', calendarSourceLabel:'ICS-Datei', externalId:'uid-1',
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata, {
+    source:'calendar-import', readOnly:true, calendarSourceId:'ics-file',
+    calendarProvider:'ics', calendarSourceLabel:'ICS-Datei', externalId:'uid-1',
+    eventKind:'school',
+  });
+  const restored = fromDatabaseEvent({...row, starts_at:row.starts_at, ends_at:row.ends_at});
+  assert.equal(restored.readOnly, true);
+  assert.equal(restored.calendarSourceId, 'ics-file');
+  assert.equal(restored.externalId, 'uid-1');
+});
+

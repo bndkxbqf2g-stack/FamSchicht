@@ -1,5 +1,14 @@
 const MEMBER_TYPES = new Set(['adult', 'child', 'guest']);
 
+export const memberColorOptions = Object.freeze([
+  ['martin', 'Koralle'],
+  ['steffi', 'Türkis'],
+  ['anna', 'Violett'],
+  ['amber', 'Amber'],
+  ['blue', 'Blau'],
+  ['slate', 'Schiefer'],
+]);
+
 export function createHouseholdMember({
   id,
   name,
@@ -61,6 +70,14 @@ export function memberFilterOptions(members = bootstrapHouseholdMembers) {
 
 export function memberNamesById(members = bootstrapHouseholdMembers) {
   return Object.fromEntries(members.map(member => [member.id, member.name]));
+}
+
+export function memberInitials(member) {
+  const name = typeof member === 'string' ? member : member?.name;
+  const words = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return '?';
+  if (words.length === 1) return Array.from(words[0])[0].toUpperCase();
+  return (Array.from(words[0])[0] + Array.from(words[words.length - 1])[0]).toUpperCase();
 }
 
 
