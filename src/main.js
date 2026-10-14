@@ -69,6 +69,12 @@ import {
   saveHolidayRegion,
 } from './holidays.js';
 import {
+  displayModeOptions,
+  isWallMode,
+  loadDisplayMode,
+  saveDisplayMode,
+} from './display-preferences.js';
+import {
   isTaskCompletedOnDate,
   isTaskLikeEntry,
   setTaskOccurrenceCompleted,
@@ -123,6 +129,7 @@ let shiftRosters = loadShiftRosters();
 let shiftTemplates = loadShiftTemplates();
 let shiftTargets = loadShiftTargets();
 let holidayRegion = loadHolidayRegion();
+let displayMode = loadDisplayMode();
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
@@ -131,6 +138,7 @@ let shiftSeriesStatus = '';
 let shiftTargetStatus = '';
 let dataTransferStatus = '';
 let holidayStatus = '';
+let displayStatus = '';
 let suppressMoveClickId = null;
 let suppressMoveClickUntil = 0;
 
@@ -236,6 +244,7 @@ async function connectCloud() {
 }
 
 function render() {
+  if (isWallMode(displayMode) && !['all', 'settings'].includes(view)) view = 'all';
   const days = calendarDates(focusedDate, month, calendarMode);
   const today = dateKey(new Date());
   const displayEntries = [...entries, ...importedRosterCalendarEntries(), ...configuredHolidayEntries()];
@@ -250,6 +259,9 @@ function render() {
   const summary = monthSummary(visibleEntries, month);
   const monthLabel = calendarTitle(focusedDate, month, calendarMode);
   const weekdayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  const calendarHint = isWallMode(displayMode)
+    ? 'Wandmodus: Die Kalenderkarten sind read-only. Zum Bearbeiten den Wandmodus beenden.'
+    : 'Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
   const calendarMarkup =
     '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
     '<div class="month"><button id="prev" aria-label="Vorherige ' +
@@ -261,8 +273,9 @@ function render() {
       .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
-    '</div><button id="go-today">Heute</button><button id="quick-event" class="primary">+ Termin</button>' +
-    (view === 'shift' ? '<button id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
+    '</div><button id="go-today">Heute</button>' +
+    (isWallMode(displayMode) ? '' : '<button id="quick-event" class="primary">+ Termin</button>') +
+    (view === 'shift' && !isWallMode(displayMode) ? '<button id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
     '<details class="calendar-filter-details"><summary>Filter · Personen und Bereiche</summary><div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
@@ -273,7 +286,7 @@ function render() {
       '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
-    '<p class="calendar-hint" id="calendar-hint">Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.</p>' +
+    '<p class="calendar-hint" id="calendar-hint">' + h(calendarHint) + '</p>' +
     '<div class="calendar ' + calendarMode + '-view">' +
     (calendarMode === 'day' ? '' : calendarMode === 'month'
       ? weekdayLabels.map(d => '<b>' + d + '</b>').join('')
@@ -287,7 +300,7 @@ function render() {
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => {
-            const readOnly = isReadOnlyCalendarEntry(e);
+            const readOnly = isWallMode(displayMode) || isReadOnlyCalendarEntry(e);
             const editMarkup = readOnly
               ? (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span>'
@@ -305,7 +318,7 @@ function render() {
       : '<div class="day empty" aria-hidden="true"></div>')
       .join('') +
     '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
-    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => isReadOnlyCalendarEntry(e)
+    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => isWallMode(displayMode) || isReadOnlyCalendarEntry(e)
       ? '<span class="selected-day-entry"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</span>'
       : '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
@@ -315,8 +328,11 @@ function render() {
     (view === 'shift' ? shiftRosterMarkup(today) : '') +
     (view === 'shift' && shiftCaptureDate ? shiftCaptureMarkup() : '') + calendarMarkup;
 
+  const displayAction = isWallMode(displayMode)
+    ? '<button class="wall-exit" id="exit-wall-mode" type="button">Wandmodus beenden</button>'
+    : '';
   app.innerHTML =
-    '<div class="familycal-shell view-' + view + '">' +
+    '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.2</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
@@ -326,7 +342,7 @@ function render() {
     h(syncStatusLabel(syncState)) + '</div></aside>' +
     '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1>' +
     (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender') +
-    '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button><div class="member-legend" aria-label="Haushaltsmitglieder">' +
+    '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
     '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
     body +
@@ -698,6 +714,8 @@ function timeMinutes(value) {
 function custodyMarkup() {
   const holidayOptions = holidayRegionOptions().map(([value, label]) =>
     '<option value="' + h(value) + '"' + (holidayRegion === value ? ' selected' : '') + '>' + h(label) + '</option>').join('');
+  const displayOptions = displayModeOptions().map(([value, label]) =>
+    '<option value="' + h(value) + '"' + (displayMode === value ? ' selected' : '') + '>' + h(label) + '</option>').join('');
   return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
@@ -708,6 +726,11 @@ function custodyMarkup() {
     '<div class="data-tools-actions"><button type="button" id="export-json">JSON sichern</button><button type="button" id="export-ics">ICS exportieren</button><button type="button" id="import-ics">ICS importieren</button></div>' +
     '<input id="ics-import-file" class="visually-hidden" type="file" accept=".ics,text/calendar" aria-label="ICS-Datei auswählen">' +
     (dataTransferStatus ? '<p class="data-transfer-status" role="status">' + h(dataTransferStatus) + '</p>' : '') +
+    '</section>' +
+    '<section class="panel display-tools-card"><h2>Darstellung</h2>' +
+    '<p>Der Wandmodus zeigt den Kalender groß und ruhig für Wand- oder Tablet-Displays. Inhalte bleiben read-only, bis du den Modus wieder beendest.</p>' +
+    '<form id="display-settings-form" class="display-settings-form"><label>Ansicht<select name="mode">' + displayOptions + '</select></label><button class="primary" type="submit">Übernehmen</button></form>' +
+    (displayStatus ? '<p class="data-transfer-status" role="status">' + h(displayStatus) + '</p>' : '') +
     '</section>' +
     '<section class="panel holiday-tools-card"><h2>Feiertage</h2>' +
     '<p>Lokale Feiertage werden automatisch als read-only Termine angezeigt. Wähle dafür das passende Bundesland oder nur die bundesweiten Feiertage.</p>' +
@@ -1036,6 +1059,12 @@ function bindControls() {
   document.querySelector('#import-ics')?.addEventListener('click', () => document.querySelector('#ics-import-file')?.click());
   document.querySelector('#ics-import-file')?.addEventListener('change', handleIcsImport);
   document.querySelector('#holiday-settings-form')?.addEventListener('submit', handleHolidaySettingsSubmit);
+  document.querySelector('#display-settings-form')?.addEventListener('submit', handleDisplaySettingsSubmit);
+  app.querySelector('#exit-wall-mode')?.addEventListener('click', () => {
+    displayMode = saveDisplayMode('standard');
+    displayStatus = 'Wandmodus wurde beendet.';
+    render();
+  });
   app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
   app.querySelector('#shift-edit-cancel')?.addEventListener('click', () => { shiftDialogEventId = null; render(); });
   app.querySelector('#capture-date')?.addEventListener('change', event => {
@@ -1430,6 +1459,21 @@ function handleHolidaySettingsSubmit(event) {
     holidayStatus = `Feiertage für ${holidayRegionLabel(holidayRegion)} sind aktiviert.`;
   } catch (error) {
     holidayStatus = error.message || 'Die Feiertagsauswahl konnte nicht gespeichert werden.';
+  }
+  render();
+}
+
+function handleDisplaySettingsSubmit(event) {
+  event.preventDefault();
+  const formData = new FormData(event.currentTarget);
+  try {
+    displayMode = saveDisplayMode(formData.get('mode'));
+    displayStatus = displayMode === 'wall'
+      ? 'Wandmodus ist aktiv. Die Kalenderkarten sind read-only.'
+      : 'Standardansicht ist aktiv.';
+    if (isWallMode(displayMode)) view = 'all';
+  } catch (error) {
+    displayStatus = error.message || 'Die Darstellung konnte nicht gespeichert werden.';
   }
   render();
 }

@@ -1135,6 +1135,22 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   .calendar.month-view .entry .entry-move{display:inline-block}
 }
 
-.holiday-settings-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}.holiday-settings-form button{min-height:42px}.holiday-settings-form select{width:100%}
-@media(max-width:700px){.holiday-settings-form{grid-template-columns:1fr}.holiday-settings-form button{width:100%}}
+.holiday-settings-form,.display-settings-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}.holiday-settings-form button,.display-settings-form button{min-height:42px}.holiday-settings-form select,.display-settings-form select{width:100%}
+@media(max-width:700px){.holiday-settings-form,.display-settings-form{grid-template-columns:1fr}.holiday-settings-form button,.display-settings-form button{width:100%}}
+
+/* Wall mode keeps the calendar calm, large and reversible for shared displays. */
+.display-wall .app-sidebar{display:none}
+.display-wall .app-workspace{max-width:1800px;padding:28px clamp(24px,5vw,80px) 56px}
+.display-wall .calendar-panel{padding:28px;border-radius:26px}
+.display-wall .calendar{gap:10px}
+.display-wall .day,.display-wall .day.empty{min-height:170px;padding:12px}
+.display-wall .entry{font-size:14px;padding:8px;cursor:default}
+.display-wall .calendar-hint{font-size:13px}
+.wall-exit{border:1px solid #cdd9ed;background:#fff;color:var(--accent,#176b58);font-weight:750}
+@media(max-width:700px){
+  .display-wall .app-workspace{padding:16px 10px 34px}
+  .display-wall .calendar-panel{padding:12px}
+  .display-wall .day,.display-wall .day.empty{min-height:102px;padding:6px}
+  .display-wall .entry{font-size:10px;padding:5px 4px}
+}
 

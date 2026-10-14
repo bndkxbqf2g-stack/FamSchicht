@@ -25,6 +25,12 @@
 - Feiertage werden bei der Kalenderdarstellung für den relevanten Jahresbereich erzeugt und nicht als persönliche oder serverseitige Termine dupliziert; die Auswahl bleibt lokal auf dem Gerät.
 - Lokale Regressionstests decken 2026-Daten, Bayern, den sächsischen Buß- und Bettag sowie den Speicher-Roundtrip ab. Supabase-Schema, RLS und Auth bleiben unverändert.
 
+## Update 14.10.2026 – Wand-/Tablet-Darstellung
+- Einstellungen bieten einen lokal gespeicherten Wandmodus für große gemeinsame Displays.
+- Im Wandmodus wird der Kalender groß und ruhig dargestellt; Änderungs-, Lösch- und Verschiebeziele werden für alle Karten deaktiviert, damit ein Wanddisplay nicht versehentlich Daten verändert.
+- Ein sichtbarer „Wandmodus beenden“-Rückweg stellt die Standardansicht ohne Datenänderung wieder her.
+- Sichtprüfung mit synthetischen Daten bei 1280 CSS-Pixeln: Wandmodus sichtbar, Navigation ausgeblendet, read-only-Hinweis und Rückweg vorhanden, kein horizontaler Überlauf. Lokale Regressionstests: 175 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Terminverschiebung
 - Kalendertermine können per Desktop-Drag-and-Drop oder Touch-Pointer auf einen anderen Tag verschoben werden.
 - Ein beschrifteter Verschieben-Dialog bietet denselben Vorgang als Tastatur-/Touch-Fallback; die Verschiebung erhält die stabile ID, `ownerId`, Uhrzeiten, Nachtdienstlogik und den vollständigen Mehrtagesbereich. Wiederkehrende Erledigungsdaten werden mit dem Anker verschoben; einzelne Umgangswochenenden behalten ihren Serienanker.

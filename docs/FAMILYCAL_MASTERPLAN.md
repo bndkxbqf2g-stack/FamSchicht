@@ -85,7 +85,7 @@ Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials au�
 ### Phase 6 – Produktreife
 - [x] PWA installierbar
 - [ ] iPhone Home-Screen optimiert
-- [ ] Wall-/Tablet-Modus
+- [x] Wall-/Tablet-Modus als reversibler read-only-Wandmodus
 - [x] Offline/Retry-Konzept
 - [ ] Echtzeit-Sync zwischen Haushaltsgeräten
 - [ ] Benachrichtigungen

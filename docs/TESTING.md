@@ -28,6 +28,7 @@ npm run build
 - ICS-Domänenvertrag: Export/Import von ganztägigen, mehrtägigen, wiederkehrenden und über Mitternacht laufenden Einträgen sowie Escaping und erledigte Aufgaben.
 - Externe read-only-Kalenderquellen: stabile Quellen-/UID-Metadaten, exakte Duplikate, gleichzeitige Konflikte, owner-scoped Persistenz und fehlende Bearbeiten-/Löschen-/Verschieben-Aktionen im UI.
 - Feiertage: bundesweite und regionale deutsche Feiertage, bewegliche Feiertage, Bundesland-Speicher-Roundtrip, sächsischer Buß- und Bettag sowie read-only-Quellenmetadaten.
+- Darstellung: Standard-/Wandmodus-Speicher-Roundtrip, sichere Rückkehr, deaktivierte Änderungsziele im Wandmodus und Desktop-Überlaufprüfung.
 - Aufgaben-Domänenvertrag: wiederkehrende Vorkommen, unabhängige `completedDates`, Legacy-Einzelaufgaben und Persistenz-/ICS-Roundtrip.
 - Haushaltsroutinen: eigener Ereignistyp mit Personenzuweisung, wiederkehrenden Vorkommen, individuellem Erledigt-Status, Kalenderfilter und ICS-Roundtrip.
 - PWA-Vertrag: Manifest, Standalone-Startkonfiguration, Icon und network-first Service-Worker-Fallback.

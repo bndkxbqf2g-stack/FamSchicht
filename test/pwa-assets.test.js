@@ -67,6 +67,15 @@ test('holiday settings expose a local read-only calendar source', () => {
   assert.match(source, /germanHolidayEntries/);
 });
 
+test('display preferences expose a reversible read-only wall mode', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'src', 'display-preferences.js'), 'utf8');
+  assert.match(main, /display-settings-form/);
+  assert.match(main, /exit-wall-mode/);
+  assert.match(main, /isWallMode/);
+  assert.match(source, /Wandmodus/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);
