@@ -200,6 +200,7 @@ test('calendar rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /id="view-title" tabindex="-1"/);
   assert.match(main, /function focusAfterRender\(selector\)/);
   assert.match(main, /function focusDatasetControl\(attribute, value\)/);
+  assert.match(main, /element\?\.closest\('details'\)\?\.setAttribute\('open', ''\)/);
   assert.match(main, /function focusViewHeading\(\)/);
   assert.match(main, /focusAfterRender\('#prev'\)/);
   assert.match(main, /focusAfterRender\('#next'\)/);
