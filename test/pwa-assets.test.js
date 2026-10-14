@@ -26,6 +26,17 @@ test('app shell exposes keyboard navigation and account dialog semantics', () =>
   assert.match(html, /<main id="app" tabindex="-1" aria-label="Familienkalender">/);
 });
 
+test('calendar cards keep edit and delete as separate interactive controls', () => {
+  const source = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(source, /class="entry-edit"/);
+  assert.match(source, /class="entry-remove"/);
+  assert.match(source, /class="today-item-edit"/);
+  assert.match(source, /class="today-item-remove"/);
+  assert.match(source, /role="group" aria-label="Eintrag:/);
+  assert.doesNotMatch(source, /data-edit="' \+ h\(e\.id\) \+ '" role="button"/);
+  assert.doesNotMatch(source, /data-edit="' \+ h\(entry\.id\) \+ '" role="button"/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);

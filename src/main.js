@@ -268,11 +268,16 @@ function render() {
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => {
             const imported = e.source === 'shift-roster-import';
+            const editMarkup = imported
+              ? (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
+                '<span class="entry-label">' + h(e.title) + '</span>'
+              : '<button type="button" class="entry-edit" data-edit="' + h(e.id) + '" aria-label="' + h(e.title) + ' bearbeiten">' +
+                (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
+                '<span class="entry-label">' + h(e.title) + '</span></button>';
+            const removeMarkup = imported ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>';
             return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + (isTaskCompletedOnDate(e, day) ? ' completed' : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
-            (imported ? '' : ' data-edit="' + h(e.id) + '" role="button" tabindex="0" aria-label="' + h(e.title) + ' bearbeiten"') + '>' +
-            (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
-            '<span class="entry-label">' + h(e.title) + '</span>' +
-            (imported ? '' : '<button data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>') + '</div>';
+            (imported ? '' : ' role="group" aria-label="Eintrag: ' + h(e.title) + '"') + '>' +
+            editMarkup + removeMarkup + '</div>';
           })
           .join('') +
         '</div>'
@@ -361,11 +366,15 @@ function todayOverviewMarkup(today, displayEntries = entries) {
     '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button></div></div>' +
     '<div class="today-list">' +
     (items.length
-      ? items.map(entry => '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + (isTaskCompletedOnDate(entry, today) ? ' completed' : '') + '"' +
-          (entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(entry.id) + '" role="button" tabindex="0"') + '>' +
-          '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
-          h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
-          '</small></div>' + (entry.source === 'shift-roster-import' ? '' : '<button data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button>') + '</article>').join('')
+      ? items.map(entry => {
+        const imported = entry.source === 'shift-roster-import';
+        const content = '<time>' + h(eventTimeLabel(entry)) + '</time><span class="today-item-copy"><strong>' + h(entry.title) + '</strong><small>' +
+          h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') + '</small></span>';
+        return '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + (isTaskCompletedOnDate(entry, today) ? ' completed' : '') + '"' +
+          (imported ? '' : ' role="group" aria-label="Eintrag: ' + h(entry.title) + '"') + '>' +
+          (imported ? content : '<button type="button" class="today-item-edit" data-edit="' + h(entry.id) + '" aria-label="' + h(entry.title) + ' bearbeiten">' + content + '</button>') +
+          (imported ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button>') + '</article>';
+      }).join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
 }
@@ -828,6 +837,7 @@ function bindControls() {
     };
     element.onclick = activate;
     element.onkeydown = event => {
+      if (element.tagName === 'BUTTON') return;
       if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(event); }
     };
   });
