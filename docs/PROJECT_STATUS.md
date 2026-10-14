@@ -7,7 +7,7 @@
 ## Update 14.10.2026 – Zentrale Nutzerfehlergrenze
 - `userError` filtert neben Transport-, Datenbank- und Providerdetails jetzt auch interne englische Validierungsfehler wie `unsupported`, `is required` und `must be` auf neutrale, handlungsorientierte Fallbacks.
 - Die Import-, Feiertags-, Darstellungs-, Belohnungs- und Dialogpfade verwenden diese zentrale Grenze; die technischen Details bleiben ausschließlich in der Diagnosekonsole.
-- Regressionstests: 224 bestanden; statische Syntaxprüfung für 80 Dateien, Produktions-Build und Asset-Budget erfolgreich. GitHub Actions Lauf #477 ist grün.
+- Regressionstests: 224 bestanden; statische Syntaxprüfung für 80 Dateien, Produktions-Build und Asset-Budget erfolgreich. Das zugehörige GitHub-Actions-Quality-Gate ist grün.
 
 ## Update 14.10.2026 – Gemeinsame In-App-Bestätigungen
 - Serienkonflikte, Dienstplan-Ersetzung, Umgangsrhythmus, JSON-/ICS-Import und Belohnungslöschung verwenden jetzt denselben zugänglichen modalen Bestätigungsdialog wie das Terminlöschen; native blockierende `confirm()`-Aufrufe sind aus dem App-Code entfernt.
