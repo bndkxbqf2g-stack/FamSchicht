@@ -53,6 +53,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Gemeinsame Aufgabenliste mit Person, Fälligkeit, Priorität, Erledigt-Status und Übersichts-Dashboard.
 - Haushaltsroutinen als zugewiesene, wiederkehrende Einträge mit eigenem Erledigt-Status je Vorkommen.
 - Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
+- Bestätigte JSON-Sicherungswiederherstellung mit Formatvalidierung und Konfliktmeldung.
 - Read-only-Quellenvertrag für ICS mit stabiler UID, Konfliktmeldung und Quellenmetadaten im bestehenden owner-only Roundtrip.
 - Optionale Zuordnung lokaler read-only-ICS-Quellen zu einer Kalenderperson.
 - Lokale read-only-Feiertagsquelle mit deutscher Bundesland-Auswahl und deterministischer Feiertagsberechnung.

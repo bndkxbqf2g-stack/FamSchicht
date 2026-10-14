@@ -26,6 +26,7 @@ npm run build
 - Schichtserien und Vorlagen: Wochentagsexpansion mit stabiler `ownerId`, Duplikatvermeidung, Nachtdienst-/Statuswerte, lokale Vorlagenvalidierung und sicherer Speicher-Roundtrip.
 - Soll-/Ist-Stunden: optionale lokale Monatsziele, Dezimalkomma-Normalisierung, Grenzwerte, Speicher-Roundtrip und Differenzberechnung.
 - ICS-Domänenvertrag: Export/Import von ganztägigen, mehrtägigen, wiederkehrenden und über Mitternacht laufenden Einträgen sowie Escaping und erledigte Aufgaben.
+- JSON-Sicherung: Envelope-/Feldvalidierung, ungültige Daten, ID-/Inhaltsduplikate, Konflikte und bestätigter UI-Import mit synthetischer Datei.
 - Externe read-only-Kalenderquellen: stabile Quellen-/UID-Metadaten, exakte Duplikate, gleichzeitige Konflikte, owner-scoped Persistenz und fehlende Bearbeiten-/Löschen-/Verschieben-Aktionen im UI.
 - ICS-Quellen pro Kalenderperson: synthetische Zuordnung zu gemeinsamem Kalender oder Mitglied, getrennte Quellenidentität und read-only-Metadaten.
 - Feiertage: bundesweite und regionale deutsche Feiertage, bewegliche Feiertage, Bundesland-Speicher-Roundtrip, sächsischer Buß- und Bettag sowie read-only-Quellenmetadaten.

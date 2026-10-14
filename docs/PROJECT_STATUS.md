@@ -36,6 +36,12 @@
 - Die Zuordnung wird als Quellen-ID, `memberId` und Label im bestehenden read-only-Metadatenvertrag erhalten; derselbe externe Termin bleibt je Quelle deduplizierbar.
 - Es gibt weiterhin keinen Google-/Microsoft-OAuth- oder bidirektionalen Schreibpfad. Supabase-Schema, RLS und Auth bleiben unverändert.
 
+## Update 14.10.2026 – JSON-Sicherungswiederherstellung
+- Einstellungen bieten neben JSON-Export jetzt eine bestätigungspflichtige JSON-Wiederherstellung.
+- Das Importmodul validiert FamSchicht-Format, Version, Datum, Bereich und Uhrzeit, verwirft unbekannte Ereignisfelder und meldet gleiche IDs mit geändertem Inhalt als Konflikt.
+- Exakte ID-/Inhalts-Duplikate werden nicht erneut gespeichert; dieselbe Datei kann nach einem Fehler erneut ausgewählt werden. Sichtprüfung mit synthetischer Sicherung meldete „1 Termine wurden aus der JSON-Sicherung wiederhergestellt.“.
+- Lokale Regressionstests: 180 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Terminverschiebung
 - Kalendertermine können per Desktop-Drag-and-Drop oder Touch-Pointer auf einen anderen Tag verschoben werden.
 - Ein beschrifteter Verschieben-Dialog bietet denselben Vorgang als Tastatur-/Touch-Fallback; die Verschiebung erhält die stabile ID, `ownerId`, Uhrzeiten, Nachtdienstlogik und den vollständigen Mehrtagesbereich. Wiederkehrende Erledigungsdaten werden mit dem Anker verschoben; einzelne Umgangswochenenden behalten ihren Serienanker.

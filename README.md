@@ -14,6 +14,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Gemeinsame Aufgaben mit Zuweisung, Fälligkeit, Priorität und Erledigt-Status direkt in der Übersicht; wiederkehrende Aufgaben werden je Vorkommen geführt.
 - Haushaltsroutinen werden als wiederkehrende, zugewiesene Einträge mit eigenem Erledigt-Status je Vorkommen geführt.
 - JSON-Sicherung sowie ICS-Import und -Export für den lokalen Kalenderaustausch.
+- JSON-Sicherungen können nach Validierung und Bestätigung duplikatbewusst wiederhergestellt werden.
 - Installierbare PWA-Shell mit network-first Offline-/Retry-Fallback.
 - Sichtbarer Synchronisationsstatus für lokal, laufend, synchronisiert, offline und Fehler; bei erneuter Verbindung wird der Cloud-Check automatisch wiederholt.
 - Lokaler read-only-Wandmodus für große gemeinsame Displays mit sichtbarem Rückweg.

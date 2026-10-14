@@ -20,6 +20,7 @@ Vite-basierte JavaScript-Web-App.
 - src/task-planning.js: wiederkehrende Aufgaben- und Haushaltsroutinen mit Completion je Vorkommen.
 - src/event-move.js: pure Datumsverschiebung für Einzel-, Mehrtages-, Wiederholungs-, Nacht- und Umgangseinträge.
 - src/calendar-sources.js: read-only Quellenvertrag, Provider-Katalog sowie stabile UID-/Duplikat-/Konfliktentscheidung für externe Kalenderimporte.
+- src/data-transfer.js: validierter JSON-Sicherungsimport mit ID-/Inhalts-Duplikaten und expliziten Konflikten.
 - src/holidays.js: deterministische deutsche Feiertage mit Bundesland-Auswahl und lokaler Gerätespeicherung.
 - src/display-preferences.js: lokale Darstellungspräferenz für Standard- und reversiblen read-only-Wandmodus.
 - src/sync-status.js: erlaubte Synchronisationszustände sowie nutzerfreundliche Statuslabels und CSS-Klassen.
@@ -40,6 +41,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Optionale Sollstunden: Monatsziele pro schichtberechtigter Person -> lokaler Gerätespeicher -> Dienstplanübersicht; diese Werte werden nicht als Kalenderereignisse oder Supabase-Daten synchronisiert.
 - Importierte Dienstpläne: Foto -> OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos werden nach der OCR nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
 - Externe Kalender: ICS-Datei -> optionale Zuordnung zu einer Kalenderperson -> read-only Quellenvertrag -> stabile externe UID/Fingerprint-Prüfung -> neue Termine oder explizit ausgewiesene Duplikate/Konflikte. Importierte Termine tragen die Quellenmetadaten im bestehenden `metadata`-Roundtrip und bleiben in der Oberfläche nicht bearbeitbar.
+- Datensicherung: JSON-Datei -> Format-/Datums-/Uhrzeitvalidierung -> ID-/Inhalts-Duplikat- und Konfliktentscheidung -> bestätigter lokaler oder owner-scoped Speicherpfad.
 - Feiertage: lokales Bundesland -> `holidays.js` -> deterministische bundesweite/regional ergänzte read-only Termine. Die berechneten Feiertage werden nicht als eigene Supabase-Zeilen gespeichert und können nicht bearbeitet, gelöscht oder verschoben werden.
 - Wandmodus: lokale Darstellungspräferenz -> `display-preferences.js` -> Kalenderansicht mit ausgeblendeter Navigation, größeren Karten und deaktivierten Änderungszielen. Der Modus hat einen sichtbaren Rückweg und verändert weder Termine noch Cloud-Daten.
 - Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.

@@ -60,6 +60,15 @@ test('external calendar imports keep a read-only source contract', () => {
   assert.match(main, /memberId: selectedMember/);
 });
 
+test('JSON backup restore is exposed next to the existing export', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'src', 'data-transfer.js'), 'utf8');
+  assert.match(main, /import-json/);
+  assert.match(main, /mergeJsonBackupEvents/);
+  assert.match(source, /famschicht-json/);
+  assert.match(source, /same-id/);
+});
+
 test('holiday settings expose a local read-only calendar source', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const source = fs.readFileSync(path.join(root, 'src', 'holidays.js'), 'utf8');

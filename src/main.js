@@ -56,6 +56,7 @@ import {
   upsertShiftTemplate,
 } from './shift-templates.js';
 import {eventsToIcs, parseIcs} from './calendar-ics.js';
+import {mergeJsonBackupEvents, parseJsonBackup} from './data-transfer.js';
 import {
   createReadOnlyCalendarSource,
   isReadOnlyCalendarEntry,
@@ -725,9 +726,10 @@ function custodyMarkup() {
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
     '<button class="primary wide">Rhythmus eintragen</button></form></section>' +
     '<section class="panel data-tools-card"><h2>Daten sichern und austauschen</h2>' +
-    '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. ICS-Termine können wieder importiert werden; der Import wird vor dem Speichern bestätigt.</p>' +
+    '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. JSON- und ICS-Importe werden vor dem Speichern bestätigt und auf Duplikate geprüft.</p>' +
     '<label class="data-tools-source-label">ICS-Quelle zuordnen<select id="ics-import-member" aria-label="ICS-Quelle zuordnen">' + icsMemberOptions + '</select></label>' +
-    '<div class="data-tools-actions"><button type="button" id="export-json">JSON sichern</button><button type="button" id="export-ics">ICS exportieren</button><button type="button" id="import-ics">ICS importieren</button></div>' +
+    '<div class="data-tools-actions"><button type="button" id="export-json">JSON sichern</button><button type="button" id="import-json">JSON wiederherstellen</button><button type="button" id="export-ics">ICS exportieren</button><button type="button" id="import-ics">ICS importieren</button></div>' +
+    '<input id="json-import-file" class="visually-hidden" type="file" accept=".json,application/json" aria-label="JSON-Sicherung auswählen">' +
     '<input id="ics-import-file" class="visually-hidden" type="file" accept=".ics,text/calendar" aria-label="ICS-Datei auswählen">' +
     (dataTransferStatus ? '<p class="data-transfer-status" role="status">' + h(dataTransferStatus) + '</p>' : '') +
     '</section>' +
@@ -1059,6 +1061,8 @@ function bindControls() {
 
   document.querySelector('#custody-form')?.addEventListener('submit', handleCustodySubmit);
   document.querySelector('#export-json')?.addEventListener('click', exportJsonData);
+  document.querySelector('#import-json')?.addEventListener('click', () => document.querySelector('#json-import-file')?.click());
+  document.querySelector('#json-import-file')?.addEventListener('change', handleJsonImport);
   document.querySelector('#export-ics')?.addEventListener('click', exportIcsData);
   document.querySelector('#import-ics')?.addEventListener('click', () => document.querySelector('#ics-import-file')?.click());
   document.querySelector('#ics-import-file')?.addEventListener('change', handleIcsImport);
@@ -1407,6 +1411,41 @@ function exportJsonData() {
   }, null, 2), 'application/json');
   dataTransferStatus = 'JSON-Sicherung wurde heruntergeladen.';
   render();
+}
+
+async function handleJsonImport(event) {
+  const file = event.currentTarget.files?.[0];
+  event.currentTarget.value = '';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    dataTransferStatus = 'Die JSON-Sicherung ist zu groß (maximal 5 MB).';
+    render();
+    return;
+  }
+  try {
+    const incoming = parseJsonBackup(await file.text());
+    const merged = mergeJsonBackupEvents(entries, incoming);
+    if (!merged.added.length) {
+      dataTransferStatus = merged.conflicts.length
+        ? `${merged.conflicts.length} JSON-Konflikt(e) benötigen eine manuelle Prüfung; vorhandene Termine wurden nicht überschrieben.`
+        : 'Keine neuen Termine in der JSON-Sicherung gefunden.';
+      render();
+      return;
+    }
+    const conflictNote = merged.conflicts.length
+      ? `${merged.conflicts.length} Konflikt(e) wurden übersprungen.` : '';
+    if (!confirm(merged.added.length + ' neue Termine aus der JSON-Sicherung wiederherstellen?' + conflictNote)) return;
+    const restored = merged.added;
+    if (cloud) await saveOwnerEvents(supabase, restored, cloud.householdId, cloud.userId);
+    if (!cloud) save([...entries, ...restored]);
+    entries.push(...restored);
+    dataTransferStatus = `${restored.length} Termine wurden aus der JSON-Sicherung wiederhergestellt.` +
+      (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
+    render();
+  } catch (error) {
+    dataTransferStatus = error.message || 'Die JSON-Sicherung konnte nicht importiert werden.';
+    render();
+  }
 }
 
 function exportIcsData() {
