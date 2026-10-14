@@ -168,7 +168,8 @@ async function refresh(user) {
 }
 
 function memberId() {
-  return 'member-' + (crypto.randomUUID?.() || Date.now().toString(36));
+  return 'member-' + (globalThis.crypto?.randomUUID?.() ||
+    Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8));
 }
 
 function bindMemberForms(householdId, members, user) {
@@ -193,6 +194,7 @@ function bindMemberForms(householdId, members, user) {
       members.splice(0, members.length, ...saved);
       messageEl.textContent = 'Mitglieder gespeichert.';
       window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
+      void safeRefresh(user);
     } catch (error) {
       messageEl.textContent = error.message === 'member name is required'
         ? 'Bitte für jede Person einen Namen eingeben.'
@@ -223,6 +225,7 @@ function bindMemberForms(householdId, members, user) {
       form.reset();
       messageEl.textContent = 'Person hinzugefügt.';
       window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
+      void safeRefresh(user);
     } catch (error) {
       messageEl.textContent = error.message === 'member name is required'
         ? 'Bitte einen Namen eingeben.'
