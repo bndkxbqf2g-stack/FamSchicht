@@ -17,6 +17,13 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.3"/);
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
+  assert.match(main, /pwaInstallMarkup/);
+  assert.match(main, /id="pwa-install"/);
+  assert.match(install, /beforeinstallprompt/);
+  assert.match(install, /Zum Home-Bildschirm/);
 });
 
 test('app shell exposes keyboard navigation and account dialog semantics', () => {
@@ -186,7 +193,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v1/);
+  assert.match(source, /famschicht-shell-v2/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);

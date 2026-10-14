@@ -1,4 +1,4 @@
-const CACHE_NAME = 'famschicht-shell-v1';
+const CACHE_NAME = 'famschicht-shell-v2';
 
 self.addEventListener('install', event => {
   const scope = self.registration.scope;
@@ -50,3 +50,4 @@ async function networkFirst(request) {
     });
   }
 }
+

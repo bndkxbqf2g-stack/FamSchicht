@@ -84,12 +84,12 @@ Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials au�
 
 ### Phase 6 – Produktreife
 - [x] PWA installierbar
-- [ ] iPhone Home-Screen optimiert
+- [x] iPhone Home-Screen optimiert (PWA-Metadaten, Apple-Touch-Icon und iOS-/Browser-Installationshinweis in den Einstellungen)
 - [x] Wall-/Tablet-Modus als reversibler read-only-Wandmodus
 - [x] Offline/Retry-Konzept
 - [ ] Echtzeit-Sync zwischen Haushaltsgeräten
 - [ ] Benachrichtigungen
-- [ ] Accessibility (Grundsemantik, Live-Fehlerhinweise und Dialogfokus umgesetzt; vollständige Abnahme aller Interaktionen offen)
+- [ ] Accessibility (Grundsemantik, Live-Fehlerhinweise und Dialogfokus umgesetzt; Hauptansichten und 390×844 manuell geprüft, vollständige Abnahme aller Interaktionen offen)
 - [ ] Ladezeit/Performance
 - [x] Datenexport
 - [ ] Account-/Haushaltslöschung

@@ -93,6 +93,7 @@ import {
 } from './rewards.js';
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
+import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -158,6 +159,8 @@ let displayStatus = '';
 let localStorageStatus = initialLocalState.status;
 let storageNoticeDismissed = false;
 let appNotice = null;
+let pwaState = getPwaInstallState();
+let pwaInstallStatus = '';
 let dialogReturnFocus = null;
 let suppressMoveClickId = null;
 let suppressMoveClickUntil = 0;
@@ -196,6 +199,12 @@ function closeAccountSettings() {
 month.setDate(1);
 
 const app = document.querySelector('#app');
+
+initPwaInstall(() => {
+  pwaState = getPwaInstallState();
+  if (pwaState.kind === 'installed') pwaInstallStatus = 'FamSchicht ist jetzt auf diesem Gerät installiert.';
+  render();
+});
 
 function loadLocalEntries() {
   const state = loadState();
@@ -419,7 +428,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.2</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.3</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -904,12 +913,24 @@ function custodyMarkup() {
     '<form id="display-settings-form" class="display-settings-form"><label>Ansicht<select name="mode">' + displayOptions + '</select></label><button class="primary" type="submit">Übernehmen</button></form>' +
     (displayStatus ? '<p class="data-transfer-status" role="status">' + h(displayStatus) + '</p>' : '') +
     '</section>' +
+    pwaInstallMarkup() +
     rewardsSettingsMarkup() +
     '<section class="panel holiday-tools-card"><h2>Feiertage</h2>' +
     '<p>Lokale Feiertage werden automatisch als read-only Termine angezeigt. Wähle dafür das passende Bundesland oder nur die bundesweiten Feiertage.</p>' +
     '<form id="holiday-settings-form" class="holiday-settings-form"><label>Bundesland<select name="region">' + holidayOptions + '</select></label><button class="primary" type="submit">Übernehmen</button></form>' +
     (holidayStatus ? '<p class="data-transfer-status" role="status">' + h(holidayStatus) + '</p>' : '') +
     '</section>';
+}
+
+function pwaInstallMarkup() {
+  const action = pwaState.kind === 'prompt'
+    ? '<button type="button" class="primary" id="pwa-install">App installieren</button>'
+    : '';
+  const status = pwaInstallStatus
+    ? '<p class="data-transfer-status" role="status">' + h(pwaInstallStatus) + '</p>'
+    : '';
+  return '<section class="panel pwa-tools-card" aria-labelledby="pwa-install-title"><h2 id="pwa-install-title">' +
+    h(pwaState.title) + '</h2><p>' + h(pwaState.message) + '</p>' + action + status + '</section>';
 }
 
 function rewardsSettingsMarkup() {
@@ -1268,6 +1289,18 @@ function bindControls() {
   });
   document.querySelector('#holiday-settings-form')?.addEventListener('submit', handleHolidaySettingsSubmit);
   document.querySelector('#display-settings-form')?.addEventListener('submit', handleDisplaySettingsSubmit);
+  document.querySelector('#pwa-install')?.addEventListener('click', async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    const result = await promptPwaInstall();
+    pwaState = getPwaInstallState();
+    pwaInstallStatus = result.outcome === 'accepted'
+      ? 'Installation bestätigt. Du kannst FamSchicht jetzt vom Home-Bildschirm starten.'
+      : result.outcome === 'dismissed'
+        ? 'Installation abgebrochen. Du kannst sie später erneut starten.'
+        : 'Dieser Browser bietet gerade keinen Installationsdialog an.';
+    render();
+  });
   document.querySelector('#reward-form')?.addEventListener('submit', handleRewardSubmit);
   document.querySelectorAll('[data-reward-remove]').forEach(button => {
     button.addEventListener('click', () => handleRewardRemove(button.dataset.rewardRemove));

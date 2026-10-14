@@ -7,6 +7,11 @@
 - Ein lokaler Supabase-Sicherheits-Preflight schützt jetzt owner-only-RLS-Migrationen, private Einladungstabellen, den authentifizierten Edge-Grenzpfad und das Fehlen von Secret-Material im Client; die Live-Matrix bleibt davon ausdrücklich unberührt.
 - Supabase-URL und Publishable Key werden aus der Build-Konfiguration gelesen. Ohne Variablen bleibt die App kontrolliert im lokalen Modus; GitHub Pages erhält die Werte ausschließlich über Repository-Variablen.
 
+## Update 14.10.2026 – PWA-/iPhone-Installation
+- Die Einstellungen erklären die Installation auf iPhone/iPad über „Teilen → Zum Home-Bildschirm“ und zeigen bei unterstützten Browsern den nativen Installationsdialog.
+- Standalone-/bereits installierte Sitzungen werden erkannt; abgebrochene oder nicht verfügbare Installationsdialoge bleiben als verständlicher Status sichtbar.
+- Hauptansichten, Einstellungen und Termin-Dialog wurden im 390×844-Viewport ohne horizontalen Überlauf geprüft. Lokale Regressionstests: 205 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Supabase-Laufzeitkonfiguration
 - `src/auth.js` enthält keine fest verdrahtete Projekt-URL oder Schlüssel mehr; `src/runtime-config.js` liest `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - Lokale Entwicklung nutzt `.env.local` nach Vorlage aus `.env.example`. Fehlen die Variablen, stellt ein No-op-Client den lokalen Modus ohne Cloud-Versuche bereit.
