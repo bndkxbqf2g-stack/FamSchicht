@@ -273,6 +273,16 @@ test('all rendered button markup declares explicit submit semantics', () => {
   for (const source of sources) assert.doesNotMatch(source, /<button(?![^>]*\btype=)[^>]*>/);
 });
 
+test('invitation acceptance can retry without duplicating an in-flight request', () => {
+  const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
+  assert.match(auth, /let inviteRequestInFlight = false/);
+  assert.match(auth, /inviteRequestInFlight = true/);
+  assert.match(auth, /inviteRequestInFlight = false/);
+  assert.match(auth, /id="retry-invitation"/);
+  assert.match(auth, /Erneut versuchen/);
+  assert.match(auth, /inviteHandled = true/);
+});
+
 test('auth errors stay in an accessible non-blocking status message', () => {
   const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
