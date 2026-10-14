@@ -49,6 +49,15 @@ test('calendar exposes touch and desktop move semantics', () => {
   assert.match(source, /moveCalendarEntry/);
 });
 
+test('external calendar imports keep a read-only source contract', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'src', 'calendar-sources.js'), 'utf8');
+  assert.match(main, /mergeReadOnlyCalendarEvents/);
+  assert.match(main, /read-only importiert/);
+  assert.match(source, /calendarProviderCatalog/);
+  assert.match(source, /same-external-id/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);
@@ -56,3 +65,4 @@ test('service worker has a network-first cache fallback for the app shell', () =
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
 });
+

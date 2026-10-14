@@ -332,3 +332,21 @@ test('family entry owner survives database round trip', () => {
   assert.equal(row.metadata.ownerId,'anna');
   assert.equal(fromDatabaseEvent(row).ownerId,'anna');
 });
+
+test('read-only external calendar metadata survives database round trip', () => {
+  const row = toDatabaseEvent({
+    id:'external-1', type:'family', title:'Schule', date:'2026-10-02', eventKind:'school',
+    source:'calendar-import', readOnly:true, calendarSourceId:'ics-file',
+    calendarProvider:'ics', calendarSourceLabel:'ICS-Datei', externalId:'uid-1',
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata, {
+    source:'calendar-import', readOnly:true, calendarSourceId:'ics-file',
+    calendarProvider:'ics', calendarSourceLabel:'ICS-Datei', externalId:'uid-1',
+    eventKind:'school',
+  });
+  const restored = fromDatabaseEvent({...row, starts_at:row.starts_at, ends_at:row.ends_at});
+  assert.equal(restored.readOnly, true);
+  assert.equal(restored.calendarSourceId, 'ics-file');
+  assert.equal(restored.externalId, 'uid-1');
+});
+

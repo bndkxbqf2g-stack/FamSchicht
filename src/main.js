@@ -57,6 +57,11 @@ import {
 } from './shift-templates.js';
 import {eventsToIcs, parseIcs} from './calendar-ics.js';
 import {
+  createReadOnlyCalendarSource,
+  isReadOnlyCalendarEntry,
+  mergeReadOnlyCalendarEvents,
+} from './calendar-sources.js';
+import {
   isTaskCompletedOnDate,
   isTaskLikeEntry,
   setTaskOccurrenceCompleted,
@@ -273,17 +278,17 @@ function render() {
         Number(day.slice(-2)) + '</b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => {
-            const imported = e.source === 'shift-roster-import';
-            const editMarkup = imported
+            const readOnly = isReadOnlyCalendarEntry(e);
+            const editMarkup = readOnly
               ? (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span>'
               : '<button type="button" class="entry-edit" data-edit="' + h(e.id) + '" aria-label="' + h(e.title) + ' bearbeiten">' +
                 (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span></button>';
-            const removeMarkup = imported ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>';
-            const moveMarkup = imported ? '' : '<button type="button" class="entry-move" data-move-open="' + h(e.id) + '" data-move-date="' + h(day) + '" aria-label="' + h(e.title) + ' verschieben">↕</button>';
+            const removeMarkup = readOnly ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>';
+            const moveMarkup = readOnly ? '' : '<button type="button" class="entry-move" data-move-open="' + h(e.id) + '" data-move-date="' + h(day) + '" aria-label="' + h(e.title) + ' verschieben">↕</button>';
             return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + (isTaskCompletedOnDate(e, day) ? ' completed' : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
-            (imported ? '' : ' role="group" data-move-id="' + h(e.id) + '" data-move-date="' + h(day) + '" draggable="true" aria-label="Eintrag: ' + h(e.title) + '. Ziehen zum Verschieben."') + '>' +
+            (readOnly ? '' : ' role="group" data-move-id="' + h(e.id) + '" data-move-date="' + h(day) + '" draggable="true" aria-label="Eintrag: ' + h(e.title) + '. Ziehen zum Verschieben."') + '>' +
             editMarkup + moveMarkup + removeMarkup + '</div>';
           })
           .join('') +
@@ -291,7 +296,7 @@ function render() {
       : '<div class="day empty" aria-hidden="true"></div>')
       .join('') +
     '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
-    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => e.source === 'shift-roster-import'
+    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => isReadOnlyCalendarEntry(e)
       ? '<span class="selected-day-entry"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</span>'
       : '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
@@ -379,13 +384,13 @@ function todayOverviewMarkup(today, displayEntries = entries) {
     '<div class="today-list">' +
     (items.length
       ? items.map(entry => {
-        const imported = entry.source === 'shift-roster-import';
+        const readOnly = isReadOnlyCalendarEntry(entry);
         const content = '<time>' + h(eventTimeLabel(entry)) + '</time><span class="today-item-copy"><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') + '</small></span>';
         return '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + (isTaskCompletedOnDate(entry, today) ? ' completed' : '') + '"' +
-          (imported ? '' : ' role="group" aria-label="Eintrag: ' + h(entry.title) + '"') + '>' +
-          (imported ? content : '<button type="button" class="today-item-edit" data-edit="' + h(entry.id) + '" aria-label="' + h(entry.title) + ' bearbeiten">' + content + '</button>') +
-          (imported ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button>') + '</article>';
+          (readOnly ? '' : ' role="group" aria-label="Eintrag: ' + h(entry.title) + '"') + '>' +
+          (readOnly ? content : '<button type="button" class="today-item-edit" data-edit="' + h(entry.id) + '" aria-label="' + h(entry.title) + ' bearbeiten">' + content + '</button>') +
+          (readOnly ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button>') + '</article>';
       }).join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
@@ -412,7 +417,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
     new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
   const nextShiftMarkup = nextShift
     ? '<article class="next-shift-card owner-' + h(entryOwnerStyleKey(nextShift.entry, householdMemberNames)) + '"' +
-      (nextShift.entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(nextShift.entry.id) + '" role="button" tabindex="0"') + '>' +
+      (isReadOnlyCalendarEntry(nextShift.entry) ? '' : ' data-edit="' + h(nextShift.entry.id) + '" role="button" tabindex="0"') + '>' +
       '<div class="next-shift-copy"><span class="home-kicker">Dein nächster Dienst</span><h2>' + h(nextShift.entry.title) + '</h2>' +
       '<p>' + h(dateLabel(nextShift.date, nextShift.offset)) + (nextShift.entry.start ? ' · ' + h(eventTimeLabel(nextShift.entry)) : '') + '</p></div>' +
       '<span class="shift-owner-chip">' + h(shiftOwnerDisplayName(nextShift.entry, householdMemberNames) || 'Nicht zugeordnet') + '</span></article>'
@@ -420,7 +425,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
   const appointmentMarkup = appointments.length
     ? appointments.map(item => '<article class="home-agenda-item ' + h(item.entry.type) + ' owner-' + h(entryOwnerStyleKey(item.entry, householdMemberNames)) +
       (item.entry.type === 'shift' ? '' : ' ' + h(item.entry.eventKind || 'event')) + '"' +
-      (item.entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(item.entry.id) + '" role="button" tabindex="0"') + '>' +
+      (isReadOnlyCalendarEntry(item.entry) ? '' : ' data-edit="' + h(item.entry.id) + '" role="button" tabindex="0"') + '>' +
       '<time><strong>' + h(dateLabel(item.date, item.offset)) + '</strong><span>' + h(eventTimeLabel(item.entry)) + '</span></time>' +
       '<span class="agenda-marker" aria-hidden="true"></span><span class="agenda-copy"><strong>' + h(item.entry.title) + '</strong>' +
       '<small>' + h(item.entry.type === 'shift' ? (shiftOwnerDisplayName(item.entry, householdMemberNames) || 'Dienst') : 'Familie') + '</small></span><span class="agenda-arrow">›</span></article>').join('')
@@ -685,7 +690,7 @@ function custodyMarkup() {
 
 function moveEntryToDate(id, sourceDate, targetDate) {
   const item = entries.find(entry => entry.id === id);
-  if (!item || !targetDate || item.source === 'shift-roster-import' || sourceDate === targetDate) return;
+  if (!item || !targetDate || isReadOnlyCalendarEntry(item) || sourceDate === targetDate) return;
   try {
     const moved = moveCalendarEntry(item, sourceDate, targetDate);
     suppressMoveClickId = id;
@@ -1357,33 +1362,35 @@ async function handleIcsImport(event) {
   }
   try {
     const parsed = parseIcs(await file.text());
-    const imported = parsed
-      .filter(item => item.title && item.date)
-      .filter(item => !entries.some(existing => sameCalendarEvent(existing, item)))
-      .map(item => ({...item, id: crypto.randomUUID(), source: 'ics-import'}));
-    if (!imported.length) {
+    const source = createReadOnlyCalendarSource({
+      id: 'ics-file',
+      provider: 'ics',
+      label: 'ICS-Datei',
+    });
+    const merged = mergeReadOnlyCalendarEvents(entries, parsed, source);
+    if (!merged.added.length) {
       dataTransferStatus = parsed.length
-        ? 'Keine neuen ICS-Termine gefunden.'
+        ? merged.conflicts.length
+          ? `${merged.conflicts.length} ICS-Konflikt(e) benötigen eine manuelle Prüfung; neue Termine wurden nicht übernommen.`
+          : 'Keine neuen ICS-Termine gefunden.'
         : 'Die ICS-Datei enthält keine lesbaren Termine.';
       render();
       return;
     }
-    if (!confirm(imported.length + ' Termine aus der ICS-Datei importieren?')) return;
+    const conflictNote = merged.conflicts.length
+      ? ` ${merged.conflicts.length} Konflikt(e) wurden übersprungen.` : '';
+    if (!confirm(merged.added.length + ' neue Termine aus der ICS-Datei importieren?' + conflictNote)) return;
+    const imported = merged.added;
     if (cloud) await saveOwnerEvents(supabase, imported, cloud.householdId, cloud.userId);
     if (!cloud) save([...entries, ...imported]);
     entries.push(...imported);
-    dataTransferStatus = `${imported.length} Termine wurden importiert.`;
+    dataTransferStatus = `${imported.length} Termine wurden read-only importiert.` +
+      (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
     render();
   } catch (error) {
     dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
     render();
   }
-}
-
-function sameCalendarEvent(first, second) {
-  return first.type === second.type && first.title === second.title && first.date === second.date &&
-    (first.endDate || '') === (second.endDate || '') && (first.start || '') === (second.start || '') &&
-    (first.end || '') === (second.end || '') && (first.eventKind || 'event') === (second.eventKind || 'event');
 }
 
 function downloadFile(name, content, type) {

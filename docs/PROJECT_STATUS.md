@@ -12,6 +12,13 @@
 - Desktop-Prüfung bei 1280 CSS-Pixeln: kein horizontaler Überlauf. Die vollständige Happy-Path-Abnahme mit einem geeigneten synthetischen Rasterfoto und die iPhone-Viewport-Prüfung bleiben offen.
 - Lokale Regressionstests: 159 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – Read-only-Kalenderquellen
+- ICS-Importe werden über einen gemeinsamen Quellenvertrag mit `ics`-, Google- und Microsoft-Adapter-IDs vorbereitet; Google-/Microsoft-OAuth bleibt bis zur Provider-Konfiguration bewusst unverbunden.
+- Externe Termine erhalten eine stabile Quellen-ID und externe UID. Exakte Wiederholungen werden übersprungen, gleiche Kalender-Slots mit abweichendem Inhalt als Konflikt gemeldet und nicht still überschrieben.
+- Importierte Termine bleiben read-only und behalten Quellenmetadaten auch nach dem bestehenden owner-scoped Supabase-`metadata`-Roundtrip.
+- Sichtprüfung mit synthetischer ICS-Datei: Termin sichtbar, keine Bearbeiten-/Löschen-/Verschieben-Ziele; erneuter Import meldet „Keine neuen ICS-Termine gefunden.“
+- Lokale Regressionstests: 167 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Terminverschiebung
 - Kalendertermine können per Desktop-Drag-and-Drop oder Touch-Pointer auf einen anderen Tag verschoben werden.
 - Ein beschrifteter Verschieben-Dialog bietet denselben Vorgang als Tastatur-/Touch-Fallback; die Verschiebung erhält die stabile ID, `ownerId`, Uhrzeiten, Nachtdienstlogik und den vollständigen Mehrtagesbereich. Wiederkehrende Erledigungsdaten werden mit dem Anker verschoben; einzelne Umgangswochenenden behalten ihren Serienanker.

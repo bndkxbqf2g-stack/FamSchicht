@@ -74,12 +74,12 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [ ] Google Calendar Architektur
 - [ ] Outlook/Microsoft Calendar Architektur
 - [ ] Kalenderquellen pro Mitglied
-- [ ] read-only Import zuerst
-- [ ] Konflikt-/Duplikatlogik
+- [x] read-only Import zuerst (ICS-Quelle)
+- [x] Konflikt-/Duplikatlogik für read-only ICS-Quellen
 - [ ] anschließend optionaler Zwei-Wege-Sync
 - [ ] Feiertage/Bundesland
 - [x] ICS Import/Export
-- [ ] Sync-Status und Fehleranzeige
+- [x] Sync-Status und Fehleranzeige
 Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials außerhalb des Repositorys.
 
 ### Phase 6 – Produktreife
@@ -132,3 +132,4 @@ Die FamilyCal-inspirierte App-Shell, Monats-, Wochen- und Tagesansicht, Heute-An
 Der vollständige Termin-Editor ist umgesetzt: bestehende Familientermine werden über die Supabase-Updateoperation geändert statt dupliziert. Mehrtägige Familientermine werden mit ihrem Datumsbereich persistiert, nach dem Cloud-Roundtrip erhalten und an allen betroffenen Kalendertagen dargestellt. Regressionstests decken Update und Mehrtagstermine ab.
 
 Wiederholungen täglich, wöchentlich, monatlich und jährlich sind umgesetzt, werden in der Terminbearbeitung gewählt, über Metadaten cloudseitig erhalten und in den Kalenderansichten ohne duplizierte Persistenz als Vorkommen dargestellt. Geburtstage sind als eigener ganztägiger Ereignistyp mit jährlicher Wiederholung umgesetzt; bestehende Termine ohne Uhrzeit bleiben als ganztägige Ereignisse erhalten. Drag/Move ist per Touch-/Desktop-Geste und zugänglichem Zieldatum-Fallback umgesetzt; der bestehende Personenmodell-Vertrag bleibt dabei unverändert. Martin/Steffi filtern weiterhin Schicht-Owner, gemeinsame Familientermine bleiben für beide sichtbar.
+

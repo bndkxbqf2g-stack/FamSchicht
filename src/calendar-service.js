@@ -44,6 +44,11 @@ export function fromDatabaseEvent(row) {
     anchor: row.metadata?.anchor || undefined,
     owner: row.category === 'shift' ? (row.metadata?.owner || undefined) : undefined,
     ownerId: row.metadata?.ownerId || undefined,
+    calendarSourceId: row.metadata?.calendarSourceId || undefined,
+    calendarProvider: row.metadata?.calendarProvider || undefined,
+    calendarSourceLabel: row.metadata?.calendarSourceLabel || undefined,
+    externalId: row.metadata?.externalId || undefined,
+    readOnly: row.metadata?.readOnly === true,
     recurrence: row.category !== 'shift' && row.metadata?.recurrence
       ? row.metadata.recurrence
       : undefined,
@@ -110,12 +115,14 @@ export async function deleteOwnerEvent(supabase, eventId, householdId) {
 }
 
 function shiftMetadata(event) {
-  if (event.ownerId) return {ownerId: event.ownerId};
-  return event.owner ? {owner: event.owner} : {};
+  const metadata = sourceMetadata(event);
+  if (event.ownerId) metadata.ownerId = event.ownerId;
+  else if (event.owner) metadata.owner = event.owner;
+  return metadata;
 }
 
 function familyMetadata(event) {
-  const metadata = {};
+  const metadata = sourceMetadata(event);
   if (event.recurrence && event.recurrence !== 'none') {
     metadata.recurrence = event.recurrence;
   }
@@ -129,6 +136,17 @@ function familyMetadata(event) {
     const completedDates = normalizeCompletedDates(event.completedDates);
     if (completedDates.length) metadata.completedDates = completedDates;
   }
+  return metadata;
+}
+
+function sourceMetadata(event) {
+  const metadata = {};
+  if (event.source && event.source !== 'supabase') metadata.source = event.source;
+  if (event.calendarSourceId) metadata.calendarSourceId = event.calendarSourceId;
+  if (event.calendarProvider) metadata.calendarProvider = event.calendarProvider;
+  if (event.calendarSourceLabel) metadata.calendarSourceLabel = event.calendarSourceLabel;
+  if (event.externalId) metadata.externalId = event.externalId;
+  if (event.readOnly === true) metadata.readOnly = true;
   return metadata;
 }
 
@@ -147,3 +165,4 @@ function localDateKey(d) {
 function localTime(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function pad(n) { return String(n).padStart(2, '0'); }
 function hasMeaningfulTime(d) { return d.getHours() !== 0 || d.getMinutes() !== 0; }
+
