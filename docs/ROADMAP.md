@@ -1,6 +1,6 @@
 # ROADMAP
 
-Stand: 28.09.2026
+Stand: 14.10.2026
 
 ## Aktive Reihenfolge
 1. Einladungserzeugung und atomare Einladungsannahme mit separater Einstellungen-UI verifizieren; Widerruf bleibt als Service vorhanden.
@@ -54,3 +54,4 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Haushaltsroutinen als zugewiesene, wiederkehrende Einträge mit eigenem Erledigt-Status je Vorkommen.
 - Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
 - Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.
+- Sichtbarer Sync-Status und Fehleranzeige für lokalen, laufenden, erfolgreichen und offline/fehlerhaften Zustand.

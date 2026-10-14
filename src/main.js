@@ -62,6 +62,7 @@ import {
   taskOccurrences,
   toggleTaskOccurrence,
 } from './task-planning.js';
+import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -92,6 +93,9 @@ let view = 'home';
 let personFilter = 'all';
 let categoryFilter = 'all';
 let cloud = null;
+let syncState = 'local';
+let cloudConnectionId = 0;
+let settingsReturnFocus = null;
 let shiftCaptureDate = null;
 let dayDialogDate = null;
 let dayDialogEventId = null;
@@ -125,15 +129,45 @@ function applyHouseholdMembers(members) {
     personFilter = 'all';
   }
 }
+
+function openAccountSettings(trigger) {
+  settingsReturnFocus = trigger || document.activeElement;
+  view = 'settings';
+  render();
+  document.querySelector('#close-account-settings')?.focus();
+}
+
+function closeAccountSettings() {
+  const focusSelector = settingsReturnFocus?.classList?.contains('mobile-settings')
+    ? '#app .mobile-settings'
+    : '#app .side-nav [data-view="settings"]';
+  settingsReturnFocus = null;
+  view = 'all';
+  render();
+  window.setTimeout(() => document.querySelector(focusSelector)?.focus(), 0);
+}
 month.setDate(1);
 
 const app = document.querySelector('#app');
 
 async function connectCloud() {
-  const {data} = await supabase.auth.getUser();
+  const current = ++cloudConnectionId;
+  syncState = navigator.onLine === false ? 'offline' : 'connecting';
+  render();
+  if (navigator.onLine === false) {
+    cloud = null;
+    applyHouseholdMembers(bootstrapHouseholdMembers);
+    entries = load();
+    return;
+  }
+
+  const {data, error: authError} = await supabase.auth.getUser();
+  if (authError) throw authError;
+  if (current !== cloudConnectionId) return;
   const user = data?.user;
   if (!user) {
     cloud = null;
+    syncState = 'local';
     applyHouseholdMembers(bootstrapHouseholdMembers);
     entries = load();
     render();
@@ -146,8 +180,10 @@ async function connectCloud() {
     .eq('owner_id', user.id)
     .limit(1);
 
+  if (current !== cloudConnectionId) return;
   if (error || !homes?.length) {
     cloud = null;
+    syncState = error ? 'error' : 'local';
     applyHouseholdMembers(bootstrapHouseholdMembers);
     entries = load();
     render();
@@ -163,15 +199,21 @@ async function connectCloud() {
     applyHouseholdMembers(persistedMembers);
   } catch (err) {
     console.error('Haushaltsmitglieder konnten nicht synchronisiert werden', err);
+    syncState = 'error';
     applyHouseholdMembers(bootstrapHouseholdMembers);
   }
 
   try {
     entries = await loadOwnerEvents(supabase, cloud.householdId);
-    render();
   } catch (err) {
     console.error('Kalender konnte nicht synchronisiert werden', err);
+    syncState = 'error';
+    render();
+    return;
   }
+  if (current !== cloudConnectionId) return;
+  if (syncState !== 'error') syncState = 'synced';
+  render();
 }
 
 function render() {
@@ -206,10 +248,10 @@ function render() {
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
     '<details class="calendar-filter-details"><summary>Filter · Personen und Bereiche</summary><div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
     memberFilterOptions(householdMembers).map(([id, label]) =>
-      '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '">' + label + '</button>').join('') +
+      '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '" aria-pressed="' + (personFilter === id) + '">' + label + '</button>').join('') +
     '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
     [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']].map(([id, label]) =>
-      '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '">' +
+      '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
     '<div class="calendar ' + calendarMode + '-view">' +
@@ -249,24 +291,25 @@ function render() {
 
   app.innerHTML =
     '<div class="familycal-shell view-' + view + '">' +
-    '<aside class="app-sidebar"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.2</small></div></div>' +
-    '<nav class="side-nav">' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.2</small></div></div>' +
+    '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
-      .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"><span>' + icon + '</span>' + label + '</button>')
+      .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
       .join('') +
-    '</nav><div class="sidebar-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' +
-    (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></aside>' +
+    '</nav><div class="sidebar-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' +
+    h(syncStatusLabel(syncState)) + '</div></aside>' +
     '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1>' +
     (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender') +
-    '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button><div class="member-legend">' +
+    '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button><div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
-    '</div><div class="mobile-sync-status"><span class="status-dot ' + (cloud ? 'online' : '') + '"></span>' + (cloud ? 'Synchronisiert' : 'Nur dieses Gerät') + '</div></header>' +
+    '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
     body +
     (dayDialogDate ? dayDialogMarkup() : '') +
     (shiftDialogEventId ? shiftDialogMarkup() : '') +
     '</section></div>';
 
   document.body.classList.toggle('settings-open', view === 'settings');
+  document.querySelector('#account-shell')?.setAttribute('aria-hidden', String(view !== 'settings'));
   document.querySelector('#custody-settings').innerHTML = view === 'settings' ? custodyMarkup() : '';
   bindControls();
 }
@@ -274,12 +317,22 @@ function render() {
 function startCloudConnection() {
   void connectCloud().catch(error => {
     console.warn('Cloud-Synchronisierung nicht verfügbar; lokaler Plan bleibt aktiv.', error);
+    syncState = navigator.onLine === false ? 'offline' : 'error';
     cloud = null;
     applyHouseholdMembers(bootstrapHouseholdMembers);
     entries = load();
     render();
   });
 }
+
+window.addEventListener('online', startCloudConnection);
+window.addEventListener('offline', () => {
+  syncState = 'offline';
+  render();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && view === 'settings') closeAccountSettings();
+});
 
 function todayOverviewMarkup(today, displayEntries = entries) {
   const items = visibleEntriesForDay(displayEntries, today, {
@@ -683,6 +736,10 @@ function bindControls() {
   });
   app.querySelectorAll('[data-view]').forEach(button => {
     button.onclick = () => {
+      if (button.dataset.view === 'settings') {
+        openAccountSettings(button);
+        return;
+      }
       view = button.dataset.view;
       if (view === 'shift') {
         startShiftCapture();
@@ -691,10 +748,8 @@ function bindControls() {
       }
     };
   });
-  document.querySelector('#close-account-settings')?.addEventListener('click', () => {
-    view = 'all';
-    render();
-  });
+  const closeSettingsButton = document.querySelector('#close-account-settings');
+  if (closeSettingsButton) closeSettingsButton.onclick = closeAccountSettings;
   app.querySelectorAll('[data-calendar-mode]').forEach(button => {
     button.onclick = () => {
       calendarMode = button.dataset.calendarMode;
@@ -772,6 +827,8 @@ function bindControls() {
         if (!cloud) save(entries);
         render();
       } catch (err) {
+        syncState = 'error';
+        render();
         alert('Löschen fehlgeschlagen: ' + err.message);
       }
     };
@@ -1392,6 +1449,7 @@ async function updateEntry(item) {
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
   } catch (err) {
+    syncState = 'error';
     if (item.type === 'shift') shiftDialogEventId = item.id;
     render();
     alert('Änderung konnte nicht gespeichert werden: ' + err.message);
@@ -1406,6 +1464,7 @@ async function saveEntry(item, afterSave, afterError) {
     afterSave?.();
     render();
   } catch (err) {
+    syncState = 'error';
     afterError?.();
     alert('Speichern fehlgeschlagen: ' + err.message);
   }

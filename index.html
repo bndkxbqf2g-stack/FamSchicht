@@ -21,13 +21,14 @@
 <p id="startup-detail">Falls diese Meldung stehen bleibt, werden die App-Dateien nicht korrekt geladen.</p>
 <button id="retry" type="button" onclick="location.reload()">Erneut laden</button>
 </div>
-<section id="account-shell" aria-label="Konto und Haushalt">
+<a class="skip-link" href="#app">Zum Kalender springen</a>
+<section id="account-shell" role="dialog" aria-modal="true" aria-labelledby="account-title" aria-hidden="true">
   <div class="account-intro">
     <button id="close-account-settings" class="account-close" type="button" aria-label="Einstellungen schließen">×</button>
     <span class="account-mark">F</span>
     <div>
       <p class="account-eyebrow">FamSchicht</p>
-      <h1>Dein Familienplan</h1>
+      <h1 id="account-title">Dein Familienplan</h1>
       <p>Gemeinsame Termine, Kinder und Dienste an einem Ort.</p>
     </div>
   </div>
@@ -37,7 +38,7 @@
     <section id="custody-settings" aria-label="Umgangsrhythmus"></section>
   </div>
 </section>
-<main id="app"></main>
+<main id="app" tabindex="-1" aria-label="Familienkalender"></main>
 <script>
 (function(){
 var appReady=false;

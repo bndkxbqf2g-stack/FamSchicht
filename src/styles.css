@@ -34,7 +34,7 @@ body{background:var(--app-bg);color:var(--text)}
 .app-sidebar{position:sticky;top:0;height:100vh;padding:24px 16px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:28px}
 .brand{display:flex;align-items:center;gap:11px;padding:0 7px}.brand-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:850}.brand strong{display:block;font-size:17px}.brand small{display:block;color:var(--muted);margin-top:2px}
 .side-nav{display:grid;gap:7px}.side-nav button{width:100%;border:0;background:transparent;color:#51605a;text-align:left;display:flex;align-items:center;gap:11px;font-weight:650;padding:11px 12px}.side-nav button span{width:22px;text-align:center;font-size:18px}.side-nav button:hover{background:#f5f4f0}.side-nav button.active{background:var(--accent-soft);color:var(--accent)}
-.sidebar-status{margin-top:auto;padding:10px 12px;border-radius:12px;background:#faf9f6;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:7px}.status-dot{width:8px;height:8px;border-radius:99px;background:#b2b8b5}.status-dot.online{background:#55a477}
+.sidebar-status{margin-top:auto;padding:10px 12px;border-radius:12px;background:#faf9f6;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:7px}.status-dot{width:8px;height:8px;border-radius:99px;background:#b2b8b5}.status-dot.online{background:#55a477}.status-dot.sync-connecting{background:#d3993d;animation:sync-pulse 1.2s ease-in-out infinite}.status-dot.sync-error{background:#c45f57}.status-dot.sync-offline{background:#8d9691}@keyframes sync-pulse{50%{opacity:.35}}@media(prefers-reduced-motion:reduce){.status-dot.sync-connecting{animation:none}}
 .app-workspace{min-width:0;padding:28px clamp(18px,3vw,44px) 56px;max-width:1500px;width:100%;margin:0 auto}
 .app-topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:0 2px 18px}.app-topbar h1{font-size:30px;letter-spacing:-.035em;margin:2px 0 0}.eyebrow{margin:0;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .member-legend{display:flex;gap:8px;flex-wrap:wrap}.member{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:750}.member.martin{background:var(--martin-soft);color:#8b3e3a}.member.steffi{background:var(--steffi-soft);color:#315f95}
@@ -400,6 +400,7 @@ body{background:var(--source-canvas)}
 
 
 /* Separate account and household setup area */
+.skip-link{position:fixed;left:12px;top:10px;z-index:100;padding:9px 12px;border-radius:9px;background:#163d32;color:#fff;transform:translateY(-180%);transition:transform .15s ease}.skip-link:focus{transform:translateY(0)}
 #account-shell{
   width:min(680px,calc(100% - 24px));
   margin:24px auto 18px;

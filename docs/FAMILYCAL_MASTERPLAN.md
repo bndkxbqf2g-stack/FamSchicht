@@ -1,6 +1,6 @@
 # FamSchicht Masterplan – FamilyCal-inspired family command center
 
-Stand: 2026-09-25
+Stand: 2026-10-14
 
 ## Ziel
 FamSchicht wird zu einem eigenständigen Familien- und Schichtkalender mit ähnlich ruhiger, großbildtauglicher Bedienlogik wie FamilyCal. Der Fokus bleibt bewusst auf Kalender, Familie, Schichtplanung, Aufgaben/Routinen und externer Kalendersynchronisation. Es werden keine fremden Quellcodes, Markenassets oder proprietären Grafiken kopiert.
