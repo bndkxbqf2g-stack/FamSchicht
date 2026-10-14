@@ -1,5 +1,9 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Neutrale Startup-Recovery
+- Der Startup-/Unhandled-Rejection-Fallback zeigt keine rohen Modul-, Pfad- oder Providerdetails mehr, sondern eine neutrale Reload-Anweisung; technische Informationen bleiben ausschließlich in der Diagnosekonsole.
+- Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.17`.
+
 ## Update 14.10.2026 – Release 0.3.16
 - Der zentrale Nutzerfehlerfilter ist als neuer App-Stand ausgeliefert; Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.16`.
 - Der Cache-Bust invalidiert den bisherigen Offline-Shell-Stand auch für installierte PWA-Sitzungen.
@@ -7,7 +11,7 @@
 ## Update 14.10.2026 – Zentrale Nutzerfehlergrenze
 - `userError` filtert neben Transport-, Datenbank- und Providerdetails jetzt auch interne englische Validierungsfehler wie `unsupported`, `is required` und `must be` auf neutrale, handlungsorientierte Fallbacks.
 - Die Import-, Feiertags-, Darstellungs-, Belohnungs- und Dialogpfade verwenden diese zentrale Grenze; die technischen Details bleiben ausschließlich in der Diagnosekonsole.
-- Regressionstests: 224 bestanden; statische Syntaxprüfung für 80 Dateien, Produktions-Build und Asset-Budget erfolgreich. Das zugehörige GitHub-Actions-Quality-Gate ist grün.
+- Regressionstests: 225 bestanden; statische Syntaxprüfung für 80 Dateien, Produktions-Build und Asset-Budget erfolgreich. Das zugehörige GitHub-Actions-Quality-Gate ist grün.
 
 ## Update 14.10.2026 – Gemeinsame In-App-Bestätigungen
 - Serienkonflikte, Dienstplan-Ersetzung, Umgangsrhythmus, JSON-/ICS-Import und Belohnungslöschung verwenden jetzt denselben zugänglichen modalen Bestätigungsdialog wie das Terminlöschen; native blockierende `confirm()`-Aufrufe sind aus dem App-Code entfernt.
