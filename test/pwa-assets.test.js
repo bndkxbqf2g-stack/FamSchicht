@@ -147,11 +147,11 @@ test('auth errors stay in an accessible non-blocking status message', () => {
 
 test('household database errors stay user-safe in the settings UI', () => {
   const household = fs.readFileSync(path.join(root, 'src', 'household-ui.js'), 'utf8');
-  assert.match(household, /Datenbank derzeit nicht erreichbar\\. Der lokale Kalender bleibt verfügbar\\./);
-  assert.match(household, /Privater Haushalt konnte derzeit nicht erstellt werden\\. Bitte später erneut versuchen\\./);
+  assert.match(household, /Datenbank derzeit nicht erreichbar\. Der lokale Kalender bleibt verfügbar\./);
+  assert.match(household, /Privater Haushalt konnte derzeit nicht erstellt werden\. Bitte später erneut versuchen\./);
   assert.match(household, /reportHouseholdError/);
-  assert.doesNotMatch(household, /Datenbank derzeit nicht erreichbar:\\s*'\\s*\\+\\s*error\\.message/);
-  assert.doesNotMatch(household, /Erstellung fehlgeschlagen:\\s*'\\s*\\+\\s*(?:insertError|error)\\.message/);
+  assert.doesNotMatch(household, /Datenbank derzeit nicht erreichbar:\s*'\s*\+\s*error\.message/);
+  assert.doesNotMatch(household, /Erstellung fehlgeschlagen:\s*'\s*\+\s*(?:insertError|error)\.message/);
 });
 
 test('Supabase client reads only the intended build configuration', () => {
