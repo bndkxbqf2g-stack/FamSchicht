@@ -3,11 +3,12 @@
 ## Update 14.10.2026 – Gemeinsame In-App-Bestätigungen
 - Serienkonflikte, Dienstplan-Ersetzung, Umgangsrhythmus, JSON-/ICS-Import und Belohnungslöschung verwenden jetzt denselben zugänglichen modalen Bestätigungsdialog wie das Terminlöschen; native blockierende `confirm()`-Aufrufe sind aus dem App-Code entfernt.
 - Bestätigungsdialoge sperren den Hintergrund mit `inert`, halten Tab/Shift+Tab im Dialog, deaktivieren während der Verarbeitung gegen Doppelklicks und geben den Fokus an stabile Auslöser oder den Kalender zurück.
-- Die ausgelieferten Module, die sichtbare App-Version und die Paketmetadaten stehen auf `v0.3.12`; Regressionstests: 220 bestanden.
-- Der Service-Worker verwendet passend zum Cache-Bust den Shell-Cache `famschicht-shell-v0.3.12`, damit ein neues Release auch den Offline-App-Shell-Stand invalidiert.
+- Die ausgelieferten Module, die sichtbare App-Version und die Paketmetadaten stehen auf `v0.3.13`; Regressionstests: 220 bestanden.
+- Der Service-Worker verwendet passend zum Cache-Bust den Shell-Cache `famschicht-shell-v0.3.13`, damit ein neues Release auch den Offline-App-Shell-Stand invalidiert.
 - `Home` und `End` werden auch an Wochenrändern als Kalendernavigation abgefangen, damit ein erreichter Rand nicht den Browser-Scroll über die App übernimmt.
 - Dienstplan-Schnellerfassung, Personenauswahl, Konfliktbestätigung, Monatsende und owner-only Haushalts-/Einladungsaktionen geben den Fokus nach dem Rendern an den nächsten sinnvollen Kontext zurück.
 - Schichtvorlagen, Sollstunden, Dienstplan-OCR, JSON-/ICS-Transfer, Feiertage, Darstellung und Belohnungen behalten nach Status-Rerendern ihren Tastaturkontext; laufende OCR meldet den Fortschritt zusätzlich als programmatisch fokussierbaren Status.
+- Fehlerpfade in Schichtvorlagen, Sollstunden, Dienstplanprüfung, Umgangsrhythmus und Termindialogen öffnen nach der Meldung das betroffene Korrekturfeld; Fokusziele in Disclosure-Bereichen öffnen deren Bereich vorher.
 - Sichtbare Kalendertage verwenden ein roving Tab-Ziel; Pfeil-, Home- und End-Tasten verschieben den Fokus semantisch über den Kalender.
 - Ansichtswechsel, Monatsnavigation und Kalenderfilter geben den Fokus nach dem Rendern an den neuen Kontext zurück; die Filter-Aufklappung bleibt dabei geöffnet.
 - Der Laptop-Browserlauf mit synthetischem Umgangstermin bestätigt den Dialog auch über der Einstellungsansicht: Fokus auf „Abbrechen“, `inert` für Kalender und Einstellungen sowie Rückgabe an „Rhythmus eintragen“ nach dem Abbruch; es wurde nichts gespeichert oder gelöscht.
