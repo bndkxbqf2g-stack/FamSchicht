@@ -35,7 +35,6 @@ import {
 } from './calendar-service.js';
 import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
 import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear, validateRosterDraft, validateRosterFiles} from './shift-roster-import.js';
-import {recognizeRosterImages} from './shift-roster-ocr.js';
 import {rosterImportErrorMessage} from './shift-roster-errors.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
 import {
@@ -150,6 +149,7 @@ let icsSourceMemberId = '';
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
+let rosterOcrModulePromise = null;
 let shiftConflict = null;
 let shiftSeriesStatus = '';
 let shiftTargetStatus = '';
@@ -1342,7 +1342,7 @@ async function handleRosterFilesChange(event) {
   rosterImportError = 'OCR wird auf diesem Gerät gestartet …';
   render();
   try {
-    const pages = await recognizeRosterImages(files, updateRosterOcrProgress);
+    const pages = await recognizeRosterImagesOnDemand(files, updateRosterOcrProgress);
     const ocrTexts = pages.flatMap(page => [page.text, ...(page.alternatives || []).map(item => item.text)]);
     const detectedPeriods = ocrTexts.map(parseRosterPeriod).filter(Boolean);
     const detectedYear = mostCommon(ocrTexts.map(parseRosterYear).filter(Boolean));
@@ -1363,6 +1363,17 @@ async function handleRosterFilesChange(event) {
     rosterImportBusy = false;
     render();
   }
+}
+
+async function recognizeRosterImagesOnDemand(files, onProgress) {
+  if (!rosterOcrModulePromise) {
+    rosterOcrModulePromise = import('./shift-roster-ocr.js').catch(error => {
+      rosterOcrModulePromise = null;
+      throw error;
+    });
+  }
+  const {recognizeRosterImages} = await rosterOcrModulePromise;
+  return recognizeRosterImages(files, onProgress);
 }
 
 function updateRosterOcrProgress(message) {

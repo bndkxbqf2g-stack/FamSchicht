@@ -4,6 +4,8 @@
 
 `.github/workflows/pages.yml` führt für Pushes und Pull Requests gegen `main` mit Node.js 22 `npm install`, `npm test` und `npm run build` aus. Pages wird nur nach erfolgreicher Qualitätsprüfung aus Nicht-PR-Ereignissen veröffentlicht. Der Workflow prüft anschließend, ob die veröffentlichte URL das gebaute Vite-Bundle referenziert.
 
+Nach dem Build prüft `npm run check:build` ein bewusst begrenztes Roh-/gzip-Budget für JS- und CSS-Assets. Der Dienstplan-OCR-Code wird erst beim Öffnen des Imports dynamisch geladen; das Budget schützt deshalb den Startpfad, ohne die OCR-Funktion zu entfernen.
+
 Lokal:
 
 ```sh
@@ -43,6 +45,7 @@ npm run build
 - Modale Tastaturführung: Vorwärts-/Rückwärts-Tab bleibt im aktiven Termin-, Verschiebe-, Schicht- oder Einstellungen-Dialog; der 390×844-Check prüft zusätzlich `inert`-Hintergrund und horizontalen Überlauf.
 - Laufzeitkonfiguration: Clientcode enthält keine fest verdrahtete Supabase-URL oder Publishable-Key-Werte; `.env.example` und GitHub-Pages-Variablen sind verdrahtet, und ein Browserlauf ohne Variablen bleibt sichtbar im lokalen Modus.
 - PWA-Installation: iOS-/iPadOS-Erkennung, installierter Standalone-Modus, Browser-Installationsprompt und manueller Browserhinweis werden als Domänenvertrag getestet; die Hauptansichten, Einstellungen und Termin-Dialoge wurden bei 390×844 ohne horizontalen Überlauf geprüft.
+- Ladezeit-/Performance-Gate: dynamischer OCR-Import, Build-Asset-Budget für Roh-/gzip-Größen und CI-Ausführung von `npm run check:build`; echte Geräteprofile bleiben ein separater iPhone-/Produktionsschritt.
 
 Die derzeitige Testsuite nutzt Node `node:test` für Domänenlogik und Serviceverträge. Es gibt keinen Browser-Automation-, Screenshot- oder Golden-Test-Runner in der aktuellen Abhängigkeit. Deshalb werden keine fragilen Bilddateien oder zusätzlichen UI-Test-Abhängigkeiten allein für diese Standardisierungsänderung eingeführt. Wenn ein konkreter UI-Fehler geändert wird, ergänze zuerst einen reproduzierbaren Regressionstest im vorhandenen Node-Teststil; bei Änderungen an Layout/Touch-Verhalten muss zusätzlich ein Browser-/iPhone-Viewport sichtbar geprüft und das Ergebnis im PR dokumentiert werden. Screenshots nur mit synthetischen Daten erstellen.
 

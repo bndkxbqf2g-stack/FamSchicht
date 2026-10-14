@@ -22,6 +22,8 @@ test('app viewport enables iPhone safe-area layout', () => {
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
   assert.match(main, /id="pwa-install"/);
+  assert.match(main, /import\('\.\/shift-roster-ocr\.js'\)/);
+  assert.doesNotMatch(main, /import \{recognizeRosterImages\}/);
   assert.match(install, /beforeinstallprompt/);
   assert.match(install, /Zum Home-Bildschirm/);
 });

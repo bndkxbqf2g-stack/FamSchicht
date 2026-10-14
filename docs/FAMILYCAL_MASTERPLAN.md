@@ -90,7 +90,7 @@ Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials au�
 - [ ] Echtzeit-Sync zwischen Haushaltsgeräten
 - [ ] Benachrichtigungen
 - [ ] Accessibility (Grundsemantik, Live-Fehlerhinweise und Dialogfokus umgesetzt; Hauptansichten und 390×844 manuell geprüft, vollständige Abnahme aller Interaktionen offen)
-- [ ] Ladezeit/Performance
+- [ ] Ladezeit/Performance (OCR lazy-loaded und CI-Asset-Budget vorhanden; echte Geräteprofile noch offen)
 - [x] Datenexport
 - [ ] Account-/Haushaltslöschung
 - [ ] Security-/RLS-Audit

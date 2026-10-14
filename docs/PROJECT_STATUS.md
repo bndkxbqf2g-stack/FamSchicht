@@ -12,6 +12,11 @@
 - Standalone-/bereits installierte Sitzungen werden erkannt; abgebrochene oder nicht verfügbare Installationsdialoge bleiben als verständlicher Status sichtbar.
 - Hauptansichten, Einstellungen und Termin-Dialog wurden im 390×844-Viewport ohne horizontalen Überlauf geprüft. Lokale Regressionstests: 205 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – Startpfad und Build-Performance
+- Die Dienstplan-OCR wird erst beim Start eines Imports als eigener Vite-Chunk geladen; der normale Kalenderstart lädt sie nicht mehr in das Initialbundle.
+- `npm run check:build` prüft im CI ein JS-/CSS-Roh- und gzip-Budget. Der lokale Build liegt aktuell bei 258.172 Bytes JS roh / 74.921 Bytes gzip sowie 62.940 Bytes CSS roh / 12.297 Bytes gzip; das Budget ist erfüllt.
+- Lokale Regressionstests, Produktions-Build und Performance-Gate sind erfolgreich. Ein echtes Profiling auf iPhone-Hardware bleibt als externer UX-Schritt offen.
+
 ## Update 14.10.2026 – Supabase-Laufzeitkonfiguration
 - `src/auth.js` enthält keine fest verdrahtete Projekt-URL oder Schlüssel mehr; `src/runtime-config.js` liest `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - Lokale Entwicklung nutzt `.env.local` nach Vorlage aus `.env.example`. Fehlen die Variablen, stellt ein No-op-Client den lokalen Modus ohne Cloud-Versuche bereit.

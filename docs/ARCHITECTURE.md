@@ -17,6 +17,7 @@ Vite-basierte JavaScript-Web-App.
 - src/household-members.js: fachliche Haushaltsmitglieder mit stabiler ID, Farbe und Initialen.
 - src/household-member-service.js: owner-scoped Persistenz der fachlichen Haushaltsmitglieder.
 - src/shift-roster-*.js: Dienstplan-OCR, lokale Speicherung, Schichtlogik und Kalenderprojektion.
+- Dienstplan-OCR wird über `import('./shift-roster-ocr.js')` erst beim Start eines Imports geladen; der normale Kalenderstart bleibt vom OCR-Code getrennt.
 - src/shift-hours.js: optionale lokale Monats-Sollstunden und Ist-/Soll-Differenzen.
 - src/task-planning.js: wiederkehrende Aufgaben- und Haushaltsroutinen mit Completion je Vorkommen.
 - src/event-move.js: pure Datumsverschiebung für Einzel-, Mehrtages-, Wiederholungs-, Nacht- und Umgangseinträge.
