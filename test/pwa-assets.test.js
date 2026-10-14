@@ -17,7 +17,9 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.4"/);
+  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.5"/);
+  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.5"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.5"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -26,6 +28,11 @@ test('app viewport enables iPhone safe-area layout', () => {
   assert.doesNotMatch(main, /import \{recognizeRosterImages\}/);
   assert.match(install, /beforeinstallprompt/);
   assert.match(install, /Zum Home-Bildschirm/);
+});
+
+test('visible application version matches the current cache-bust release', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(main, /Familienplaner · v0\\.3\\.5/);
 });
 
 test('app shell exposes keyboard navigation and account dialog semantics', () => {

@@ -1,5 +1,10 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Cache-Bust- und Versionskonsistenz
+- Die drei ausgelieferten App-Module verwenden jetzt gemeinsam `v0.3.5`; die sichtbare FamSchicht-Versionsanzeige bleibt damit auf demselben Release-Stand.
+- Ein frisch gestarteter lokaler Vite-Browserlauf liefert `auth-ui.js?v=0.3.5`, `household-ui.js?v=0.3.5` und `main.js?v=0.3.5` und zeigt `Familienplaner · v0.3.5`.
+- Regressionstests: 208 bestanden; Produktions-Build und Asset-Budget erfolgreich.
+
 ## Update 14.10.2026 – Live-Projektstatus
 - Die autoritative Supabase-Management-API meldet das Projekt aktuell als `INACTIVE`.
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
