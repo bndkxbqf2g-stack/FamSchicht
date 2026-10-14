@@ -35,6 +35,17 @@ test('visible application version matches the current cache-bust release', () =>
   assert.match(main, /Familienplaner · v0\.3\.8/);
 });
 
+test('release metadata stays aligned across the app shell', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
+  assert.equal(packageJson.version, '0.3.8');
+  assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
+  assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
+  assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
+});
+
 test('app shell exposes keyboard navigation and account dialog semantics', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /class="skip-link" href="#app"/);
