@@ -291,7 +291,7 @@ function restoreDialogFocus() {
   dialogReturnFocus = null;
   const fallback = () => view === 'settings'
     ? document.querySelector('#close-account-settings')
-    : document.querySelector('#app');
+    : document.querySelector('#view-title') || document.querySelector('#app');
   const focusTarget = () => (resolveDialogFocus(returnTarget) || fallback())?.focus?.();
   focusTarget();
   window.setTimeout(focusTarget, 0);
