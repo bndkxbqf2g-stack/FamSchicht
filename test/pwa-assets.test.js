@@ -94,6 +94,8 @@ test('runtime errors remain visible and dialogs restore keyboard focus', () => {
   assert.match(main, /id="storage-notice"/);
   assert.match(main, /restoreDialogFocus/);
   assert.match(main, /closeDayDialog/);
+  assert.match(main, /app\.setAttribute\('aria-hidden'/);
+  assert.match(main, /app\.setAttribute\('inert'/);
   assert.match(storage, /loadState/);
   assert.match(main, /write-error/);
 });

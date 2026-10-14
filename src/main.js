@@ -421,6 +421,9 @@ function render() {
 
   document.body.classList.toggle('settings-open', view === 'settings');
   document.querySelector('#account-shell')?.setAttribute('aria-hidden', String(view !== 'settings'));
+  app.setAttribute('aria-hidden', String(view === 'settings'));
+  if (view === 'settings') app.setAttribute('inert', '');
+  else app.removeAttribute('inert');
   document.querySelector('#custody-settings').innerHTML = view === 'settings' ? custodyMarkup() : '';
   document.querySelector('#dismiss-app-notice')?.addEventListener('click', () => {
     appNotice = null;
