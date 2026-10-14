@@ -10,7 +10,7 @@
 ## Update 14.10.2026 – PWA-/iPhone-Installation
 - Die Einstellungen erklären die Installation auf iPhone/iPad über „Teilen → Zum Home-Bildschirm“ und zeigen bei unterstützten Browsern den nativen Installationsdialog.
 - Standalone-/bereits installierte Sitzungen werden erkannt; abgebrochene oder nicht verfügbare Installationsdialoge bleiben als verständlicher Status sichtbar.
-- Hauptansichten, Einstellungen und Termin-Dialog wurden im 390×844-Viewport ohne horizontalen Überlauf geprüft. Lokale Regressionstests: 205 bestanden; Produktions-Build erfolgreich.
+- Hauptansichten, Einstellungen und Termin-Dialog wurden im 390×844-Viewport ohne horizontalen Überlauf geprüft. Lokale Regressionstests: 206 bestanden; Produktions-Build erfolgreich.
 
 ## Update 14.10.2026 – Startpfad und Build-Performance
 - Die Dienstplan-OCR wird erst beim Start eines Imports als eigener Vite-Chunk geladen; der normale Kalenderstart lädt sie nicht mehr in das Initialbundle.
@@ -24,7 +24,7 @@
 ## Update 14.10.2026 – Supabase-Laufzeitkonfiguration
 - `src/auth.js` enthält keine fest verdrahtete Projekt-URL oder Schlüssel mehr; `src/runtime-config.js` liest `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - Lokale Entwicklung nutzt `.env.local` nach Vorlage aus `.env.example`. Fehlen die Variablen, stellt ein No-op-Client den lokalen Modus ohne Cloud-Versuche bereit.
-- Der Pages-Workflow übernimmt `FAMSCHICHT_SUPABASE_URL` und `FAMSCHICHT_SUPABASE_PUBLISHABLE_KEY` als Build-Variablen. Lokale Regressionstests: 205 bestanden; Produktions-Build erfolgreich; die Live-Matrix bleibt wegen `INACTIVE`-Projekt offen.
+- Der Pages-Workflow übernimmt `FAMSCHICHT_SUPABASE_URL` und `FAMSCHICHT_SUPABASE_PUBLISHABLE_KEY` als Build-Variablen. Lokale Regressionstests: 206 bestanden; Produktions-Build erfolgreich; die Live-Matrix bleibt wegen `INACTIVE`-Projekt offen.
 
 ## Update 14.10.2026 – Supabase-Sicherheits-Preflight
 - Die CI prüft jetzt statisch die owner-only-`household_members`-RLS-Policies inklusive `USING`/`WITH CHECK`, die privaten Einladungsgrants, Hash-/Lock-/Einmalannahme und den authentifizierten Edge-Function-Grenzpfad.
