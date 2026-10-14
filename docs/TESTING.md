@@ -44,6 +44,7 @@ npm run build
 - Accessibility-/Recovery-Sichtprüfung: Skip-Link, Dialogsemantik, Einstellungen-Öffnen bei Desktop und 390×844 sowie sichtbarer Offline-/Fehlerstatus; vollständige Tastaturabnahme aller Ansichten bleibt offen.
 - Modale Tastaturführung: Vorwärts-/Rückwärts-Tab bleibt im aktiven Termin-, Verschiebe-, Schicht- oder Einstellungen-Dialog; der 390×844-Check prüft zusätzlich `inert`-Hintergrund und horizontalen Überlauf.
 - Laufzeitkonfiguration: Clientcode enthält keine fest verdrahtete Supabase-URL oder Publishable-Key-Werte; `.env.example` und GitHub-Pages-Variablen sind verdrahtet, und ein Browserlauf ohne Variablen bleibt sichtbar im lokalen Modus.
+- Lokale Storage-Grenze: nur synthetische Kalenderereignisse mit stabiler ID, gültigem Typ, echtem Datum und gültigen Uhrzeiten werden gelesen oder geschrieben; beschädigte Payloads bleiben unangetastet und führen in den sichtbaren Recovery-Status.
 - PWA-Installation: iOS-/iPadOS-Erkennung, installierter Standalone-Modus, Browser-Installationsprompt und manueller Browserhinweis werden als Domänenvertrag getestet; die Hauptansichten, Einstellungen und Termin-Dialoge wurden bei 390×844 ohne horizontalen Überlauf geprüft.
 - Ladezeit-/Performance-Gate: dynamischer OCR-Import, Build-Asset-Budget für Roh-/gzip-Größen und CI-Ausführung von `npm run check:build`; echte Geräteprofile bleiben ein separater iPhone-/Produktionsschritt.
 
