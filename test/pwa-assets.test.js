@@ -129,6 +129,17 @@ test('modal dialogs isolate the calendar background from keyboard focus', () => 
   assert.match(styles, /#app-content\{display:contents\}/);
 });
 
+test('modal dialogs keep Tab focus inside the active dialog', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(html, /id="account-shell"[^>]*tabindex="-1"/);
+  assert.match(main, /event\.key === 'Tab'/);
+  assert.match(main, /trapDialogFocus\(event\)/);
+  assert.match(main, /dialog\.querySelectorAll\(/);
+  assert.match(main, /event\.shiftKey/);
+  assert.match(main, /tabindex="-1"/);
+});
+
 test('roster upload advertises and enforces the supported image boundary', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const ocr = fs.readFileSync(path.join(root, 'src', 'shift-roster-ocr.js'), 'utf8');

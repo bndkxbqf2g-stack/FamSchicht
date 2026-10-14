@@ -21,6 +21,11 @@
 - Die Dialoge bleiben als eigene `aria-modal="true"`-Ziele erreichbar, während die bestehende Fokus-Rückgabe beim Abbrechen, Speichern und Escape erhalten bleibt.
 - Sichtprüfung: Termin-Dialog im 390×844-Viewport mit isoliertem Hintergrund und ohne horizontalen Überlauf; lokale Regressionstests: 192 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – Modal-Tastaturfokus
+- Alle aktiven `aria-modal="true"`-Dialoge halten Vorwärts- und Rückwärts-Tabulatornavigation innerhalb des Dialogs; bei dialogeigenen Sonderfällen bleibt ein fokussierbares Fallback vorhanden.
+- Sichtprüfung im 390×844-Viewport: Tab vom letzten Speichern-Ziel zurück zum ersten Datumsfeld, Shift+Tab vom ersten Feld zurück zu „Speichern“, Kalenderhintergrund `inert` und kein horizontaler Überlauf.
+- Lokale Regressionstests: 198 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Dienstplan-Dateivalidierung
 - Der lokale Fotoimport akzeptiert jetzt vor dem OCR-Start ausschließlich JPEG-/PNG-Dateien, begrenzt vier Dateien auf insgesamt 35 MB und weist SVG bzw. andere Formate mit einer verständlichen Fehlermeldung ab.
 - Die Prüfung liegt als eigener Domänenhelfer vor, wird zusätzlich direkt vor dem OCR-Worker wiederholt und berücksichtigt auch Browserfälle mit leerem MIME-Typ, sofern die Dateiendung eindeutig JPEG/PNG ist.

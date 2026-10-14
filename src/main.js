@@ -483,6 +483,10 @@ window.addEventListener('offline', () => {
   render();
 });
 document.addEventListener('keydown', event => {
+  if (event.key === 'Tab') {
+    trapDialogFocus(event);
+    return;
+  }
   if (event.key !== 'Escape') return;
   if (view === 'settings') {
     closeAccountSettings();
@@ -500,6 +504,35 @@ document.addEventListener('keydown', event => {
     closeShiftDialog();
   }
 });
+
+function trapDialogFocus(event) {
+  const dialogs = [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')]
+    .filter(dialog => dialog.getAttribute('aria-hidden') !== 'true' &&
+      !dialog.hasAttribute('inert') && dialog.getClientRects().length);
+  const dialog = dialogs.at(-1);
+  if (!dialog) return;
+
+  const focusable = [...dialog.querySelectorAll(
+    'a[href],area[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
+  )].filter(element => element.getAttribute('aria-hidden') !== 'true' &&
+    !element.closest('[inert]') && element.getClientRects().length);
+  if (!focusable.length) {
+    event.preventDefault();
+    dialog.focus();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const outsideDialog = !dialog.contains(document.activeElement);
+  if (event.shiftKey && (document.activeElement === first || outsideDialog)) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || outsideDialog)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 
 function todayOverviewMarkup(today, displayEntries = entries) {
   const items = visibleEntriesForDay(displayEntries, today, {
@@ -1493,7 +1526,7 @@ function handleRosterImportSubmit(event) {
 function shiftDialogMarkup() {
   const item = entries.find(entry => entry.id === shiftDialogEventId && entry.type === 'shift');
   if (!item) return '';
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="shift-dialog-title">' +
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="shift-dialog-title" tabindex="-1">' +
     '<h2 id="shift-dialog-title">Dienst bearbeiten</h2><form id="shift-edit-form">' +
     '<label>Datum<input name="date" type="date" required value="' + h(item.date) + '"></label>' +
     '<label>Beginn<input name="start" type="time" value="' + h(item.start || '') + '"></label>' +
@@ -1788,7 +1821,7 @@ function moveDialogMarkup() {
   const label = new Date(sourceDate + 'T12:00:00').toLocaleDateString(
     'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
   );
-  return '<div class="dialog-backdrop"><section class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title">' +
+  return '<div class="dialog-backdrop"><section class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title" tabindex="-1">' +
     '<h2 id="move-dialog-title">Termin verschieben</h2><p class="note">' + h(item.title) + ' · aktuell ' + h(label) + '</p>' +
     '<form id="move-dialog-form"><label>Neuer Tag<input name="targetDate" type="date" required value="' + h(sourceDate) + '"></label>' +
     '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button class="primary">Verschieben</button></div></form></section></div>';
@@ -1815,7 +1848,7 @@ function dayDialogMarkup() {
   const taskCompleted = isTaskLikeEntry(existing) && isTaskCompletedOnDate(existing, selectedDate);
   const taskCompletionLabel = existing?.recurrence && existing.recurrence !== 'none'
     ? 'Erledigt (dieses Vorkommen)' : 'Erledigt';
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="day-dialog-title">' +
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="day-dialog-title" tabindex="-1">' +
     '<h2 id="day-dialog-title">' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
     '<p class="note">' + label + '</p><form id="day-dialog-form">' +
     '<label>Von<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
