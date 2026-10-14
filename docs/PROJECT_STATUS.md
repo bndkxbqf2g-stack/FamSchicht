@@ -8,8 +8,8 @@
 ## Update 14.10.2026 – Synchronisationsstatus und Bedienbarkeit
 - Die Kalenderoberfläche unterscheidet jetzt sichtbar zwischen lokalem Modus, laufender Synchronisierung, erfolgreicher Owner-Synchronisierung, Offline-Zustand und einem fehlgeschlagenen Cloud-Versuch mit lokalem Fallback.
 - Bei wiederhergestellter Netzwerkverbindung wird die Owner-Verbindung erneut geprüft; Speicherfehler setzen den Status auf einen sichtbaren Fehler statt still auf einen veralteten Erfolgszustand.
-- Der Einstellungenbereich besitzt Dialogsemantik, `aria-hidden`-Umschaltung, Skip-Link, beschriftete Hauptnavigation, `aria-pressed`-Filter und Escape-Schließen. Eine vollständige Accessibility-Abnahme aller Kalenderinteraktionen bleibt offen.
-- Lokale Regressionstests: 147 bestanden; Produktions-Build erfolgreich. Desktop-Dialogstatus und 390×844-Viewport wurden sichtbar geprüft; horizontaler Überlauf trat nicht auf.
+- Der Einstellungenbereich besitzt Dialogsemantik, `aria-hidden`-Umschaltung, Skip-Link, beschriftete Hauptnavigation, `aria-pressed`-Filter und Escape-Schließen. Kalender- und Heute-Karten trennen Bearbeiten und Löschen in eigene Tastaturziele. Eine vollständige Accessibility-Abnahme aller Kalenderinteraktionen bleibt offen.
+- Lokale Regressionstests: 148 bestanden; Produktions-Build erfolgreich. Desktop-Dialogstatus und 390×844-Viewport wurden sichtbar geprüft; horizontaler Überlauf trat nicht auf.
 
 ## Update 14.10.2026 – Owner-Mitgliederverwaltung
 - Der Owner kann in den Einstellungen Kalenderpersonen anlegen und bestehende Personen ändern: Anzeigename, fachlicher Typ (`adult`, `child`, `guest`), Farbe und Schichtberechtigung.
