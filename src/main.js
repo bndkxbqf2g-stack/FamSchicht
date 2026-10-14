@@ -133,6 +133,7 @@ let dayDialogEventId = null;
 let shiftDialogEventId = null;
 let moveDialog = null;
 let deleteDialog = null;
+let confirmationDialog = null;
 let householdMembers = [...bootstrapHouseholdMembers];
 let shiftMembers = shiftEligibleMembers(householdMembers);
 let householdMemberNames = memberNamesById(householdMembers);
@@ -250,6 +251,7 @@ function rememberDialogFocus(element) {
     moveOpenId: element.dataset?.moveOpen || '',
     removeId: element.dataset?.remove || '',
     removeDate: element.dataset?.removeDate || element.closest?.('[data-day]')?.dataset?.day || '',
+    rewardRemoveId: element.dataset?.rewardRemove || '',
     taskNew: element.hasAttribute?.('data-task-new') || false,
   };
 }
@@ -275,6 +277,10 @@ function resolveDialogFocus(target) {
           .find(element => element.dataset.daySelect === target.removeDate)
         : null) || document.querySelector('#app');
   }
+  if (target.rewardRemoveId) {
+    return [...document.querySelectorAll('[data-reward-remove]')]
+      .find(element => element.dataset.rewardRemove === target.rewardRemoveId) || document.querySelector('#app');
+  }
   if (target.taskNew) return document.querySelector('[data-task-new]');
   return null;
 }
@@ -282,7 +288,10 @@ function resolveDialogFocus(target) {
 function restoreDialogFocus() {
   const returnTarget = dialogReturnFocus;
   dialogReturnFocus = null;
-  const focusTarget = () => resolveDialogFocus(returnTarget)?.focus?.();
+  const fallback = () => view === 'settings'
+    ? document.querySelector('#close-account-settings')
+    : document.querySelector('#app');
+  const focusTarget = () => (resolveDialogFocus(returnTarget) || fallback())?.focus?.();
   focusTarget();
   window.setTimeout(focusTarget, 0);
 }
@@ -464,11 +473,11 @@ function render() {
   const displayAction = isWallMode(displayMode)
     ? '<button class="wall-exit" id="exit-wall-mode" type="button">Wandmodus beenden</button>'
     : '';
-  const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog || deleteDialog);
+  const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog || deleteDialog || confirmationDialog);
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.6</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.7</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -487,8 +496,15 @@ function render() {
     (deleteDialog ? deleteDialogMarkup() : '') +
     '</div>';
 
+  const confirmationRoot = document.querySelector('#confirmation-root');
+  if (confirmationRoot) confirmationRoot.innerHTML = confirmationDialog ? confirmationDialogMarkup() : '';
   document.body.classList.toggle('settings-open', view === 'settings');
-  document.querySelector('#account-shell')?.setAttribute('aria-hidden', String(view !== 'settings'));
+  const accountShell = document.querySelector('#account-shell');
+  accountShell?.setAttribute('aria-hidden', String(view !== 'settings'));
+  if (accountShell) {
+    if (view === 'settings' && dialogOpen) accountShell.setAttribute('inert', '');
+    else accountShell.removeAttribute('inert');
+  }
   app.setAttribute('aria-hidden', String(view === 'settings'));
   if (view === 'settings') app.setAttribute('inert', '');
   else app.removeAttribute('inert');
@@ -538,6 +554,10 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (event.key !== 'Escape') return;
+  if (confirmationDialog) {
+    closeConfirmationDialog();
+    return;
+  }
   if (view === 'settings') {
     closeAccountSettings();
     return;
@@ -784,7 +804,7 @@ function shiftSeriesMarkup(today) {
     '<label>Bis<input name="endDate" type="date" required value="' + h(dateKey(monthEnd)) + '"></label>' +
     '<fieldset class="weekday-grid wide"><legend>Wochentage</legend>' + days.map(([value, label]) =>
       '<label><input type="checkbox" name="weekday" value="' + value + '"' + (value >= 1 && value <= 5 ? ' checked' : '') + '> ' + label + '</label>').join('') + '</fieldset>' +
-    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button class="primary">Serie eintragen</button></div>' +
+    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button id="shift-series-submit" class="primary">Serie eintragen</button></div>' +
     (shiftSeriesStatus ? '<p class="shift-series-status wide" role="status">' + h(shiftSeriesStatus) + '</p>' : '') +
     '</form></details>';
 }
@@ -865,7 +885,7 @@ function rosterReviewMarkup(importData, fileInput, privacy) {
         '<label class="roster-checkbox"><input type="checkbox" data-roster-field="notCounted"' + (entry.notCounted ? ' checked' : '') + '> Nicht angerechnet</label>' +
         '<button type="button" class="roster-remove" data-roster-remove="' + index + '" aria-label="Dienst entfernen">×</button></div>').join('') +
       '</div></details>').join('') + '</div>' +
-    '<div class="roster-actions"><button id="roster-cancel" type="button">Abbrechen</button><button class="primary" type="submit">Prüfen und lokal speichern</button></div></form>' +
+    '<div class="roster-actions"><button id="roster-cancel" type="button">Abbrechen</button><button id="roster-review-submit" class="primary" type="submit">Prüfen und lokal speichern</button></div></form>' +
     fileInput + privacy + '</section>';
 }
 
@@ -944,7 +964,7 @@ function custodyMarkup() {
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
-    '<button class="primary wide">Rhythmus eintragen</button></form></section>' +
+    '<button id="custody-submit" class="primary wide">Rhythmus eintragen</button></form></section>' +
     '<section class="panel data-tools-card"><h2>Daten sichern und austauschen</h2>' +
     '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. JSON- und ICS-Importe werden vor dem Speichern bestätigt und auf Duplikate geprüft.</p>' +
     '<label class="data-tools-source-label">ICS-Quelle zuordnen<select id="ics-import-member" aria-label="ICS-Quelle zuordnen">' + icsMemberOptions + '</select></label>' +
@@ -1274,6 +1294,8 @@ function bindControls() {
   app.querySelector('#move-dialog-cancel')?.addEventListener('click', closeMoveDialog);
   app.querySelector('#delete-dialog-form')?.addEventListener('submit', handleDeleteDialogSubmit);
   app.querySelector('#delete-dialog-cancel')?.addEventListener('click', closeDeleteDialog);
+  document.querySelector('#confirmation-dialog-form')?.addEventListener('submit', handleConfirmationSubmit);
+  document.querySelector('#confirmation-dialog-cancel')?.addEventListener('click', closeConfirmationDialog);
 
   app.querySelectorAll('[data-move-open]').forEach(button => {
     button.onclick = () => openMoveDialog(button.dataset.moveOpen, button.dataset.moveDate, button);
@@ -1337,7 +1359,7 @@ function bindControls() {
   });
   document.querySelector('#reward-form')?.addEventListener('submit', handleRewardSubmit);
   document.querySelectorAll('[data-reward-remove]').forEach(button => {
-    button.addEventListener('click', () => handleRewardRemove(button.dataset.rewardRemove));
+    button.addEventListener('click', () => handleRewardRemove(button.dataset.rewardRemove, button));
   });
   app.querySelector('#exit-wall-mode')?.addEventListener('click', () => {
     displayMode = saveDisplayMode('standard');
@@ -1503,6 +1525,14 @@ function handleShiftTargetsSubmit(event) {
   }
 }
 
+async function persistShiftSeries(series) {
+  if (cloud) await saveOwnerEvents(supabase, series, cloud.householdId, cloud.userId);
+  const nextEntries = [...entries, ...series];
+  if (!cloud) saveLocalEntries(nextEntries);
+  entries = nextEntries;
+  shiftSeriesStatus = `${series.length} Dienste wurden als Serie eingetragen.`;
+}
+
 async function handleShiftSeriesSubmit(event) {
   event.preventDefault();
   const data = new FormData(event.currentTarget);
@@ -1533,15 +1563,20 @@ async function handleShiftSeriesSubmit(event) {
 
   const conflicts = series.flatMap(shift => findShiftConflicts(shift, entries)
     .map(conflict => `${conflict.date}: ${conflict.entry.title}`));
-  if (conflicts.length && !confirm(
-    `${series.length} Dienste werden angelegt. ${conflicts.length} Familienkonflikt(e) wurden erkannt. Trotzdem eintragen?`,
-  )) return;
+  if (conflicts.length) {
+    openConfirmationDialog({
+      title: 'Familienkonflikte erkannt',
+      message: `${series.length} Dienste werden angelegt. ${conflicts.length} Familienkonflikt(e) wurden erkannt. Trotzdem eintragen?`,
+      confirmLabel: 'Trotzdem eintragen',
+      trigger: event.submitter || event.currentTarget,
+      onConfirm: () => persistShiftSeries(series),
+      errorMessage: 'Serie konnte nicht gespeichert werden.',
+    });
+    return;
+  }
 
   try {
-    if (cloud) await saveOwnerEvents(supabase, series, cloud.householdId, cloud.userId);
-    entries.push(...series);
-    if (!cloud) saveLocalEntries(entries);
-    shiftSeriesStatus = `${series.length} Dienste wurden als Serie eingetragen.`;
+    await persistShiftSeries(series);
     render();
   } catch (error) {
     showAppNotice(userError(error, 'Serie konnte nicht gespeichert werden.'));
@@ -1562,6 +1597,12 @@ function addRosterPreviewDuty() {
     start:service.start, end:service.end, notCounted:false});
   rosterImport.entries.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name, 'de'));
   render();
+}
+
+function persistRosterReplacement(replacement) {
+  shiftRosters = saveShiftRosters(replaceShiftRosterMonth(shiftRosters, replacement));
+  rosterImport = null;
+  rosterImportError = '';
 }
 
 function handleRosterImportSubmit(event) {
@@ -1589,12 +1630,20 @@ function handleRosterImportSubmit(event) {
   }
 
   const existing = shiftRosters.find(roster => roster.month === monthValue);
-  if (existing && !confirm('Der Dienstplan für ' + monthLabel(monthValue) + ' ist bereits gespeichert. Soll er ersetzt werden?')) return;
   const replacement = {month:monthValue, selfName, selfMemberId, entries};
+  if (existing) {
+    openConfirmationDialog({
+      title: 'Dienstplan ersetzen?',
+      message: 'Der Dienstplan für ' + monthLabel(monthValue) + ' ist bereits gespeichert. Soll er ersetzt werden?',
+      confirmLabel: 'Ersetzen',
+      trigger: event.submitter || event.currentTarget,
+      onConfirm: () => persistRosterReplacement(replacement),
+      errorMessage: 'Dienstplan konnte nicht lokal gespeichert werden.',
+    });
+    return;
+  }
   try {
-    shiftRosters = saveShiftRosters(replaceShiftRosterMonth(shiftRosters, replacement));
-    rosterImport = null;
-    rosterImportError = '';
+    persistRosterReplacement(replacement);
     render();
   } catch (error) {
     showAppNotice(userError(error, 'Dienstplan konnte nicht lokal gespeichert werden.'));
@@ -1650,8 +1699,6 @@ async function handleCustodySubmit(event) {
     return;
   }
 
-  if (!confirm(dates.length + ' Umgangstage in den nächsten 12 Monaten eintragen?')) return;
-
   const added = missingCustodyDates(entries, anchor, dates)
     .map(date => ({
       id: crypto.randomUUID(),
@@ -1665,20 +1712,39 @@ async function handleCustodySubmit(event) {
       endAnchor,
     }));
 
-  try {
-    if (cloud) await saveOwnerEvents(supabase, added, cloud.householdId, cloud.userId);
-    entries.push(...added);
-    if (!cloud) saveLocalEntries(entries);
-  } catch (err) {
-    showAppNotice(userError(err, 'Umgangsrhythmus konnte nicht vollständig gespeichert werden.'));
-    await connectCloud();
+  const persistCustodyEntries = async () => {
+    try {
+      if (cloud) await saveOwnerEvents(supabase, added, cloud.householdId, cloud.userId);
+      const nextEntries = [...entries, ...added];
+      if (!cloud) saveLocalEntries(nextEntries);
+      entries = nextEntries;
+    } catch (err) {
+      if (cloud) await connectCloud();
+      throw err;
+    }
+    month = new Date(anchor + 'T12:00:00');
+    month.setDate(1);
+    focusedDate = new Date(anchor + 'T12:00:00');
+    view = 'family';
+  };
+  if (dates.length) {
+    openConfirmationDialog({
+      title: 'Umgangsrhythmus eintragen?',
+      message: dates.length + ' Umgangstage werden in den nächsten 12 Monaten eingetragen.',
+      confirmLabel: 'Eintragen',
+      trigger: event.submitter || event.currentTarget,
+      onConfirm: persistCustodyEntries,
+      errorMessage: 'Umgangsrhythmus konnte nicht vollständig gespeichert werden.',
+    });
     return;
   }
 
-  month = new Date(anchor + 'T12:00:00');
-  month.setDate(1);
-  focusedDate = new Date(anchor + 'T12:00:00');
-  view = 'family';
+  try {
+    await persistCustodyEntries();
+  } catch (err) {
+    showAppNotice(userError(err, 'Umgangsrhythmus konnte nicht vollständig gespeichert werden.'));
+    return;
+  }
   render();
 }
 
@@ -1691,6 +1757,15 @@ function exportJsonData() {
   }, null, 2), 'application/json');
   dataTransferStatus = 'JSON-Sicherung wurde heruntergeladen.';
   render();
+}
+
+async function persistJsonImport(restored, merged, conflictNote) {
+  if (cloud) await saveOwnerEvents(supabase, restored, cloud.householdId, cloud.userId);
+  const nextEntries = [...entries, ...restored];
+  if (!cloud) saveLocalEntries(nextEntries);
+  entries = nextEntries;
+  dataTransferStatus = `${restored.length} Termine wurden aus der JSON-Sicherung wiederhergestellt.` +
+    (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
 }
 
 async function handleJsonImport(event) {
@@ -1714,14 +1789,16 @@ async function handleJsonImport(event) {
     }
     const conflictNote = merged.conflicts.length
       ? `${merged.conflicts.length} Konflikt(e) wurden übersprungen.` : '';
-    if (!confirm(merged.added.length + ' neue Termine aus der JSON-Sicherung wiederherstellen?' + conflictNote)) return;
     const restored = merged.added;
-    if (cloud) await saveOwnerEvents(supabase, restored, cloud.householdId, cloud.userId);
-    if (!cloud) saveLocalEntries([...entries, ...restored]);
-    entries.push(...restored);
-    dataTransferStatus = `${restored.length} Termine wurden aus der JSON-Sicherung wiederhergestellt.` +
-      (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
-    render();
+    openConfirmationDialog({
+      title: 'JSON-Sicherung wiederherstellen?',
+      message: merged.added.length + ' neue Termine werden aus der JSON-Sicherung wiederhergestellt.' + conflictNote,
+      confirmLabel: 'Wiederherstellen',
+      trigger: document.querySelector('#import-json') || event.currentTarget,
+      onConfirm: () => persistJsonImport(restored, merged, conflictNote),
+      errorMessage: 'Die JSON-Sicherung konnte nicht importiert werden.',
+    });
+    return;
   } catch (error) {
     dataTransferStatus = error.message || 'Die JSON-Sicherung konnte nicht importiert werden.';
     render();
@@ -1733,6 +1810,15 @@ function exportIcsData() {
   downloadFile('famschicht.ics', eventsToIcs(exportEntries), 'text/calendar;charset=utf-8');
   dataTransferStatus = `${exportEntries.length} Einträge wurden als ICS exportiert.`;
   render();
+}
+
+async function persistIcsImport(imported, merged, conflictNote) {
+  if (cloud) await saveOwnerEvents(supabase, imported, cloud.householdId, cloud.userId);
+  const nextEntries = [...entries, ...imported];
+  if (!cloud) saveLocalEntries(nextEntries);
+  entries = nextEntries;
+  dataTransferStatus = `${imported.length} Termine wurden read-only importiert.` +
+    (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
 }
 
 async function handleIcsImport(event) {
@@ -1766,14 +1852,16 @@ async function handleIcsImport(event) {
     }
     const conflictNote = merged.conflicts.length
       ? ` ${merged.conflicts.length} Konflikt(e) wurden übersprungen.` : '';
-    if (!confirm(merged.added.length + ' neue Termine aus der ICS-Datei importieren?' + conflictNote)) return;
     const imported = merged.added;
-    if (cloud) await saveOwnerEvents(supabase, imported, cloud.householdId, cloud.userId);
-    if (!cloud) saveLocalEntries([...entries, ...imported]);
-    entries.push(...imported);
-    dataTransferStatus = `${imported.length} Termine wurden read-only importiert.` +
-      (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
-    render();
+    openConfirmationDialog({
+      title: 'ICS-Termine importieren?',
+      message: merged.added.length + ' neue Termine werden read-only aus der ICS-Datei importiert.' + conflictNote,
+      confirmLabel: 'Importieren',
+      trigger: document.querySelector('#import-ics') || event.currentTarget,
+      onConfirm: () => persistIcsImport(imported, merged, conflictNote),
+      errorMessage: 'Die ICS-Datei konnte nicht importiert werden.',
+    });
+    return;
   } catch (error) {
     dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
     render();
@@ -1831,17 +1919,21 @@ function handleRewardSubmit(event) {
   render();
 }
 
-function handleRewardRemove(id) {
+function handleRewardRemove(id, trigger = document.activeElement) {
   const reward = rewards.find(item => item.id === id);
-  if (!reward || !confirm(`Belohnung „${reward.title}“ löschen?`)) return;
-  try {
-    rewards = saveRewardState(removeReward(rewards, id));
-    rewardStorageStatus = 'loaded';
-    rewardStatus = 'Belohnung wurde gelöscht.';
-  } catch (error) {
-    rewardStatus = userError(error, 'Belohnung konnte nicht gelöscht werden.');
-  }
-  render();
+  if (!reward) return;
+  openConfirmationDialog({
+    title: 'Belohnung löschen?',
+    message: `Belohnung „${reward.title}“ wird von diesem Gerät entfernt. Dieser Schritt kann nicht rückgängig gemacht werden.`,
+    confirmLabel: 'Belohnung löschen',
+    trigger,
+    onConfirm: () => {
+      rewards = saveRewardState(removeReward(rewards, id));
+      rewardStorageStatus = 'loaded';
+      rewardStatus = 'Belohnung wurde gelöscht.';
+    },
+    errorMessage: 'Belohnung konnte nicht gelöscht werden.',
+  });
 }
 
 function rewardId() {
@@ -1902,6 +1994,58 @@ function openDeleteDialog(id, trigger = document.activeElement) {
 function closeDeleteDialog() {
   if (!deleteDialog || deleteDialog.busy) return;
   closeDialogAndRestoreFocus(() => { deleteDialog = null; });
+}
+
+function openConfirmationDialog({
+  title,
+  message,
+  confirmLabel = 'Bestätigen',
+  trigger = document.activeElement,
+  onConfirm,
+  errorMessage = 'Die Aktion konnte nicht abgeschlossen werden.',
+}) {
+  if (typeof onConfirm !== 'function') return;
+  dialogReturnFocus = rememberDialogFocus(trigger);
+  confirmationDialog = {title, message, confirmLabel, onConfirm, errorMessage, busy: false};
+  render();
+  document.querySelector('#confirmation-dialog-cancel')?.focus();
+}
+
+function closeConfirmationDialog() {
+  if (!confirmationDialog || confirmationDialog.busy) return;
+  closeDialogAndRestoreFocus(() => { confirmationDialog = null; });
+}
+
+function confirmationDialogMarkup() {
+  const current = confirmationDialog;
+  if (!current) return '';
+  const busy = Boolean(current.busy);
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-description" tabindex="-1">' +
+    '<h2 id="confirmation-dialog-title">' + h(current.title) + '</h2>' +
+    '<p id="confirmation-dialog-description">' + h(current.message) + '</p>' +
+    '<form id="confirmation-dialog-form"><div class="wide dialog-actions">' +
+    '<button type="button" id="confirmation-dialog-cancel"' + (busy ? ' disabled' : '') + '>Abbrechen</button>' +
+    '<button type="submit" class="primary" id="confirmation-dialog-confirm"' + (busy ? ' disabled' : '') + '>' +
+    (busy ? 'Wird verarbeitet …' : h(current.confirmLabel)) + '</button></div></form></section></div>';
+}
+
+async function handleConfirmationSubmit(event) {
+  event.preventDefault();
+  const current = confirmationDialog;
+  if (!current || current.busy) return;
+  confirmationDialog = {...current, busy: true};
+  render();
+  try {
+    await current.onConfirm();
+    confirmationDialog = null;
+    render();
+    restoreDialogFocus();
+  } catch (error) {
+    confirmationDialog = null;
+    render();
+    showAppNotice(userError(error, current.errorMessage));
+    restoreDialogFocus();
+  }
 }
 
 function deleteDialogMarkup() {
