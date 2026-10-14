@@ -183,6 +183,18 @@ test('calendar days expose semantic keyboard targets', () => {
   assert.match(styles, /\.day-select:focus-visible/);
 });
 
+test('calendar day targets provide roving keyboard navigation', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(main, /aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"/);
+  assert.match(main, /tabindex="' \+ \(day === dateKey\(focusedDate\) \? '0' : '-1'\)/);
+  assert.match(main, /function moveCalendarDayByKeyboard\(event\)/);
+  assert.match(main, /key === 'ArrowUp'/);
+  assert.match(main, /key === 'ArrowDown'/);
+  assert.match(main, /key === 'Home'/);
+  assert.match(main, /key === 'End'/);
+  assert.match(main, /selectCalendarDay\(dateKey\(date\), \{restoreFocus: true\}\)/);
+});
+
 test('auth errors stay in an accessible non-blocking status message', () => {
   const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
