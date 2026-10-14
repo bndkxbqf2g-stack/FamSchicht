@@ -1,14 +1,19 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Zugängliche Löschbestätigung
+- Das Löschen eigener Kalendertermine verwendet jetzt einen integrierten modalen Bestätigungsdialog statt des blockierenden Browser-`confirm()`-Dialogs.
+- Der Dialog nutzt die bestehende `aria-modal`-/`inert`-/Tab-Fokusführung, setzt den Fokus sicher zurück und bietet bei entfernten Karten einen stabilen Fallback; Löschziele tragen den jeweiligen Termin im zugänglichen Namen.
+- Die sichtbare App-Version und der Modul-Cache-Bust stehen auf `v0.3.6`; Regressionstests, Syntaxprüfung, Produktions-Build und Asset-Budget bleiben als Abschluss-Gates verpflichtend.
+
 ## Update 14.10.2026 – Statisches Quell-Gate
 - CI prüft jetzt vor den Regressionstests alle JavaScript-/MJS-Quellen des App-, Test-, Script- und PWA-Pfads mit Node.js `--check`.
 - Das neue Gate benötigt keine zusätzliche Laufzeitabhängigkeit; ein vollständiges ESLint-Gate bleibt ausdrücklich eine separate spätere Qualitätsentscheidung.
-- Regressionstests: 209 bestanden; Syntaxprüfung, Produktions-Build und Asset-Budget erfolgreich.
+- Regressionstests: 210 bestanden; Syntaxprüfung, Produktions-Build und Asset-Budget erfolgreich.
 
 ## Update 14.10.2026 – Sichere Household-Fehlerbehandlung
 - Haushalts-/Datenbankfehler werden in den Einstellungen nur noch als neutrale, handlungsorientierte Meldung angezeigt; technische Fehler bleiben für die Diagnose in der Konsole.
 - Die Erstellung eines privaten Haushalts überschreibt keine Providerdetails in der Nutzeroberfläche und lässt den lokalen Kalender als sicheren Fallback bestehen.
-- Regressionstests: 209 bestanden; Produktions-Build und Asset-Budget erfolgreich.
+- Regressionstests: 210 bestanden; Produktions-Build und Asset-Budget erfolgreich.
 
 ## Update 14.10.2026 – Cache-Bust- und Versionskonsistenz
 - Die drei ausgelieferten App-Module verwenden jetzt gemeinsam `v0.3.5`; die sichtbare FamSchicht-Versionsanzeige bleibt damit auf demselben Release-Stand.
