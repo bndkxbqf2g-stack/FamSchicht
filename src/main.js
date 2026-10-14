@@ -331,7 +331,21 @@ window.addEventListener('offline', () => {
   render();
 });
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && view === 'settings') closeAccountSettings();
+  if (event.key !== 'Escape') return;
+  if (view === 'settings') {
+    closeAccountSettings();
+    return;
+  }
+  if (dayDialogDate) {
+    dayDialogDate = null;
+    dayDialogEventId = null;
+    render();
+    return;
+  }
+  if (shiftDialogEventId) {
+    shiftDialogEventId = null;
+    render();
+  }
 });
 
 function todayOverviewMarkup(today, displayEntries = entries) {
@@ -1092,8 +1106,8 @@ function handleRosterImportSubmit(event) {
 function shiftDialogMarkup() {
   const item = entries.find(entry => entry.id === shiftDialogEventId && entry.type === 'shift');
   if (!item) return '';
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-label="Dienst bearbeiten">' +
-    '<h2>Dienst bearbeiten</h2><form id="shift-edit-form">' +
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="shift-dialog-title">' +
+    '<h2 id="shift-dialog-title">Dienst bearbeiten</h2><form id="shift-edit-form">' +
     '<label>Datum<input name="date" type="date" required value="' + h(item.date) + '"></label>' +
     '<label>Beginn<input name="start" type="time" value="' + h(item.start || '') + '"></label>' +
     '<label>Ende<input name="end" type="time" value="' + h(item.end || '') + '"></label>' +
@@ -1254,8 +1268,8 @@ function dayDialogMarkup() {
   const taskCompleted = isTaskLikeEntry(existing) && isTaskCompletedOnDate(existing, selectedDate);
   const taskCompletionLabel = existing?.recurrence && existing.recurrence !== 'none'
     ? 'Erledigt (dieses Vorkommen)' : 'Erledigt';
-  return '<div class="dialog-backdrop"><section class="day-dialog panel">' +
-    '<h2>' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="day-dialog-title">' +
+    '<h2 id="day-dialog-title">' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
     '<p class="note">' + label + '</p><form id="day-dialog-form">' +
     '<label>Von<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
     '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +

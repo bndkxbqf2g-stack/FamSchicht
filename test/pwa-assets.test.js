@@ -19,6 +19,13 @@ test('app viewport enables iPhone safe-area layout', () => {
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
 });
 
+test('app shell exposes keyboard navigation and account dialog semantics', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /class="skip-link" href="#app"/);
+  assert.match(html, /id="account-shell" role="dialog" aria-modal="true"/);
+  assert.match(html, /<main id="app" tabindex="-1" aria-label="Familienkalender">/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);
