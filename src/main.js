@@ -512,7 +512,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.14</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.15</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -2007,8 +2007,11 @@ function handleDisplaySettingsSubmit(event) {
   } catch (error) {
     displayStatus = error.message || 'Die Darstellung konnte nicht gespeichert werden.';
   }
+  const focusSelector = isWallMode(displayMode) && view === 'all'
+    ? '#exit-wall-mode'
+    : '#display-settings-form button[type="submit"]';
   render();
-  focusAfterRender('#display-settings-form button[type="submit"]');
+  focusAfterRender(focusSelector);
 }
 
 function handleRewardSubmit(event) {
