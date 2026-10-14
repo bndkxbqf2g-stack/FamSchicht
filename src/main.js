@@ -421,26 +421,26 @@ function render() {
     : 'Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
   const calendarMarkup =
     '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
-    '<div class="month"><button id="prev" aria-label="Vorherige ' +
+    '<div class="month"><button type="button" id="prev" aria-label="Vorherige ' +
     (calendarMode === 'month' ? 'Monat' : calendarMode === 'week' ? 'Woche' : 'Tag') + '">‹</button><h2>' + monthLabel +
-    '</h2><button id="next" aria-label="Nächste ' +
+    '</h2><button type="button" id="next" aria-label="Nächste ' +
     (calendarMode === 'month' ? 'Monat' : calendarMode === 'week' ? 'Woche' : 'Tag') + '">›</button></div>' +
     '<div class="calendar-actions"><div class="calendar-modes" role="group" aria-label="Kalenderansicht">' +
     [['day', 'Tag'], ['week', 'Woche'], ['month', 'Monat']]
-      .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
+      .map(([mode, label]) => '<button type="button" data-calendar-mode="' + mode + '" aria-pressed="' +
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
-    '</div><button id="go-today">Heute</button>' +
-    (isWallMode(displayMode) ? '' : '<button id="quick-event" class="primary">+ Termin</button>') +
-    (view === 'shift' && !isWallMode(displayMode) ? '<button id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
+    '</div><button type="button" id="go-today">Heute</button>' +
+    (isWallMode(displayMode) ? '' : '<button type="button" id="quick-event" class="primary">+ Termin</button>') +
+    (view === 'shift' && !isWallMode(displayMode) ? '<button type="button" id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
     '<details class="calendar-filter-details"><summary>Filter · Personen und Bereiche</summary><div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
     memberFilterOptions(householdMembers).map(([id, label]) =>
-      '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '" aria-pressed="' + (personFilter === id) + '">' + label + '</button>').join('') +
+      '<button type="button" data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '" aria-pressed="' + (personFilter === id) + '">' + label + '</button>').join('') +
     '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
     [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']].map(([id, label]) =>
-      '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
+      '<button type="button" data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
     '<p class="calendar-hint" id="calendar-hint">' + h(calendarHint) + '</p>' +
@@ -498,7 +498,7 @@ function render() {
     '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.8</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
-      .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
+      .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
       .join('') +
     '</nav><div class="sidebar-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' +
     h(syncStatusLabel(syncState)) + '</div></aside>' +
@@ -636,7 +636,7 @@ function todayOverviewMarkup(today, displayEntries = entries) {
     weekday: 'long', day: '2-digit', month: 'long',
   });
   return '<section class="today-board"><div class="today-hero"><div><p class="eyebrow">' + label + '</p><h2>Was steht heute an?</h2></div>' +
-    '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button></div></div>' +
+    '<div class="today-actions"><button type="button" id="add-today" class="primary">+ Termin</button></div></div>' +
     '<div class="today-list">' +
     (items.length
       ? items.map(entry => {
@@ -2298,7 +2298,7 @@ function shiftCaptureMarkup() {
     '<label>Starttag wählen<input id="capture-date" type="date" value="' + h(shiftCaptureDate) + '"></label>' +
     '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner">' +
-    shiftMembers.map(member => '<button data-owner="' + h(member.id) + '" class="' +
+    shiftMembers.map(member => '<button type="button" data-owner="' + h(member.id) + '" class="' +
       (shiftOwnerId === member.id ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
     '</div>' +
     conflictMarkup +
