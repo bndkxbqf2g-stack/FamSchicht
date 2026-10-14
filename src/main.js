@@ -93,6 +93,7 @@ import {
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
 import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
+import {userError} from './user-error.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -225,11 +226,6 @@ function saveLocalEntries(nextEntries) {
     storageNoticeDismissed = false;
     throw error;
   }
-}
-
-function userError(error, fallback) {
-  const message = String(error?.message || '').trim();
-  return message && message.length <= 240 ? message : fallback;
 }
 
 function showAppNotice(message, kind = 'error') {
