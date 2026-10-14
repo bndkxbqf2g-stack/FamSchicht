@@ -56,6 +56,7 @@ import {
 import {eventsToIcs, parseIcs} from './calendar-ics.js';
 import {
   isTaskCompletedOnDate,
+  isTaskLikeEntry,
   setTaskOccurrenceCompleted,
   taskOccurrences,
   toggleTaskOccurrence,
@@ -206,7 +207,7 @@ function render() {
     memberFilterOptions(householdMembers).map(([id, label]) =>
       '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '">' + label + '</button>').join('') +
     '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
-    [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben']].map(([id, label]) =>
+    [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']].map(([id, label]) =>
       '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
@@ -317,7 +318,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
   }
   upcoming.sort(compareAgendaItems);
   const nextShift = upcoming.find(item => item.entry.type === 'shift');
-  const appointments = upcoming.filter(item => item.entry.type !== 'shift' && item.entry.eventKind !== 'task').slice(0, 4);
+  const appointments = upcoming.filter(item => item.entry.type !== 'shift' && !isTaskLikeEntry(item.entry)).slice(0, 4);
   const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
     new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
   const nextShiftMarkup = nextShift
@@ -364,15 +365,16 @@ function taskOverviewMarkup(today, displayEntries = entries) {
   const content = tasks.length
     ? tasks.map(occurrence => {
       const task = occurrence.entry;
+      const kindLabel = task.eventKind === 'routine' ? 'Routine' : 'Aufgabe';
       return '<article class="home-task-item priority-' + h(task.priority || 'normal') + '">' +
       '<button type="button" data-task-toggle="' + h(task.id) + '" data-task-date="' + h(occurrence.date) + '" aria-pressed="false" aria-label="' +
-      h(task.title + ' als erledigt markieren') + '"><span aria-hidden="true">○</span></button><div><strong>' +
-      h(task.title) + '</strong><small>' + h(dueLabel(occurrence.date)) + ' · ' +
+      h(task.title + ' (' + kindLabel + ') als erledigt markieren') + '"><span aria-hidden="true">○</span></button><div><strong>' +
+      h(task.title) + '</strong><small>' + h(dueLabel(occurrence.date)) + ' · ' + kindLabel + ' · ' +
       h(householdMemberNames[task.ownerId] || 'Familie') + '</small></div><span class="task-priority">' +
       h(priorityLabel[task.priority] || priorityLabel.normal) + '</span></article>';
     }).join('')
     : '<div class="home-task-empty"><strong>Keine offenen Aufgaben</strong><span>Aufgaben erscheinen hier, sobald du sie im Termineditor anlegst.</span></div>';
-  return '<section class="home-tasks"><div class="home-section-heading"><div><span class="home-kicker">Gemeinsam erledigen</span><h2>Aufgaben</h2></div>' +
+  return '<section class="home-tasks"><div class="home-section-heading"><div><span class="home-kicker">Gemeinsam erledigen</span><h2>Aufgaben & Routinen</h2></div>' +
     '<button type="button" data-task-new="true" class="home-text-button">＋ Aufgabe <span>›</span></button></div>' +
     '<div class="home-task-list">' + content + '</div></section>';
 }
@@ -737,7 +739,7 @@ function bindControls() {
   app.querySelector('#day-dialog-form')?.addEventListener('submit', handleDayDialogSubmit);
   app.querySelector('#day-dialog-form [name="eventKind"]')?.addEventListener('change', event => {
     const options = app.querySelector('[data-task-options]');
-    if (options) options.hidden = event.currentTarget.value !== 'task';
+    if (options) options.hidden = !['task', 'routine'].includes(event.currentTarget.value);
   });
   app.querySelector('#day-dialog-cancel')?.addEventListener('click', () => {
     dayDialogDate = null;
@@ -776,7 +778,7 @@ function bindControls() {
 
   app.querySelectorAll('[data-task-toggle]').forEach(button => {
     button.addEventListener('click', () => {
-      const item = entries.find(entry => entry.id === button.dataset.taskToggle && entry.eventKind === 'task');
+      const item = entries.find(entry => entry.id === button.dataset.taskToggle && isTaskLikeEntry(entry));
       if (!item) return;
       void updateEntry(toggleTaskOccurrence(item, button.dataset.taskDate));
     });
@@ -1190,7 +1192,7 @@ function dayDialogMarkup() {
   const label = new Date(selectedDate + 'T12:00:00').toLocaleDateString(
     'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
   );
-  const taskCompleted = existing?.eventKind === 'task' && isTaskCompletedOnDate(existing, selectedDate);
+  const taskCompleted = isTaskLikeEntry(existing) && isTaskCompletedOnDate(existing, selectedDate);
   const taskCompletionLabel = existing?.recurrence && existing.recurrence !== 'none'
     ? 'Erledigt (dieses Vorkommen)' : 'Erledigt';
   return '<div class="dialog-backdrop"><section class="day-dialog panel">' +
@@ -1205,11 +1207,11 @@ function dayDialogMarkup() {
     h(existing?.title || '') + '"></label>' +
     '<label>Person<select name="ownerId">' + householdMembers.map(member => '<option value="' + h(member.id) + '"' + ((existing?.ownerId || 'martin') === member.id ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') + '</select></label>' +
     '<label class="wide">Art<select name="eventKind">' +
-    [['event', 'Allgemeiner Termin'], ['birthday', 'Geburtstag'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgabe']]
+    [['event', 'Allgemeiner Termin'], ['birthday', 'Geburtstag'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgabe'], ['routine', 'Routine']]
       .map(([value, label]) => '<option value="' + value + '"' +
         ((existing?.eventKind || 'event') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
     '</select></label>' +
-    '<div class="task-options wide" data-task-options' + (existing?.eventKind === 'task' ? '' : ' hidden') + '><label>Priorität<select name="priority">' +
+    '<div class="task-options wide" data-task-options' + (isTaskLikeEntry(existing) ? '' : ' hidden') + '><label>Priorität<select name="priority">' +
     [['low', 'Niedrig'], ['normal', 'Normal'], ['high', 'Hoch']].map(([value, label]) =>
       '<option value="' + value + '"' + ((existing?.priority || 'normal') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
     '</select></label><label class="task-checkbox"><input name="completed" type="checkbox"' + (taskCompleted ? ' checked' : '') + '> ' + h(taskCompletionLabel) + '</label></div>' +
@@ -1255,7 +1257,7 @@ function handleDayDialogSubmit(event) {
     item.endDate = undefined;
     item.recurrence = 'yearly';
   }
-  if (item.eventKind === 'task') {
+  if (isTaskLikeEntry(item)) {
     item.priority = String(data.get('priority') || 'normal');
     const completed = data.get('completed') === 'on';
     const completedItem = setTaskOccurrenceCompleted(item, date, completed);

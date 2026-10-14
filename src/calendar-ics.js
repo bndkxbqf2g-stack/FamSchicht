@@ -7,7 +7,8 @@ const RECURRENCE_TO_ICS = {
 const ICS_TO_RECURRENCE = Object.fromEntries(
   Object.entries(RECURRENCE_TO_ICS).map(([key, value]) => [value, key]),
 );
-const EVENT_KINDS = new Set(['birthday', 'school', 'sport', 'doctor', 'holiday', 'task']);
+const EVENT_KINDS = new Set(['birthday', 'school', 'sport', 'doctor', 'holiday', 'task', 'routine']);
+const TASK_LIKE_KINDS = new Set(['task', 'routine']);
 const COMPLETED_DATE_PROPERTY = 'X-FAMSCHICHT-COMPLETED-DATES';
 
 export function eventsToIcs(events, {
@@ -53,10 +54,10 @@ export function eventsToIcs(events, {
     }
     const recurrence = RECURRENCE_TO_ICS[event.recurrence];
     if (recurrence) lines.push(`RRULE:FREQ=${recurrence}`);
-    if (event.eventKind === 'task' && event.completed) {
+    if (TASK_LIKE_KINDS.has(event.eventKind) && event.completed) {
       lines.push('STATUS:COMPLETED');
     }
-    if (event.eventKind === 'task' && Array.isArray(event.completedDates) && event.completedDates.length) {
+    if (TASK_LIKE_KINDS.has(event.eventKind) && Array.isArray(event.completedDates) && event.completedDates.length) {
       lines.push(`${COMPLETED_DATE_PROPERTY}:${escapeIcs(event.completedDates.join(','))}`);
     }
     lines.push('END:VEVENT');
@@ -112,18 +113,18 @@ function parseEvent(properties) {
       result.endDate = addDays(end.date, -1);
     }
   }
-  if (properties.STATUS?.value?.toUpperCase() === 'COMPLETED' && eventKind === 'task') {
+  if (properties.STATUS?.value?.toUpperCase() === 'COMPLETED' && TASK_LIKE_KINDS.has(eventKind)) {
     result.completed = true;
   }
   const recurrence = parseRecurrence(properties.RRULE?.value);
   if (recurrence !== 'none') result.recurrence = recurrence;
-  if (eventKind === 'task' && properties[COMPLETED_DATE_PROPERTY]?.value) {
+  if (TASK_LIKE_KINDS.has(eventKind) && properties[COMPLETED_DATE_PROPERTY]?.value) {
     const completedDates = unescapeIcs(properties[COMPLETED_DATE_PROPERTY].value)
       .split(',')
       .filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value));
     if (completedDates.length) result.completedDates = [...new Set(completedDates)].sort();
   }
-  if (eventKind !== 'task') {
+  if (!TASK_LIKE_KINDS.has(eventKind)) {
     delete result.completed;
     delete result.completedDates;
   }

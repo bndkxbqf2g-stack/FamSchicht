@@ -3,6 +3,10 @@ import {normalizeRecurrence} from './recurrence.js';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+export function isTaskLikeEntry(entry) {
+  return entry?.type === 'family' && (entry.eventKind === 'task' || entry.eventKind === 'routine');
+}
+
 export function normalizeCompletedDates(value) {
   const dates = Array.isArray(value) ? value : [];
   return [...new Set(dates.filter(date => DATE_PATTERN.test(String(date))))]
@@ -11,7 +15,7 @@ export function normalizeCompletedDates(value) {
 }
 
 export function taskOccurrenceDates(entry, fromDate, toDate) {
-  if (entry?.type !== 'family' || entry.eventKind !== 'task' || !DATE_PATTERN.test(String(entry.date))) {
+  if (!isTaskLikeEntry(entry) || !DATE_PATTERN.test(String(entry.date))) {
     return [];
   }
 
@@ -34,7 +38,7 @@ export function taskOccurrenceDates(entry, fromDate, toDate) {
 }
 
 export function isTaskCompletedOnDate(entry, date) {
-  if (entry?.type !== 'family' || entry.eventKind !== 'task' || !entryOccursOnDate(entry, date)) {
+  if (!isTaskLikeEntry(entry) || !entryOccursOnDate(entry, date)) {
     return false;
   }
 
@@ -57,7 +61,7 @@ export function taskOccurrences(entries, fromDate, toDate) {
 }
 
 export function setTaskOccurrenceCompleted(entry, date, completed) {
-  if (entry?.type !== 'family' || entry.eventKind !== 'task') return entry;
+  if (!isTaskLikeEntry(entry)) return entry;
 
   const next = {...entry};
   if (normalizeRecurrence(entry.recurrence) === 'none') {

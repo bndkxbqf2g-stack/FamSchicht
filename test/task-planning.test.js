@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   isTaskCompletedOnDate,
+  isTaskLikeEntry,
   normalizeCompletedDates,
   setTaskOccurrenceCompleted,
   taskOccurrenceDates,
@@ -63,4 +64,15 @@ test('task date normalization removes invalid and duplicate completion dates', (
     '2026-10-19', 'invalid', '2026-10-12', '2026-10-19', 20261020,
   ]), ['2026-10-12', '2026-10-19']);
   assert.deepEqual(taskOccurrenceDates(weeklyTask, '2026-10-19', '2026-10-19'), ['2026-10-19']);
+});
+
+test('household routines reuse recurring occurrence and completion rules', () => {
+  const routine = {...weeklyTask, id: 'routine-weekly', eventKind: 'routine', title: 'Küche aufräumen'};
+  assert.equal(isTaskLikeEntry(routine), true);
+  assert.deepEqual(taskOccurrenceDates(routine, '2026-10-12', '2026-10-26'), [
+    '2026-10-12', '2026-10-19', '2026-10-26',
+  ]);
+  const completed = toggleTaskOccurrence(routine, '2026-10-19');
+  assert.equal(isTaskCompletedOnDate(completed, '2026-10-19'), true);
+  assert.equal(isTaskCompletedOnDate(completed, '2026-10-26'), false);
 });

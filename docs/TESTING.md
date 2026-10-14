@@ -25,6 +25,7 @@ npm run build
 - Soll-/Ist-Stunden: optionale lokale Monatsziele, Dezimalkomma-Normalisierung, Grenzwerte, Speicher-Roundtrip und Differenzberechnung.
 - ICS-Domänenvertrag: Export/Import von ganztägigen, mehrtägigen, wiederkehrenden und über Mitternacht laufenden Einträgen sowie Escaping und erledigte Aufgaben.
 - Aufgaben-Domänenvertrag: wiederkehrende Vorkommen, unabhängige `completedDates`, Legacy-Einzelaufgaben und Persistenz-/ICS-Roundtrip.
+- Haushaltsroutinen: eigener Ereignistyp mit Personenzuweisung, wiederkehrenden Vorkommen, individuellem Erledigt-Status, Kalenderfilter und ICS-Roundtrip.
 - PWA-Vertrag: Manifest, Standalone-Startkonfiguration, Icon und network-first Service-Worker-Fallback.
 
 Die derzeitige Testsuite nutzt Node `node:test` für Domänenlogik und Serviceverträge. Es gibt keinen Browser-Automation-, Screenshot- oder Golden-Test-Runner in der aktuellen Abhängigkeit. Deshalb werden keine fragilen Bilddateien oder zusätzlichen UI-Test-Abhängigkeiten allein für diese Standardisierungsänderung eingeführt. Wenn ein konkreter UI-Fehler geändert wird, ergänze zuerst einen reproduzierbaren Regressionstest im vorhandenen Node-Teststil; bei Änderungen an Layout/Touch-Verhalten muss zusätzlich ein Browser-/iPhone-Viewport sichtbar geprüft und das Ergebnis im PR dokumentiert werden. Screenshots nur mit synthetischen Daten erstellen.

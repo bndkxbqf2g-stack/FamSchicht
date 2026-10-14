@@ -16,6 +16,11 @@
 - Sollwerte werden ausdrücklich nur lokal auf dem Gerät gespeichert; Kalenderereignisse, Supabase-Schema, RLS und Edge Functions bleiben unverändert.
 - Lokale Regressionstests: 138 bestanden; Produktions-Build erfolgreich. Das Speichern eines synthetischen Sollwerts und die mobile Darstellung wurden sichtbar geprüft.
 
+## Update 14.10.2026 – Haushaltsroutinen
+- Wiederkehrende Routine-Einträge können einer Person zugewiesen, im Kalender gefiltert und pro Vorkommen erledigt werden; Aufgaben und Routinen teilen sich dabei denselben sicheren Completion-Roundtrip.
+- Routine-Vorkommen erscheinen im Übersichts-Dashboard neben Aufgaben, werden im ICS-Austausch als eigene Kategorie erhalten und bleiben im bestehenden owner-only Datenfluss.
+- Das optionale Punkte-/Belohnungsmodul ist weiterhin bewusst offen.
+
 ## Update 14.10.2026 – Wiederkehrende Aufgaben
 - Wiederkehrende Aufgaben werden im Übersichts-Dashboard als einzelne Vorkommen für Heute, überfällige Tage und die nächsten Wochen angezeigt.
 - Das Erledigen eines Vorkommens speichert nur dessen Datum in `completedDates`; künftige Vorkommen bleiben offen. Einzelaufgaben behalten den bisherigen booleschen `completed`-Vertrag.
@@ -32,7 +37,7 @@
 - Aufgaben werden als eigener Termintyp mit Personenzuweisung, Fälligkeit, Priorität und Erledigt-Status geführt.
 - Offene Aufgaben erscheinen im Übersichts-Dashboard und können dort ohne erneutes Öffnen des Editors als erledigt markiert werden.
 - Aufgabenfelder werden über die bestehende Kalender-Persistenz roundtrip-sicher in `metadata` gespeichert; RLS und Schema bleiben unverändert.
-- Haushaltsroutinen sowie ein optionales Punkte-/Belohnungsmodul sind weiterhin offen.
+- Ein optionales Punkte-/Belohnungsmodul ist weiterhin offen.
 
 ## Update 14.10.2026 – Lokaler Daten-/ICS-Austausch
 - Einstellungen bieten JSON-Sicherung, ICS-Export und einen bestätigungspflichtigen ICS-Import mit Duplikatprüfung.
@@ -81,7 +86,7 @@ Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach 
 - Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
 - Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
-- Haushaltsroutinen sowie ein separates Routinen-/Belohnungsmodul sind noch nicht umgesetzt.
+- Ein separates Routinen-/Belohnungsmodul für Punkte ist noch nicht umgesetzt.
 - Google-/Outlook-OAuth und bidirektionale externe Synchronisation sind noch nicht umgesetzt; ICS bleibt der lokale, dateibasierte Austauschweg.
 
 ## Update 14.10.2026 – PWA-Shell und Offline-Fallback

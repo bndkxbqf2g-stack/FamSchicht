@@ -68,7 +68,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Erledigt-Status
 - [x] Heute-/Wochen-Dashboard mit offenen Aufgaben und Vorkommensdatum
 - [ ] optional Punkte-/Belohnungssystem für Kinder
-- [ ] Haushaltsroutinen
+- [x] Haushaltsroutinen
 
 ### Phase 5 – Externe Kalender und Synchronisation
 - [ ] Google Calendar Architektur

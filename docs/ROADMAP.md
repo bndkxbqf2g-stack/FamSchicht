@@ -50,5 +50,6 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Schichtserien über Wochentage und lokale, wiederverwendbare Schichtvorlagen.
 - Optionale lokale Monats-Sollstunden mit Ist-/Soll-Differenz.
 - Gemeinsame Aufgabenliste mit Person, Fälligkeit, Priorität, Erledigt-Status und Übersichts-Dashboard.
+- Haushaltsroutinen als zugewiesene, wiederkehrende Einträge mit eigenem Erledigt-Status je Vorkommen.
 - Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
 - Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.

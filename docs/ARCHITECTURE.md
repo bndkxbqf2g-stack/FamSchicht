@@ -15,6 +15,7 @@ Vite-basierte JavaScript-Web-App.
 - src/household-ui.js: Haushalts-Setup.
 - src/shift-roster-*.js: Dienstplan-OCR, lokale Speicherung, Schichtlogik und Kalenderprojektion.
 - src/shift-hours.js: optionale lokale Monats-Sollstunden und Ist-/Soll-Differenzen.
+- src/task-planning.js: wiederkehrende Aufgaben- und Haushaltsroutinen mit Completion je Vorkommen.
 
 ## Backend
 Supabase/PostgreSQL mit:

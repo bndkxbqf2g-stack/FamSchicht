@@ -43,6 +43,20 @@ test('ICS round trip keeps recurring task occurrence completion dates', () => {
   assert.equal(restored[0].recurrence, 'weekly');
 });
 
+test('ICS round trip keeps household routine completion dates', () => {
+  const ics = eventsToIcs([{
+    id: 'routine-weekly', type: 'family', eventKind: 'routine', title: 'Küche aufräumen',
+    date: '2026-10-12', recurrence: 'weekly', completed: false,
+    completedDates: ['2026-10-19'],
+  }]);
+  const restored = parseIcs(ics);
+
+  assert.match(ics, /CATEGORIES:ROUTINE/);
+  assert.equal(restored[0].eventKind, 'routine');
+  assert.deepEqual(restored[0].completedDates, ['2026-10-19']);
+  assert.equal(restored[0].recurrence, 'weekly');
+});
+
 test('ICS parser unfolds lines and maps supported categories', () => {
   const parsed = parseIcs([
     'BEGIN:VCALENDAR',

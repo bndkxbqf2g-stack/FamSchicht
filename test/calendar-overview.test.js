@@ -173,6 +173,7 @@ test('category filter isolates family event categories without hiding shifts', (
   const entries = [
     {type: 'family', eventKind: 'school', title: 'Elternabend'},
     {type: 'family', eventKind: 'sport', title: 'Fußball'},
+    {type: 'family', eventKind: 'routine', title: 'Küche aufräumen'},
     {type: 'shift', title: 'Spätdienst'},
   ];
 
@@ -183,6 +184,10 @@ test('category filter isolates family event categories without hiding shifts', (
   expectTitles(
     filterCalendarEntries(entries, {category: 'sport'}),
     ['Fußball'],
+  );
+  expectTitles(
+    filterCalendarEntries(entries, {category: 'routine'}),
+    ['Küche aufräumen'],
   );
   expectTitles(
     filterCalendarEntries(entries, {category: 'shift'}),
