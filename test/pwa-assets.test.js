@@ -129,6 +129,14 @@ test('modal dialogs isolate the calendar background from keyboard focus', () => 
   assert.match(styles, /#app-content\{display:contents\}/);
 });
 
+test('roster upload advertises and enforces the supported image boundary', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const ocr = fs.readFileSync(path.join(root, 'src', 'shift-roster-ocr.js'), 'utf8');
+  assert.match(main, /accept="\.jpg,\.jpeg,\.png,image\/jpeg,image\/png"/);
+  assert.match(main, /validateRosterFiles/);
+  assert.match(ocr, /validateRosterFiles\(files\)/);
+});
+
 test('local points and rewards stay separate from the cloud calendar path', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const rewards = fs.readFileSync(path.join(root, 'src', 'rewards.js'), 'utf8');

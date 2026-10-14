@@ -23,8 +23,8 @@
 
 ## Update 14.10.2026 – Dienstplan-Dateivalidierung
 - Der lokale Fotoimport akzeptiert jetzt vor dem OCR-Start ausschließlich JPEG-/PNG-Dateien, begrenzt vier Dateien auf insgesamt 35 MB und weist SVG bzw. andere Formate mit einer verständlichen Fehlermeldung ab.
-- Die Prüfung liegt als eigener Domänenhelfer vor und berücksichtigt auch Browserfälle mit leerem MIME-Typ, sofern die Dateiendung eindeutig JPEG/PNG ist.
-- Sichtprüfung mit synthetischem SVG: sofortige Ablehnung ohne OCR-Start; lokale Regressionstests: 193 bestanden; Produktions-Build erfolgreich.
+- Die Prüfung liegt als eigener Domänenhelfer vor, wird zusätzlich direkt vor dem OCR-Worker wiederholt und berücksichtigt auch Browserfälle mit leerem MIME-Typ, sofern die Dateiendung eindeutig JPEG/PNG ist.
+- Sichtprüfung mit synthetischem SVG: sofortige Ablehnung ohne OCR-Start; direkte OCR-Aufrufe werden vor dem Worker ebenfalls abgefangen; lokale Regressionstests: 195 bestanden; Produktions-Build erfolgreich.
 
 ## Update 14.10.2026 – Lokale Punkte und Belohnungen
 - Aufgaben und Routinen können einen ganzzahligen Punktwert erhalten; erledigte Einzelaufgaben sowie erledigte Vorkommen wiederkehrender Einträge werden je stabiler Kalenderperson summiert.

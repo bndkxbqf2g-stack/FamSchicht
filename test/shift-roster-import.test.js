@@ -7,6 +7,7 @@ import {
   parseRosterMonth,
   parseRosterPeriod,
   parseRosterYear,
+  ROSTER_FILE_VALIDATION_ERROR,
   validateRosterFiles,
 } from '../src/shift-roster-import.js';
 
@@ -28,11 +29,11 @@ test('extracts month and year independently when one OCR header pass is noisy', 
 test('accepts JPEG and PNG roster files but rejects unsupported image formats', () => {
   assert.equal(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:1024}]), '');
   assert.equal(validateRosterFiles([{name:'plan.png', type:'', size:1024}]), '');
-  assert.match(validateRosterFiles([{name:'plan.svg', type:'image/svg+xml', size:1024}]), /JPEG- oder PNG/);
-  assert.match(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:36 * 1024 * 1024}]), /35 MB/);
-  assert.match(validateRosterFiles(Array.from({length:5}, (_, index) => ({
+  assert.equal(validateRosterFiles([{name:'plan.svg', type:'image/svg+xml', size:1024}]), ROSTER_FILE_VALIDATION_ERROR);
+  assert.equal(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:36 * 1024 * 1024}]), ROSTER_FILE_VALIDATION_ERROR);
+  assert.equal(validateRosterFiles(Array.from({length:5}, (_, index) => ({
     name:'plan-' + index + '.png', type:'image/png', size:1024,
-  }))), /höchstens vier/);
+  }))), ROSTER_FILE_VALIDATION_ERROR);
 });
 
 test('maps recognized codes to the nearest employee row and calendar day', () => {

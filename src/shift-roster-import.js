@@ -6,6 +6,7 @@ const MONTH_NAMES = {
 };
 const MAX_ROSTER_FILES = 4;
 const MAX_ROSTER_BYTES = 35 * 1024 * 1024;
+export const ROSTER_FILE_VALIDATION_ERROR = 'Bitte höchstens vier JPEG- oder PNG-Bilddateien mit zusammen maximal 35 MB auswählen.';
 
 export function validateRosterFiles(files) {
   const selected = [...(files || [])];
@@ -20,7 +21,7 @@ export function validateRosterFiles(files) {
   });
   const totalBytes = selected.reduce((total, file) => total + Math.max(0, Number(file?.size) || 0), 0);
   if (selected.length > MAX_ROSTER_FILES || unsupported || totalBytes > MAX_ROSTER_BYTES) {
-    return 'Bitte höchstens vier JPEG- oder PNG-Bilddateien mit zusammen maximal 35 MB auswählen.';
+    return ROSTER_FILE_VALIDATION_ERROR;
   }
   return '';
 }

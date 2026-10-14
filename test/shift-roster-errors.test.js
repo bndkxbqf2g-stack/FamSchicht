@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {rosterImportErrorMessage} from '../src/shift-roster-errors.js';
+import {recognizeRosterImages} from '../src/shift-roster-ocr.js';
 
 test('maps image decoding failures to an actionable retry message', () => {
   assert.equal(
@@ -25,6 +26,13 @@ test('falls back to a safe retry message for unknown OCR errors', () => {
   assert.equal(
     rosterImportErrorMessage(new Error('provider internals: worker 7 failed')),
     'Der Dienstplan konnte nicht gelesen werden. Bitte ein gut beleuchtetes JPEG- oder PNG-Foto auswählen und es erneut versuchen.',
+  );
+});
+
+test('rejects unsupported roster files before loading the OCR worker', async () => {
+  await assert.rejects(
+    () => recognizeRosterImages([{name:'plan.svg', type:'image/svg+xml', size:1024}]),
+    /JPEG- oder PNG/,
   );
 });
 

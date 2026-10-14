@@ -641,7 +641,7 @@ function shiftRosterMarkup(today) {
   const allRosterEntries = shiftRosters.flatMap(item => item.entries);
   const monthShiftEntries = [...entries, ...importedRosterCalendarEntries()];
   const shiftSummary = summarizeShiftMonth(monthShiftEntries, monthKey, shiftMembers);
-  const input = '<input id="roster-files" class="visually-hidden" type="file" accept="image/*" multiple aria-label="Dienstplanfotos auswählen">';
+  const input = '<input id="roster-files" class="visually-hidden" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple aria-label="Dienstplanfotos auswählen">';
   const upload = '<button id="roster-upload" type="button" class="primary">Dienstplanfoto hochladen</button>';
   const privacy = '<p class="roster-privacy">Das Foto wird auf diesem Gerät ausgewertet und nicht gespeichert. Die bestätigten Dienstzeiten bleiben lokal. Die OCR-Komponente wird bei Bedarf aus dem Internet geladen.</p>';
 
