@@ -1,9 +1,34 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Neutrale Startup-Recovery
+- Der Startup-/Unhandled-Rejection-Fallback zeigt keine rohen Modul-, Pfad- oder Providerdetails mehr, sondern eine neutrale Reload-Anweisung; technische Informationen bleiben ausschließlich in der Diagnosekonsole.
+- Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.17`.
+
+## Update 14.10.2026 – Release 0.3.16
+- Der zentrale Nutzerfehlerfilter ist als neuer App-Stand ausgeliefert; Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.16`.
+- Der Cache-Bust invalidiert den bisherigen Offline-Shell-Stand auch für installierte PWA-Sitzungen.
+
+## Update 14.10.2026 – Zentrale Nutzerfehlergrenze
+- `userError` filtert neben Transport-, Datenbank- und Providerdetails jetzt auch interne englische Validierungsfehler wie `unsupported`, `is required` und `must be` auf neutrale, handlungsorientierte Fallbacks.
+- Die Import-, Feiertags-, Darstellungs-, Belohnungs- und Dialogpfade verwenden diese zentrale Grenze; die technischen Details bleiben ausschließlich in der Diagnosekonsole.
+- Regressionstests: 225 bestanden; statische Syntaxprüfung für 80 Dateien, Produktions-Build und Asset-Budget erfolgreich. Das zugehörige GitHub-Actions-Quality-Gate ist grün.
+
 ## Update 14.10.2026 – Gemeinsame In-App-Bestätigungen
 - Serienkonflikte, Dienstplan-Ersetzung, Umgangsrhythmus, JSON-/ICS-Import und Belohnungslöschung verwenden jetzt denselben zugänglichen modalen Bestätigungsdialog wie das Terminlöschen; native blockierende `confirm()`-Aufrufe sind aus dem App-Code entfernt.
 - Bestätigungsdialoge sperren den Hintergrund mit `inert`, halten Tab/Shift+Tab im Dialog, deaktivieren während der Verarbeitung gegen Doppelklicks und geben den Fokus an stabile Auslöser oder den Kalender zurück.
-- Die ausgelieferten Module und die sichtbare App-Version stehen auf `v0.3.7`; Regressionstests: 211 bestanden.
+- Die ausgelieferten Module, die sichtbare App-Version und die Paketmetadaten stehen auf `v0.3.15`; Regressionstests: 220 bestanden.
+- Der Service-Worker verwendet passend zum Cache-Bust den Shell-Cache `famschicht-shell-v0.3.15`, damit ein neues Release auch den Offline-App-Shell-Stand invalidiert.
+- `Home` und `End` werden auch an Wochenrändern als Kalendernavigation abgefangen, damit ein erreichter Rand nicht den Browser-Scroll über die App übernimmt.
+- Dienstplan-Schnellerfassung, Personenauswahl, Konfliktbestätigung, Monatsende und owner-only Haushalts-/Einladungsaktionen geben den Fokus nach dem Rendern an den nächsten sinnvollen Kontext zurück.
+- Schichtvorlagen, Sollstunden, Dienstplan-OCR, JSON-/ICS-Transfer, Feiertage, Darstellung und Belohnungen behalten nach Status-Rerendern ihren Tastaturkontext; laufende OCR meldet den Fortschritt zusätzlich als programmatisch fokussierbaren Status.
+- Fehlerpfade in Schichtvorlagen, Sollstunden, Dienstplanprüfung, Umgangsrhythmus und Termindialogen öffnen nach der Meldung das betroffene Korrekturfeld; Fokusziele in Disclosure-Bereichen öffnen deren Bereich vorher.
+- Beim Öffnen der Dienste-Ansicht bleibt der Einstiegsfokus auf dem sichtbaren Starttag-Feld der Schnellerfassung.
+- Beim Aktivieren des Wall-Modus wandert der Fokus auf den sichtbaren Rückweg; beim Zurückwechseln auf den Übernehmen-Button.
+- Der lokale Kalenderdialog-Audit mit synthetischem Termin bestätigt Bearbeiten, Verschieben und Löschbestätigung mit Rückwärts-Tab, Escape-Rückgabe und stabilen Auslösern; eine Löschung wurde nicht bestätigt.
+- Ein zusätzlicher Laptop-/390×844-Browserlauf bestätigt Familie, Heute, Dienste und Einstellungen: Ansichtswechsel fokussieren die Überschrift, die Dienstplan-Schnellerfassung das sichtbare Starttag-Feld, der Einstellungsdialog hält den Fokus über 34 Tab-Schritte und Escape gibt ihn an den Auslöser zurück; horizontaler Überlauf trat nicht auf. Die vollständige Tastaturabnahme aller Interaktionen und die echte iPhone-Home-Screen-Prüfung bleiben offen.
+- Ein synthetischer Umgangs-Bestätigungsablauf bestätigt zusätzlich den Recovery-Fallback: Nach dem Eintragen wechselt die App in „Familie“, der verschwundene Formular-Auslöser wird nicht mehr fokussiert und die neue Ansichtsüberschrift erhält den Fokus.
+- Sichtbare Kalendertage verwenden ein roving Tab-Ziel; Pfeil-, Home- und End-Tasten verschieben den Fokus semantisch über den Kalender.
+- Ansichtswechsel, Monatsnavigation und Kalenderfilter geben den Fokus nach dem Rendern an den neuen Kontext zurück; die Filter-Aufklappung bleibt dabei geöffnet.
 - Der Laptop-Browserlauf mit synthetischem Umgangstermin bestätigt den Dialog auch über der Einstellungsansicht: Fokus auf „Abbrechen“, `inert` für Kalender und Einstellungen sowie Rückgabe an „Rhythmus eintragen“ nach dem Abbruch; es wurde nichts gespeichert oder gelöscht.
 - Alle Dialog-Shells tragen jetzt eine programmatische Beschreibung; Lösch- und Bestätigungsdialoge markieren laufende Speicherungen mit `aria-busy` und halten den Fokus während des asynchronen Vorgangs im Dialog.
 

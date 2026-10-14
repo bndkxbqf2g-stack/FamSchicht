@@ -93,6 +93,7 @@ import {
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
 import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
+import {userError} from './user-error.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -227,11 +228,6 @@ function saveLocalEntries(nextEntries) {
   }
 }
 
-function userError(error, fallback) {
-  const message = String(error?.message || '').trim();
-  return message && message.length <= 240 ? message : fallback;
-}
-
 function showAppNotice(message, kind = 'error') {
   appNotice = {message: String(message || '').trim(), kind};
   render();
@@ -279,7 +275,8 @@ function resolveDialogFocus(target) {
   }
   if (target.rewardRemoveId) {
     return [...document.querySelectorAll('[data-reward-remove]')]
-      .find(element => element.dataset.rewardRemove === target.rewardRemoveId) || document.querySelector('#app');
+      .find(element => element.dataset.rewardRemove === target.rewardRemoveId) ||
+      document.querySelector('#reward-form [name="title"]') || document.querySelector('#app');
   }
   if (target.taskNew) return document.querySelector('[data-task-new]');
   return null;
@@ -290,10 +287,44 @@ function restoreDialogFocus() {
   dialogReturnFocus = null;
   const fallback = () => view === 'settings'
     ? document.querySelector('#close-account-settings')
-    : document.querySelector('#app');
+    : document.querySelector('#view-title') || document.querySelector('#app');
   const focusTarget = () => (resolveDialogFocus(returnTarget) || fallback())?.focus?.();
   focusTarget();
   window.setTimeout(focusTarget, 0);
+}
+
+function focusAfterRender(selector) {
+  window.setTimeout(() => {
+    const element = document.querySelector(selector);
+    element?.closest('details')?.setAttribute('open', '');
+    element?.focus();
+  }, 0);
+}
+
+function focusFirstAfterRender(...selectors) {
+  window.setTimeout(() => {
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        element.focus();
+        break;
+      }
+    }
+  }, 0);
+}
+
+function focusDatasetControl(attribute, value) {
+  const datasetKey = attribute.replace(/^data-/, '').replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+  window.setTimeout(() => {
+    const element = [...document.querySelectorAll('[' + attribute + ']')]
+      .find(candidate => candidate.dataset?.[datasetKey] === value);
+    element?.closest('details')?.setAttribute('open', '');
+    element?.focus();
+  }, 0);
+}
+
+function focusViewHeading() {
+  focusAfterRender('#view-title');
 }
 
 function appNoticeMarkup() {
@@ -403,26 +434,26 @@ function render() {
     : 'Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
   const calendarMarkup =
     '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
-    '<div class="month"><button id="prev" aria-label="Vorherige ' +
+    '<div class="month"><button type="button" id="prev" aria-label="Vorherige ' +
     (calendarMode === 'month' ? 'Monat' : calendarMode === 'week' ? 'Woche' : 'Tag') + '">‹</button><h2>' + monthLabel +
-    '</h2><button id="next" aria-label="Nächste ' +
+    '</h2><button type="button" id="next" aria-label="Nächste ' +
     (calendarMode === 'month' ? 'Monat' : calendarMode === 'week' ? 'Woche' : 'Tag') + '">›</button></div>' +
     '<div class="calendar-actions"><div class="calendar-modes" role="group" aria-label="Kalenderansicht">' +
     [['day', 'Tag'], ['week', 'Woche'], ['month', 'Monat']]
-      .map(([mode, label]) => '<button data-calendar-mode="' + mode + '" aria-pressed="' +
+      .map(([mode, label]) => '<button type="button" data-calendar-mode="' + mode + '" aria-pressed="' +
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
-    '</div><button id="go-today">Heute</button>' +
-    (isWallMode(displayMode) ? '' : '<button id="quick-event" class="primary">+ Termin</button>') +
-    (view === 'shift' && !isWallMode(displayMode) ? '<button id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
+    '</div><button type="button" id="go-today">Heute</button>' +
+    (isWallMode(displayMode) ? '' : '<button type="button" id="quick-event" class="primary">+ Termin</button>') +
+    (view === 'shift' && !isWallMode(displayMode) ? '<button type="button" id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
     '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
     '<details class="calendar-filter-details"><summary>Filter · Personen und Bereiche</summary><div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
     memberFilterOptions(householdMembers).map(([id, label]) =>
-      '<button data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '" aria-pressed="' + (personFilter === id) + '">' + label + '</button>').join('') +
+      '<button type="button" data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '" aria-pressed="' + (personFilter === id) + '">' + label + '</button>').join('') +
     '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
     [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']].map(([id, label]) =>
-      '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
+      '<button type="button" data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
     '<p class="calendar-hint" id="calendar-hint">' + h(calendarHint) + '</p>' +
@@ -437,7 +468,7 @@ function render() {
     days.map(day => day
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b><button type="button" class="day-select' +
         (day === dateKey(focusedDate) ? ' selected' : '') + '" data-day-select="' + day + '"' +
-        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' aria-label="' + h(new Date(day + 'T12:00:00').toLocaleDateString('de-DE', {
+        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' tabindex="' + (day === dateKey(focusedDate) ? '0' : '-1') + '" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End" aria-label="' + h(new Date(day + 'T12:00:00').toLocaleDateString('de-DE', {
           weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
         }) + (day === today ? ' · Heute' : '')) + '">' + Number(day.slice(-2)) + '</button></b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
@@ -477,14 +508,14 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.7</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.17</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
-      .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
+      .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
       .join('') +
     '</nav><div class="sidebar-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' +
     h(syncStatusLabel(syncState)) + '</div></aside>' +
-    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1>' +
+    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1 id="view-title" tabindex="-1">' +
     (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender') +
     '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
@@ -618,7 +649,7 @@ function todayOverviewMarkup(today, displayEntries = entries) {
     weekday: 'long', day: '2-digit', month: 'long',
   });
   return '<section class="today-board"><div class="today-hero"><div><p class="eyebrow">' + label + '</p><h2>Was steht heute an?</h2></div>' +
-    '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button></div></div>' +
+    '<div class="today-actions"><button type="button" id="add-today" class="primary">+ Termin</button></div></div>' +
     '<div class="today-list">' +
     (items.length
       ? items.map(entry => {
@@ -754,7 +785,7 @@ function shiftRosterMarkup(today) {
 
   if (rosterImportBusy) {
     return '<section class="panel shift-roster"><h2>Dienstplan wird gelesen …</h2>' +
-      '<p id="roster-progress" role="status">' + h(rosterImportError || 'Bitte einen Moment warten.') + '</p>' +
+      '<p id="roster-progress" role="status" tabindex="-1">' + h(rosterImportError || 'Bitte einen Moment warten.') + '</p>' +
       '<progress class="roster-progress" max="1" value="0"></progress>' + privacy + '</section>';
   }
 
@@ -804,7 +835,7 @@ function shiftSeriesMarkup(today) {
     '<label>Bis<input name="endDate" type="date" required value="' + h(dateKey(monthEnd)) + '"></label>' +
     '<fieldset class="weekday-grid wide"><legend>Wochentage</legend>' + days.map(([value, label]) =>
       '<label><input type="checkbox" name="weekday" value="' + value + '"' + (value >= 1 && value <= 5 ? ' checked' : '') + '> ' + label + '</label>').join('') + '</fieldset>' +
-    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button id="shift-series-submit" class="primary">Serie eintragen</button></div>' +
+    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button type="submit" id="shift-series-submit" class="primary">Serie eintragen</button></div>' +
     (shiftSeriesStatus ? '<p class="shift-series-status wide" role="status">' + h(shiftSeriesStatus) + '</p>' : '') +
     '</form></details>';
 }
@@ -847,7 +878,7 @@ function shiftTargetSettingsMarkup() {
     '<form id="shift-targets-form" class="shift-targets-form"><div class="shift-target-grid">' +
     shiftMembers.map(member => '<label>' + h(member.name) + '<span class="field-hint">Stunden / Monat</span><input type="number" min="0" max="744" step="0.25" inputmode="decimal" data-shift-target="' +
       h(member.id) + '" value="' + h(shiftTargets[member.id] ?? '') + '" placeholder="z. B. 160"></label>').join('') +
-    '</div><div class="dialog-actions"><button class="primary">Soll speichern</button></div>' +
+    '</div><div class="dialog-actions"><button type="submit" class="primary">Soll speichern</button></div>' +
     (shiftTargetStatus ? '<p class="shift-target-status" role="status">' + h(shiftTargetStatus) + '</p>' : '') +
     '</form></details>';
 }
@@ -964,7 +995,7 @@ function custodyMarkup() {
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
-    '<button id="custody-submit" class="primary wide">Rhythmus eintragen</button></form></section>' +
+    '<button type="submit" id="custody-submit" class="primary wide">Rhythmus eintragen</button></form></section>' +
     '<section class="panel data-tools-card"><h2>Daten sichern und austauschen</h2>' +
     '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. JSON- und ICS-Importe werden vor dem Speichern bestätigt und auf Duplikate geprüft.</p>' +
     '<label class="data-tools-source-label">ICS-Quelle zuordnen<select id="ics-import-member" aria-label="ICS-Quelle zuordnen">' + icsMemberOptions + '</select></label>' +
@@ -1013,7 +1044,7 @@ function rewardsSettingsMarkup() {
     '<p>Vergib bei Aufgaben oder Routinen einen Punktwert. Die Punkte und Belohnungsziele bleiben nur auf diesem Gerät und werden nicht in Supabase gespeichert.</p>' +
     '<form id="reward-form" class="reward-form"><label>Belohnung<input name="title" maxlength="120" required placeholder="z. B. Ausflug aussuchen"></label>' +
     '<label>Punkte<input name="points" type="number" min="1" max="10000" step="1" required placeholder="z. B. 50"></label>' +
-    '<button class="primary">Belohnung anlegen</button></form>' + storageNote + rewardList +
+    '<button type="submit" class="primary">Belohnung anlegen</button></form>' + storageNote + rewardList +
     (rewardStatus ? '<p class="data-transfer-status" role="status">' + h(rewardStatus) + '</p>' : '') + '</section>';
 }
 
@@ -1135,11 +1166,42 @@ const shiftAbbreviations = {
 };
 function shiftShortLabel(title) { return shiftAbbreviations[title] || title; }
 
-function selectCalendarDay(day) {
+function selectCalendarDay(day, {restoreFocus = false} = {}) {
   if (!day) return;
   focusedDate = new Date(day + 'T12:00:00');
   month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
   render();
+  if (restoreFocus) {
+    window.setTimeout(() => document.querySelector('[data-day-select="' + day + '"]')?.focus(), 0);
+  }
+}
+
+function moveCalendarDayByKeyboard(event) {
+  const day = event.currentTarget?.dataset?.daySelect;
+  if (!day) return;
+  const key = event.key;
+  const date = new Date(day + 'T12:00:00');
+  const boundaryKey = key === 'Home' || key === 'End';
+  let offset = 0;
+  if (calendarMode === 'day') {
+    if (key === 'ArrowLeft' || key === 'ArrowUp') offset = -1;
+    if (key === 'ArrowRight' || key === 'ArrowDown') offset = 1;
+  } else {
+    if (key === 'ArrowLeft') offset = -1;
+    if (key === 'ArrowRight') offset = 1;
+    if (key === 'ArrowUp') offset = -7;
+    if (key === 'ArrowDown') offset = 7;
+  }
+  if (key === 'Home') {
+    offset = -((date.getDay() + 6) % 7);
+  } else if (key === 'End') {
+    offset = 6 - ((date.getDay() + 6) % 7);
+  }
+  if (!offset && !boundaryKey) return;
+  event.preventDefault();
+  if (!offset) return;
+  date.setDate(date.getDate() + offset);
+  selectCalendarDay(dateKey(date), {restoreFocus: true});
 }
 
 function bindControls() {
@@ -1157,6 +1219,7 @@ function bindControls() {
     rosterImport = null;
     rosterImportError = '';
     render();
+    focusAfterRender('#roster-upload');
   });
   app.querySelector('#roster-review-form')?.addEventListener('submit', handleRosterImportSubmit);
   app.querySelector('#roster-review-form [name="selfName"]')?.addEventListener('change', event => {
@@ -1189,23 +1252,27 @@ function bindControls() {
       const index = Number(button.dataset.rosterRemove);
       rosterImport.entries.splice(index, 1);
       render();
+      focusAfterRender('#roster-add-duty');
     });
   });
   app.querySelector('#prev')?.addEventListener('click', () => {
     focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, -1);
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
+    focusAfterRender('#prev');
   });
   app.querySelector('#next')?.addEventListener('click', () => {
     focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, 1);
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
+    focusAfterRender('#next');
   });
   app.querySelector('#go-today')?.addEventListener('click', () => {
     const now = new Date();
     month = new Date(now.getFullYear(), now.getMonth(), 1, 12);
     focusedDate = now;
     render();
+    focusAfterRender('#go-today');
   });
   app.querySelector('#add-today')?.addEventListener('click', () => {
     openDayDialog(dateKey(new Date()));
@@ -1234,6 +1301,7 @@ function bindControls() {
         startShiftCapture();
       } else {
         render();
+        focusViewHeading();
       }
     };
   });
@@ -1243,18 +1311,21 @@ function bindControls() {
     button.onclick = () => {
       calendarMode = button.dataset.calendarMode;
       render();
+      focusDatasetControl('data-calendar-mode', button.dataset.calendarMode);
     };
   });
   app.querySelectorAll('[data-person-filter]').forEach(button => {
     button.onclick = () => {
       personFilter = button.dataset.personFilter;
       render();
+      focusDatasetControl('data-person-filter', button.dataset.personFilter);
     };
   });
   app.querySelectorAll('[data-category-filter]').forEach(button => {
     button.onclick = () => {
       categoryFilter = button.dataset.categoryFilter;
       render();
+      focusDatasetControl('data-category-filter', button.dataset.categoryFilter);
     };
   });
   app.querySelectorAll('[data-day]').forEach(day => {
@@ -1264,11 +1335,17 @@ function bindControls() {
     };
   });
   app.querySelectorAll('[data-day-select]').forEach(button => {
-    button.addEventListener('click', () => selectCalendarDay(button.dataset.daySelect));
+    button.addEventListener('click', () => selectCalendarDay(button.dataset.daySelect, {restoreFocus: true}));
+    button.addEventListener('keydown', moveCalendarDayByKeyboard);
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {
-    button.onclick = () => { shiftOwnerId = button.dataset.owner; shiftConflict = null; render(); };
+    button.onclick = () => {
+      shiftOwnerId = button.dataset.owner;
+      shiftConflict = null;
+      render();
+      focusDatasetControl('data-owner', button.dataset.owner);
+    };
   });
   app.querySelectorAll('[data-shift]').forEach(button => {
     button.onclick = () => handleShiftChoice(button.dataset.shift);
@@ -1356,6 +1433,7 @@ function bindControls() {
         ? 'Installation abgebrochen. Du kannst sie später erneut starten.'
         : 'Dieser Browser bietet gerade keinen Installationsdialog an.';
     render();
+    focusAfterRender('#pwa-install');
   });
   document.querySelector('#reward-form')?.addEventListener('submit', handleRewardSubmit);
   document.querySelectorAll('[data-reward-remove]').forEach(button => {
@@ -1365,6 +1443,7 @@ function bindControls() {
     displayMode = saveDisplayMode('standard');
     displayStatus = 'Wandmodus wurde beendet.';
     render();
+    focusViewHeading();
   });
   app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
   app.querySelector('#shift-edit-cancel')?.addEventListener('click', closeShiftDialog);
@@ -1375,6 +1454,7 @@ function bindControls() {
       focusedDate = new Date(shiftCaptureDate + 'T12:00:00');
       month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
       render();
+      focusAfterRender('#capture-date');
     }
   });
 }
@@ -1390,6 +1470,7 @@ async function handleRosterFilesChange(event) {
   if (validationError) {
     rosterImportError = validationError;
     render();
+    focusAfterRender('#roster-upload');
     return;
   }
 
@@ -1397,6 +1478,7 @@ async function handleRosterFilesChange(event) {
   rosterImportBusy = true;
   rosterImportError = 'OCR wird auf diesem Gerät gestartet …';
   render();
+  focusAfterRender('#roster-progress');
   try {
     const pages = await recognizeRosterImagesOnDemand(files, updateRosterOcrProgress);
     const ocrTexts = pages.flatMap(page => [page.text, ...(page.alternatives || []).map(item => item.text)]);
@@ -1418,6 +1500,7 @@ async function handleRosterFilesChange(event) {
   } finally {
     rosterImportBusy = false;
     render();
+    focusFirstAfterRender('#roster-review-form [name="month"]', '#roster-upload');
   }
 }
 
@@ -1498,8 +1581,10 @@ function handleShiftTemplateSave() {
     shiftTemplates = saveShiftTemplates(upsertShiftTemplate(shiftTemplates, template));
     shiftSeriesStatus = `Vorlage „${template.name}“ wurde auf diesem Gerät gespeichert.`;
     render();
+    focusAfterRender('#shift-template-save');
   } catch (error) {
     showAppNotice(userError(error, 'Vorlage konnte nicht gespeichert werden.'));
+    focusAfterRender('#shift-series-form [name="title"]');
   }
 }
 
@@ -1511,7 +1596,7 @@ function handleShiftTargetsSubmit(event) {
     const normalized = normalizeShiftTargetHours(raw);
     if (raw && normalized === null) {
       showAppNotice('Bitte pro Person ein Soll zwischen 0 und 744 Stunden eingeben.');
-      input.focus();
+      focusDatasetControl('data-shift-target', input.dataset.shiftTarget);
       return;
     }
     if (normalized !== null) targets[input.dataset.shiftTarget] = normalized;
@@ -1520,8 +1605,10 @@ function handleShiftTargetsSubmit(event) {
     shiftTargets = saveShiftTargets(targets);
     shiftTargetStatus = 'Sollstunden wurden auf diesem Gerät gespeichert.';
     render();
+    focusAfterRender('#shift-targets-form button[type="submit"]');
   } catch (error) {
     showAppNotice(userError(error, 'Sollstunden konnten nicht gespeichert werden.'));
+    focusAfterRender('#shift-targets-form [data-shift-target]');
   }
 }
 
@@ -1553,11 +1640,13 @@ async function handleShiftSeriesSubmit(event) {
     });
   } catch (error) {
     showAppNotice(userError(error, 'Die Serie ist ungültig.'));
+    focusAfterRender('#shift-series-form [name="startDate"]');
     return;
   }
   if (!series.length) {
     shiftSeriesStatus = 'Alle ausgewählten Dienste existieren in diesem Zeitraum bereits.';
     render();
+    focusAfterRender('#shift-series-submit');
     return;
   }
 
@@ -1578,8 +1667,10 @@ async function handleShiftSeriesSubmit(event) {
   try {
     await persistShiftSeries(series);
     render();
+    focusAfterRender('#shift-series-submit');
   } catch (error) {
     showAppNotice(userError(error, 'Serie konnte nicht gespeichert werden.'));
+    focusAfterRender('#shift-series-form [name="title"]');
   }
 }
 
@@ -1591,12 +1682,14 @@ function addRosterPreviewDuty() {
   const service = parseRosterCell(code);
   if (!name || !date?.startsWith(rosterImport.month + '-') || !service?.start) {
     showAppNotice('Bitte Person, Datum im importierten Monat und Dienst wählen.');
+    focusAfterRender('#roster-new-name');
     return;
   }
   rosterImport.entries.push({name, date, code:service.code, title:service.title,
     start:service.start, end:service.end, notCounted:false});
   rosterImport.entries.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name, 'de'));
   render();
+  focusAfterRender('#roster-add-duty');
 }
 
 function persistRosterReplacement(replacement) {
@@ -1615,6 +1708,7 @@ function handleRosterImportSubmit(event) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue) || !selfName ||
       !shiftMembers.some(member => member.id === selfMemberId)) {
     showAppNotice('Bitte Monat, deine Person in FamSchicht und deine Zeile im Plan auswählen.');
+    focusFirstAfterRender('#roster-review-form [name="month"]', '#roster-review-form [name="selfMemberId"]', '#roster-review-form [name="selfName"]');
     return;
   }
 
@@ -1622,10 +1716,12 @@ function handleRosterImportSubmit(event) {
   const draftError = validateRosterDraft({month:monthValue, selfName, selfMemberId, entries});
   if (draftError) {
     showAppNotice(draftError);
+    focusAfterRender('#roster-review-form [data-roster-field]');
     return;
   }
   if (!entries.some(entry => normalizeRosterName(entry.name) === normalizeRosterName(selfName))) {
     showAppNotice('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
+    focusAfterRender('#roster-review-form [name="selfName"]');
     return;
   }
 
@@ -1645,8 +1741,10 @@ function handleRosterImportSubmit(event) {
   try {
     persistRosterReplacement(replacement);
     render();
+    focusAfterRender('#roster-upload');
   } catch (error) {
     showAppNotice(userError(error, 'Dienstplan konnte nicht lokal gespeichert werden.'));
+    focusAfterRender('#roster-review-submit');
   }
 }
 
@@ -1661,7 +1759,7 @@ function shiftDialogMarkup() {
     '<details class="editor-more"><summary>Weitere Optionen · Dienst und Person</summary>' +
     '<label>Dienst<select name="title">' + SHIFT_NAMES.map(name => '<option value="' + h(name) + '"' + (name === item.title ? ' selected' : '') + '>' + h(name) + '</option>').join('') + '</select></label>' +
     '<label>Person<select name="ownerId">' + shiftMembers.map(member => '<option value="' + h(member.id) + '"' + (member.id === item.ownerId ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') + '</select></label></details>' +
-    '<div class="wide dialog-actions"><button id="shift-edit-cancel" type="button">Abbrechen</button><button class="primary">Speichern</button></div></form></section></div>';
+    '<div class="wide dialog-actions"><button id="shift-edit-cancel" type="button">Abbrechen</button><button type="submit" class="primary">Speichern</button></div></form></section></div>';
 }
 
 function handleShiftEditSubmit(event) {
@@ -1688,6 +1786,7 @@ async function handleCustodySubmit(event) {
   const title = String(formData.get('title')).trim();
   if (!title) {
     showAppNotice('Bitte eine Bezeichnung eingeben.');
+    focusAfterRender('#custody-form [name="title"]');
     return;
   }
 
@@ -1696,6 +1795,7 @@ async function handleCustodySubmit(event) {
     dates = generateCustodyDates(anchor, 12, endAnchor);
   } catch (err) {
     showAppNotice(userError(err, 'Der Umgangsrhythmus ist ungültig.'));
+    focusAfterRender('#custody-form [name="anchor"]');
     return;
   }
 
@@ -1743,9 +1843,11 @@ async function handleCustodySubmit(event) {
     await persistCustodyEntries();
   } catch (err) {
     showAppNotice(userError(err, 'Umgangsrhythmus konnte nicht vollständig gespeichert werden.'));
+    focusAfterRender('#custody-submit');
     return;
   }
   render();
+  focusAfterRender('#custody-submit');
 }
 
 function exportJsonData() {
@@ -1757,6 +1859,7 @@ function exportJsonData() {
   }, null, 2), 'application/json');
   dataTransferStatus = 'JSON-Sicherung wurde heruntergeladen.';
   render();
+  focusAfterRender('#export-json');
 }
 
 async function persistJsonImport(restored, merged, conflictNote) {
@@ -1775,6 +1878,7 @@ async function handleJsonImport(event) {
   if (file.size > 5 * 1024 * 1024) {
     dataTransferStatus = 'Die JSON-Sicherung ist zu groß (maximal 5 MB).';
     render();
+    focusAfterRender('#import-json');
     return;
   }
   try {
@@ -1785,6 +1889,7 @@ async function handleJsonImport(event) {
         ? `${merged.conflicts.length} JSON-Konflikt(e) benötigen eine manuelle Prüfung; vorhandene Termine wurden nicht überschrieben.`
         : 'Keine neuen Termine in der JSON-Sicherung gefunden.';
       render();
+      focusAfterRender('#import-json');
       return;
     }
     const conflictNote = merged.conflicts.length
@@ -1800,8 +1905,9 @@ async function handleJsonImport(event) {
     });
     return;
   } catch (error) {
-    dataTransferStatus = error.message || 'Die JSON-Sicherung konnte nicht importiert werden.';
+    dataTransferStatus = userError(error, 'Die JSON-Sicherung konnte nicht importiert werden.');
     render();
+    focusAfterRender('#import-json');
   }
 }
 
@@ -1810,6 +1916,7 @@ function exportIcsData() {
   downloadFile('famschicht.ics', eventsToIcs(exportEntries), 'text/calendar;charset=utf-8');
   dataTransferStatus = `${exportEntries.length} Einträge wurden als ICS exportiert.`;
   render();
+  focusAfterRender('#export-ics');
 }
 
 async function persistIcsImport(imported, merged, conflictNote) {
@@ -1828,6 +1935,7 @@ async function handleIcsImport(event) {
   if (file.size > 5 * 1024 * 1024) {
     dataTransferStatus = 'Die ICS-Datei ist zu groß (maximal 5 MB).';
     render();
+    focusAfterRender('#import-ics');
     return;
   }
   try {
@@ -1848,6 +1956,7 @@ async function handleIcsImport(event) {
           : 'Keine neuen ICS-Termine gefunden.'
         : 'Die ICS-Datei enthält keine lesbaren Termine.';
       render();
+      focusAfterRender('#import-ics');
       return;
     }
     const conflictNote = merged.conflicts.length
@@ -1863,8 +1972,9 @@ async function handleIcsImport(event) {
     });
     return;
   } catch (error) {
-    dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
+    dataTransferStatus = userError(error, 'Die ICS-Datei konnte nicht importiert werden.');
     render();
+    focusAfterRender('#import-ics');
   }
 }
 
@@ -1875,9 +1985,10 @@ function handleHolidaySettingsSubmit(event) {
     holidayRegion = saveHolidayRegion(formData.get('region'));
     holidayStatus = `Feiertage für ${holidayRegionLabel(holidayRegion)} sind aktiviert.`;
   } catch (error) {
-    holidayStatus = error.message || 'Die Feiertagsauswahl konnte nicht gespeichert werden.';
+    holidayStatus = userError(error, 'Die Feiertagsauswahl konnte nicht gespeichert werden.');
   }
   render();
+  focusAfterRender('#holiday-settings-form button[type="submit"]');
 }
 
 function handleDisplaySettingsSubmit(event) {
@@ -1890,9 +2001,13 @@ function handleDisplaySettingsSubmit(event) {
       : 'Standardansicht ist aktiv.';
     if (isWallMode(displayMode)) view = 'all';
   } catch (error) {
-    displayStatus = error.message || 'Die Darstellung konnte nicht gespeichert werden.';
+    displayStatus = userError(error, 'Die Darstellung konnte nicht gespeichert werden.');
   }
+  const focusSelector = isWallMode(displayMode) && view === 'all'
+    ? '#exit-wall-mode'
+    : '#display-settings-form button[type="submit"]';
   render();
+  focusAfterRender(focusSelector);
 }
 
 function handleRewardSubmit(event) {
@@ -1903,6 +2018,7 @@ function handleRewardSubmit(event) {
   if (!title || points === null) {
     rewardStatus = 'Bitte einen Namen und eine ganze Punktzahl zwischen 1 und 10000 eingeben.';
     render();
+    focusAfterRender(!title ? '#reward-form [name="title"]' : '#reward-form [name="points"]');
     return;
   }
   try {
@@ -1917,6 +2033,7 @@ function handleRewardSubmit(event) {
     rewardStatus = userError(error, 'Belohnung konnte nicht gespeichert werden.');
   }
   render();
+  focusAfterRender('#reward-form [name="title"]');
 }
 
 function handleRewardRemove(id, trigger = document.activeElement) {
@@ -2058,7 +2175,7 @@ function deleteDialogMarkup() {
     '<p id="delete-dialog-description">„' + h(item.title) + '“ wird aus deinem Kalender entfernt. Dieser Schritt kann nicht rückgängig gemacht werden.</p>' +
     '<form id="delete-dialog-form"><div class="wide dialog-actions">' +
     '<button type="button" id="delete-dialog-cancel"' + (busy ? ' disabled' : '') + '>Abbrechen</button>' +
-    '<button class="primary" id="delete-dialog-confirm"' + (busy ? ' disabled' : '') + '>' +
+    '<button type="submit" class="primary" id="delete-dialog-confirm"' + (busy ? ' disabled' : '') + '>' +
     (busy ? 'Wird gelöscht …' : 'Eintrag löschen') + '</button></div></form></section></div>';
 }
 
@@ -2102,7 +2219,7 @@ function moveDialogMarkup() {
   return '<div class="dialog-backdrop"><section id="move-dialog" class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title" aria-describedby="move-dialog-description" tabindex="-1">' +
     '<h2 id="move-dialog-title">Termin verschieben</h2><p id="move-dialog-description" class="note">' + h(item.title) + ' · aktuell ' + h(label) + '</p>' +
     '<form id="move-dialog-form"><label>Neuer Tag<input name="targetDate" type="date" required value="' + h(sourceDate) + '"></label>' +
-    '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button class="primary">Verschieben</button></div></form></section></div>';
+    '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button type="submit" class="primary">Verschieben</button></div></form></section></div>';
 }
 
 function handleMoveDialogSubmit(event) {
@@ -2155,7 +2272,7 @@ function dayDialogMarkup() {
     '</select></label>' +
     (existing ? '</details>' : '') +
     '<div class="wide dialog-actions"><button type="button" id="day-dialog-cancel">Abbrechen</button>' +
-    '<button class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
+    '<button type="submit" class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
 }
 
 function handleDayDialogSubmit(event) {
@@ -2168,6 +2285,7 @@ function handleDayDialogSubmit(event) {
   const rawEndDate = String(data.get('endDate') || date);
   if (rawEndDate < date) {
     showAppNotice('Das Enddatum darf nicht vor dem Startdatum liegen.');
+    focusAfterRender('#day-dialog-form [name="endDate"]');
     return;
   }
   const item = {
@@ -2194,6 +2312,7 @@ function handleDayDialogSubmit(event) {
     const points = normalizePoints(data.get('points'), {allowZero: true});
     if (points === null) {
       showAppNotice('Bitte für Punkte eine ganze Zahl zwischen 0 und 10000 eingeben.');
+      focusAfterRender('#day-dialog-form [name="points"]');
       return;
     }
     if (points) item.points = points;
@@ -2223,6 +2342,7 @@ function startShiftCapture() {
     ? new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12)
     : new Date(month.getFullYear(), month.getMonth(), 1, 12));
   render();
+  focusAfterRender('#capture-date');
 }
 
 function shiftCaptureMarkup() {
@@ -2242,7 +2362,7 @@ function shiftCaptureMarkup() {
     '<label>Starttag wählen<input id="capture-date" type="date" value="' + h(shiftCaptureDate) + '"></label>' +
     '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner">' +
-    shiftMembers.map(member => '<button data-owner="' + h(member.id) + '" class="' +
+      shiftMembers.map(member => '<button type="button" data-owner="' + h(member.id) + '" class="' +
       (shiftOwnerId === member.id ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
     '</div>' +
     conflictMarkup +
@@ -2259,6 +2379,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     shiftCaptureDate = null;
     shiftConflict = null;
     render();
+    focusAfterRender('#shift-capture');
     return;
   }
   if (choice === 'skip') {
@@ -2278,6 +2399,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     if (conflicts.length) {
       shiftConflict = {choice, conflicts};
       render();
+      focusAfterRender('[data-shift-confirm="save"]');
       return;
     }
   }
@@ -2288,6 +2410,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
   if (!shiftOwner) {
     shiftSavePending = false;
     render();
+    focusAfterRender('[data-owner]');
     return;
   }
   void saveEntry({
@@ -2313,6 +2436,7 @@ function advanceShiftCapture() {
   const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
   shiftCaptureDate = nextDate;
   render();
+  focusAfterRender(shiftCaptureDate ? '[data-shift]' : '#shift-capture');
 }
 
 async function updateEntry(item) {
@@ -2333,9 +2457,11 @@ async function updateEntry(item) {
     restoreDialogFocus();
   } catch (err) {
     syncState = 'error';
-    if (item.type === 'shift') shiftDialogEventId = item.id;
-    render();
+    const reopenShift = item.type === 'shift';
+    if (reopenShift) shiftDialogEventId = item.id;
     showAppNotice(userError(err, 'Änderung konnte nicht gespeichert werden.'));
+    if (reopenShift) focusAfterRender('#shift-edit-form [name="date"]');
+    else restoreDialogFocus();
   }
 }
 
@@ -2351,6 +2477,7 @@ async function saveEntry(item, afterSave, afterError) {
     syncState = 'error';
     afterError?.();
     showAppNotice(userError(err, 'Speichern fehlgeschlagen.'));
+    restoreDialogFocus();
   }
 }
 

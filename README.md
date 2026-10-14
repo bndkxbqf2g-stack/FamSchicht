@@ -54,7 +54,7 @@ Details zu OCR, Kürzeln, lokaler Speicherung und manueller Prüfung: [`docs/SHI
 **Datenschutz:** Keine Supabase-Service-Role-/Secret-Schlüssel oder unnötige sensible Familieninformationen im Repository speichern.
 
 
-## Release 0.3.1
+## Aktueller Release 0.3.17
 
-Die freigegebene helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht; Fachlogik und owner-only RLS bleiben unverändert.
+Die helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht. Der aktuelle Release enthält neutrale Startup-Recovery, zentrale sichere Nutzerfehler-Fallbacks und einen konsistenten PWA-Cache-Bust; Fachlogik und owner-only RLS bleiben unverändert.
 

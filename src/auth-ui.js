@@ -10,7 +10,9 @@ const COOLDOWN_MS = 5 * 60 * 1000;
 const pendingInvite = new URLSearchParams(window.location.search).get('invite');
 let lastRequest = 0;
 let inviteHandled = false;
+let inviteRequestInFlight = false;
 let inviteStatus = '';
+let activeUser = null;
 
 function setAuthMessage(message, text, kind = 'status') {
   if (!message) return;
@@ -24,30 +26,55 @@ function showInviteMessage(text, kind = 'status') {
   inviteStatus = text;
   const message = root.querySelector('#account-status');
   setAuthMessage(message, text, kind);
+  const existingRetry = root.querySelector('#retry-invitation');
+  if (kind !== 'error' || inviteHandled || !pendingInvite) {
+    existingRetry?.remove();
+    return;
+  }
+  const retry = existingRetry || document.createElement('button');
+  retry.id = 'retry-invitation';
+  retry.type = 'button';
+  retry.textContent = 'Erneut versuchen';
+  retry.disabled = false;
+  retry.onclick = () => {
+    retry.disabled = true;
+    void acceptPendingInvitation(activeUser);
+  };
+  if (!existingRetry) message?.after(retry);
 }
 
 async function acceptPendingInvitation(user) {
-  if (!user || !pendingInvite || inviteHandled) return;
-  inviteHandled = true;
+  if (!user || !pendingInvite || inviteHandled || inviteRequestInFlight) return;
+  inviteRequestInFlight = true;
   try {
     await acceptHouseholdInvitation(supabase, pendingInvite);
+    inviteHandled = true;
     const cleanUrl = clearInvitationParam(window.location.href);
     window.history.replaceState({}, '', cleanUrl);
     showInviteMessage('Einladung angenommen. Dein Familienzugang ist vorbereitet.');
   } catch {
     showInviteMessage('Einladung konnte nicht angenommen werden. Prüfe den Link oder melde dich mit der eingeladenen E-Mail-Adresse an.', 'error');
+  } finally {
+    inviteRequestInFlight = false;
   }
 }
 
 function show(user) {
   if (!root) return;
+  activeUser = user || null;
   if (user) {
     root.innerHTML = `<div class="auth-status">Angemeldet: <strong>${escapeHtml(user.email || 'Konto')}</strong>
-      <button id="logout">Abmelden</button>
-      <p id="account-status" class="note" aria-live="polite">${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}</p></div>`;
+      <button id="logout" type="button">Abmelden</button>
+      <p id="account-status" class="note" aria-live="polite">${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}</p>
+      ${pendingInvite && inviteStatus && !inviteHandled ? '<button id="retry-invitation" type="button">Erneut versuchen</button>' : ''}</div>`;
     root.querySelector('#logout').onclick = async () => {
       const {error} = await signOut();
       if (error) setAuthMessage(root.querySelector('#account-status'), 'Abmelden derzeit nicht möglich. Bitte später erneut versuchen.', 'error');
+    };
+    const retry = root.querySelector('#retry-invitation');
+    if (retry) retry.onclick = () => {
+      retry.disabled = true;
+      void acceptPendingInvitation(user);
     };
     void acceptPendingInvitation(user);
     return;
@@ -56,7 +83,7 @@ function show(user) {
     <label>E-Mail für deinen persönlichen Anmeldelink
       <input type="email" name="email" autocomplete="email" required>
     </label>
-    <button class="primary">Anmeldelink senden</button>
+    <button type="submit" class="primary">Anmeldelink senden</button>
     <p id="login-message" class="note" aria-live="polite">
       Falls du bereits angemeldet bist, brauchst du keinen neuen Link.
       ${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}
