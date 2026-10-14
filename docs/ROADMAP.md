@@ -57,6 +57,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Optionale Zuordnung lokaler read-only-ICS-Quellen zu einer Kalenderperson.
 - Lokale read-only-Feiertagsquelle mit deutscher Bundesland-Auswahl und deterministischer Feiertagsberechnung.
 - Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.
+- iPhone-/iPadOS- und Browser-Installationshinweis in den Einstellungen mit erkanntem Standalone-Status und optionalem nativen Installationsprompt.
 - Sichtbarer Sync-Status und Fehleranzeige für lokalen, laufenden, erfolgreichen und offline/fehlerhaften Zustand.
 - Terminverschiebung per Desktop-Drag/Touch-Pointer mit zugänglichem Zieldatum-Fallback; Mehrtages-, Nacht-, Wiederholungs- und Umgangssemantik bleibt erhalten.
 - Reversibler read-only-Wand-/Tablet-Modus für große gemeinsame Displays.
