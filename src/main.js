@@ -822,7 +822,7 @@ function shiftSeriesMarkup(today) {
     '<label>Bis<input name="endDate" type="date" required value="' + h(dateKey(monthEnd)) + '"></label>' +
     '<fieldset class="weekday-grid wide"><legend>Wochentage</legend>' + days.map(([value, label]) =>
       '<label><input type="checkbox" name="weekday" value="' + value + '"' + (value >= 1 && value <= 5 ? ' checked' : '') + '> ' + label + '</label>').join('') + '</fieldset>' +
-    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button id="shift-series-submit" class="primary">Serie eintragen</button></div>' +
+    '<div class="wide dialog-actions"><button type="button" id="shift-template-save">Vorlage speichern</button><button type="submit" id="shift-series-submit" class="primary">Serie eintragen</button></div>' +
     (shiftSeriesStatus ? '<p class="shift-series-status wide" role="status">' + h(shiftSeriesStatus) + '</p>' : '') +
     '</form></details>';
 }
@@ -865,7 +865,7 @@ function shiftTargetSettingsMarkup() {
     '<form id="shift-targets-form" class="shift-targets-form"><div class="shift-target-grid">' +
     shiftMembers.map(member => '<label>' + h(member.name) + '<span class="field-hint">Stunden / Monat</span><input type="number" min="0" max="744" step="0.25" inputmode="decimal" data-shift-target="' +
       h(member.id) + '" value="' + h(shiftTargets[member.id] ?? '') + '" placeholder="z. B. 160"></label>').join('') +
-    '</div><div class="dialog-actions"><button class="primary">Soll speichern</button></div>' +
+    '</div><div class="dialog-actions"><button type="submit" class="primary">Soll speichern</button></div>' +
     (shiftTargetStatus ? '<p class="shift-target-status" role="status">' + h(shiftTargetStatus) + '</p>' : '') +
     '</form></details>';
 }
@@ -982,7 +982,7 @@ function custodyMarkup() {
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
-    '<button id="custody-submit" class="primary wide">Rhythmus eintragen</button></form></section>' +
+    '<button type="submit" id="custody-submit" class="primary wide">Rhythmus eintragen</button></form></section>' +
     '<section class="panel data-tools-card"><h2>Daten sichern und austauschen</h2>' +
     '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. JSON- und ICS-Importe werden vor dem Speichern bestätigt und auf Duplikate geprüft.</p>' +
     '<label class="data-tools-source-label">ICS-Quelle zuordnen<select id="ics-import-member" aria-label="ICS-Quelle zuordnen">' + icsMemberOptions + '</select></label>' +
@@ -1031,7 +1031,7 @@ function rewardsSettingsMarkup() {
     '<p>Vergib bei Aufgaben oder Routinen einen Punktwert. Die Punkte und Belohnungsziele bleiben nur auf diesem Gerät und werden nicht in Supabase gespeichert.</p>' +
     '<form id="reward-form" class="reward-form"><label>Belohnung<input name="title" maxlength="120" required placeholder="z. B. Ausflug aussuchen"></label>' +
     '<label>Punkte<input name="points" type="number" min="1" max="10000" step="1" required placeholder="z. B. 50"></label>' +
-    '<button class="primary">Belohnung anlegen</button></form>' + storageNote + rewardList +
+    '<button type="submit" class="primary">Belohnung anlegen</button></form>' + storageNote + rewardList +
     (rewardStatus ? '<p class="data-transfer-status" role="status">' + h(rewardStatus) + '</p>' : '') + '</section>';
 }
 
@@ -1717,7 +1717,7 @@ function shiftDialogMarkup() {
     '<details class="editor-more"><summary>Weitere Optionen · Dienst und Person</summary>' +
     '<label>Dienst<select name="title">' + SHIFT_NAMES.map(name => '<option value="' + h(name) + '"' + (name === item.title ? ' selected' : '') + '>' + h(name) + '</option>').join('') + '</select></label>' +
     '<label>Person<select name="ownerId">' + shiftMembers.map(member => '<option value="' + h(member.id) + '"' + (member.id === item.ownerId ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') + '</select></label></details>' +
-    '<div class="wide dialog-actions"><button id="shift-edit-cancel" type="button">Abbrechen</button><button class="primary">Speichern</button></div></form></section></div>';
+    '<div class="wide dialog-actions"><button id="shift-edit-cancel" type="button">Abbrechen</button><button type="submit" class="primary">Speichern</button></div></form></section></div>';
 }
 
 function handleShiftEditSubmit(event) {
@@ -2114,7 +2114,7 @@ function deleteDialogMarkup() {
     '<p id="delete-dialog-description">„' + h(item.title) + '“ wird aus deinem Kalender entfernt. Dieser Schritt kann nicht rückgängig gemacht werden.</p>' +
     '<form id="delete-dialog-form"><div class="wide dialog-actions">' +
     '<button type="button" id="delete-dialog-cancel"' + (busy ? ' disabled' : '') + '>Abbrechen</button>' +
-    '<button class="primary" id="delete-dialog-confirm"' + (busy ? ' disabled' : '') + '>' +
+    '<button type="submit" class="primary" id="delete-dialog-confirm"' + (busy ? ' disabled' : '') + '>' +
     (busy ? 'Wird gelöscht …' : 'Eintrag löschen') + '</button></div></form></section></div>';
 }
 
@@ -2158,7 +2158,7 @@ function moveDialogMarkup() {
   return '<div class="dialog-backdrop"><section id="move-dialog" class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title" aria-describedby="move-dialog-description" tabindex="-1">' +
     '<h2 id="move-dialog-title">Termin verschieben</h2><p id="move-dialog-description" class="note">' + h(item.title) + ' · aktuell ' + h(label) + '</p>' +
     '<form id="move-dialog-form"><label>Neuer Tag<input name="targetDate" type="date" required value="' + h(sourceDate) + '"></label>' +
-    '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button class="primary">Verschieben</button></div></form></section></div>';
+    '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button type="submit" class="primary">Verschieben</button></div></form></section></div>';
 }
 
 function handleMoveDialogSubmit(event) {
@@ -2211,7 +2211,7 @@ function dayDialogMarkup() {
     '</select></label>' +
     (existing ? '</details>' : '') +
     '<div class="wide dialog-actions"><button type="button" id="day-dialog-cancel">Abbrechen</button>' +
-    '<button class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
+    '<button type="submit" class="primary">' + (existing ? 'Änderungen speichern' : 'Speichern') + '</button></div></form></section></div>';
 }
 
 function handleDayDialogSubmit(event) {
