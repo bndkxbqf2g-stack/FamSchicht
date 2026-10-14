@@ -1653,8 +1653,8 @@ function handleRosterImportSubmit(event) {
 function shiftDialogMarkup() {
   const item = entries.find(entry => entry.id === shiftDialogEventId && entry.type === 'shift');
   if (!item) return '';
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="shift-dialog-title" tabindex="-1">' +
-    '<h2 id="shift-dialog-title">Dienst bearbeiten</h2><form id="shift-edit-form">' +
+  return '<div class="dialog-backdrop"><section id="shift-dialog" class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="shift-dialog-title" aria-describedby="shift-dialog-description" tabindex="-1">' +
+    '<h2 id="shift-dialog-title">Dienst bearbeiten</h2><p id="shift-dialog-description" class="note">Datum, Dienstzeit und zuständige Kalenderperson prüfen.</p><form id="shift-edit-form">' +
     '<label>Datum<input name="date" type="date" required value="' + h(item.date) + '"></label>' +
     '<label>Beginn<input name="start" type="time" value="' + h(item.start || '') + '"></label>' +
     '<label>Ende<input name="end" type="time" value="' + h(item.end || '') + '"></label>' +
@@ -2020,7 +2020,7 @@ function confirmationDialogMarkup() {
   const current = confirmationDialog;
   if (!current) return '';
   const busy = Boolean(current.busy);
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-description" tabindex="-1">' +
+  return '<div class="dialog-backdrop"><section id="confirmation-dialog" class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="confirmation-dialog-title" aria-describedby="confirmation-dialog-description" aria-busy="' + busy + '" tabindex="-1">' +
     '<h2 id="confirmation-dialog-title">' + h(current.title) + '</h2>' +
     '<p id="confirmation-dialog-description">' + h(current.message) + '</p>' +
     '<form id="confirmation-dialog-form"><div class="wide dialog-actions">' +
@@ -2035,6 +2035,7 @@ async function handleConfirmationSubmit(event) {
   if (!current || current.busy) return;
   confirmationDialog = {...current, busy: true};
   render();
+  document.querySelector('#confirmation-dialog')?.focus();
   try {
     await current.onConfirm();
     confirmationDialog = null;
@@ -2052,7 +2053,7 @@ function deleteDialogMarkup() {
   const item = entries.find(entry => entry.id === deleteDialog?.id);
   if (!item) return '';
   const busy = Boolean(deleteDialog.busy);
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-description" tabindex="-1">' +
+  return '<div class="dialog-backdrop"><section id="delete-dialog" class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-description" aria-busy="' + busy + '" tabindex="-1">' +
     '<h2 id="delete-dialog-title">Eintrag löschen?</h2>' +
     '<p id="delete-dialog-description">„' + h(item.title) + '“ wird aus deinem Kalender entfernt. Dieser Schritt kann nicht rückgängig gemacht werden.</p>' +
     '<form id="delete-dialog-form"><div class="wide dialog-actions">' +
@@ -2069,6 +2070,7 @@ async function handleDeleteDialogSubmit(event) {
   const nextEntries = entries.filter(entry => entry.id !== item.id);
   deleteDialog = {...current, busy: true};
   render();
+  document.querySelector('#delete-dialog')?.focus();
   try {
     if (cloud) await deleteOwnerEvent(supabase, item.id, cloud.householdId);
     else saveLocalEntries(nextEntries);
@@ -2097,8 +2099,8 @@ function moveDialogMarkup() {
   const label = new Date(sourceDate + 'T12:00:00').toLocaleDateString(
     'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
   );
-  return '<div class="dialog-backdrop"><section class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title" tabindex="-1">' +
-    '<h2 id="move-dialog-title">Termin verschieben</h2><p class="note">' + h(item.title) + ' · aktuell ' + h(label) + '</p>' +
+  return '<div class="dialog-backdrop"><section id="move-dialog" class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title" aria-describedby="move-dialog-description" tabindex="-1">' +
+    '<h2 id="move-dialog-title">Termin verschieben</h2><p id="move-dialog-description" class="note">' + h(item.title) + ' · aktuell ' + h(label) + '</p>' +
     '<form id="move-dialog-form"><label>Neuer Tag<input name="targetDate" type="date" required value="' + h(sourceDate) + '"></label>' +
     '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button class="primary">Verschieben</button></div></form></section></div>';
 }
@@ -2124,9 +2126,9 @@ function dayDialogMarkup() {
   const taskCompleted = isTaskLikeEntry(existing) && isTaskCompletedOnDate(existing, selectedDate);
   const taskCompletionLabel = existing?.recurrence && existing.recurrence !== 'none'
     ? 'Erledigt (dieses Vorkommen)' : 'Erledigt';
-  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="day-dialog-title" tabindex="-1">' +
+  return '<div class="dialog-backdrop"><section id="day-dialog" class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="day-dialog-title" aria-describedby="day-dialog-description" tabindex="-1">' +
     '<h2 id="day-dialog-title">' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
-    '<p class="note">' + label + '</p><form id="day-dialog-form">' +
+    '<p id="day-dialog-description" class="note">' + label + '</p><form id="day-dialog-form">' +
     '<label>Von<input name="date" type="date" required autofocus value="' + h(selectedDate) + '"></label>' +
     '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +
     (existing ? '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +

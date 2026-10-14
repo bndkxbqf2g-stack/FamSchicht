@@ -140,6 +140,19 @@ test('all destructive and import confirmations use the shared modal contract', (
   assert.doesNotMatch(main, /\bconfirm\(/);
 });
 
+test('modal shells expose descriptions and retain focus while busy', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(html, /id="account-shell"[^>]*aria-describedby="account-description"/);
+  assert.match(main, /id="day-dialog"[^>]*aria-describedby="day-dialog-description"/);
+  assert.match(main, /id="move-dialog"[^>]*aria-describedby="move-dialog-description"/);
+  assert.match(main, /id="shift-dialog"[^>]*aria-describedby="shift-dialog-description"/);
+  assert.match(main, /id="confirmation-dialog"[^>]*aria-busy="' \+ busy \+ '"/);
+  assert.match(main, /id="delete-dialog"[^>]*aria-busy="' \+ busy \+ '"/);
+  assert.match(main, /document\.querySelector\('#confirmation-dialog'\)\?\.focus\(\)/);
+  assert.match(main, /document\.querySelector\('#delete-dialog'\)\?\.focus\(\)/);
+});
+
 test('dialog focus restoration survives rerendered trigger nodes', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /function rememberDialogFocus\(element\)/);
