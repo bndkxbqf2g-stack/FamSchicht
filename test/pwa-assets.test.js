@@ -41,7 +41,7 @@ test('release metadata stays aligned across the app shell', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.equal(packageJson.version, '0.3.15');
-  assert.match(html, new RegExp('\?v=' + packageJson.version, 'g'));
+  assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
 });
