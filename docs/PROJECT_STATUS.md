@@ -3,7 +3,7 @@
 ## Update 14.10.2026 – Gemeinsame In-App-Bestätigungen
 - Serienkonflikte, Dienstplan-Ersetzung, Umgangsrhythmus, JSON-/ICS-Import und Belohnungslöschung verwenden jetzt denselben zugänglichen modalen Bestätigungsdialog wie das Terminlöschen; native blockierende `confirm()`-Aufrufe sind aus dem App-Code entfernt.
 - Bestätigungsdialoge sperren den Hintergrund mit `inert`, halten Tab/Shift+Tab im Dialog, deaktivieren während der Verarbeitung gegen Doppelklicks und geben den Fokus an stabile Auslöser oder den Kalender zurück.
-- Die ausgelieferten Module, die sichtbare App-Version und die Paketmetadaten stehen auf `v0.3.15`; Regressionstests: 221 bestanden.
+- Die ausgelieferten Module, die sichtbare App-Version und die Paketmetadaten stehen auf `v0.3.15`; Regressionstests: 224 bestanden.
 - Der Service-Worker verwendet passend zum Cache-Bust den Shell-Cache `famschicht-shell-v0.3.15`, damit ein neues Release auch den Offline-App-Shell-Stand invalidiert.
 - `Home` und `End` werden auch an Wochenrändern als Kalendernavigation abgefangen, damit ein erreichter Rand nicht den Browser-Scroll über die App übernimmt.
 - Dienstplan-Schnellerfassung, Personenauswahl, Konfliktbestätigung, Monatsende und owner-only Haushalts-/Einladungsaktionen geben den Fokus nach dem Rendern an den nächsten sinnvollen Kontext zurück.
