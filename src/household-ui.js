@@ -303,13 +303,13 @@ function bindInvitationForm(householdId) {
           const revokeResult = await revokeHouseholdInvitation(supabase, result.invitationId);
           const outcome = invitationRevocationOutcome(revokeResult);
           if (!outcome.revoked) {
-            setHouseholdMessage(messageEl, outcome.message);
+            setHouseholdMessage(messageEl, outcome.message, 'error');
             revokeButton.disabled = false;
             revokeButton.focus();
             return;
           }
           resultBox.remove();
-          messageEl.textContent = outcome.message;
+          setHouseholdMessage(messageEl, outcome.message);
           form.querySelector('[name="email"]')?.focus();
         } catch (error) {
           setHouseholdMessage(messageEl, error.message || 'Einladung konnte nicht widerrufen werden.', 'error');
