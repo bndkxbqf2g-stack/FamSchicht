@@ -495,7 +495,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.8</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.9</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -1168,6 +1168,7 @@ function moveCalendarDayByKeyboard(event) {
   if (!day) return;
   const key = event.key;
   const date = new Date(day + 'T12:00:00');
+  const boundaryKey = key === 'Home' || key === 'End';
   let offset = 0;
   if (calendarMode === 'day') {
     if (key === 'ArrowLeft' || key === 'ArrowUp') offset = -1;
@@ -1183,8 +1184,9 @@ function moveCalendarDayByKeyboard(event) {
   } else if (key === 'End') {
     offset = 6 - ((date.getDay() + 6) % 7);
   }
-  if (!offset) return;
+  if (!offset && !boundaryKey) return;
   event.preventDefault();
+  if (!offset) return;
   date.setDate(date.getDate() + offset);
   selectCalendarDay(dateKey(date), {restoreFocus: true});
 }
