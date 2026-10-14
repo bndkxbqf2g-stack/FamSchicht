@@ -415,8 +415,10 @@ function render() {
   const displayAction = isWallMode(displayMode)
     ? '<button class="wall-exit" id="exit-wall-mode" type="button">Wandmodus beenden</button>'
     : '';
+  const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog);
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
+    '<div id="app-content">' +
     '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.2</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
@@ -429,17 +431,29 @@ function render() {
     '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
     '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
-    appNoticeMarkup() + storageNoticeMarkup() + body +
+    appNoticeMarkup() + storageNoticeMarkup() + body + '</section></div>' +
     (dayDialogDate ? dayDialogMarkup() : '') +
     (shiftDialogEventId ? shiftDialogMarkup() : '') +
     (moveDialog ? moveDialogMarkup() : '') +
-    '</section></div>';
+    '</div>';
 
   document.body.classList.toggle('settings-open', view === 'settings');
   document.querySelector('#account-shell')?.setAttribute('aria-hidden', String(view !== 'settings'));
   app.setAttribute('aria-hidden', String(view === 'settings'));
   if (view === 'settings') app.setAttribute('inert', '');
   else app.removeAttribute('inert');
+  const appContent = app.querySelector('#app-content');
+  if (appContent) {
+    appContent.setAttribute('aria-hidden', String(dialogOpen));
+    if (dialogOpen) appContent.setAttribute('inert', '');
+    else appContent.removeAttribute('inert');
+  }
+  const skipLink = document.querySelector('.skip-link');
+  if (skipLink) {
+    skipLink.setAttribute('aria-hidden', String(dialogOpen));
+    if (dialogOpen) skipLink.setAttribute('inert', '');
+    else skipLink.removeAttribute('inert');
+  }
   document.querySelector('#custody-settings').innerHTML = view === 'settings' ? custodyMarkup() : '';
   document.querySelector('#dismiss-app-notice')?.addEventListener('click', () => {
     appNotice = null;

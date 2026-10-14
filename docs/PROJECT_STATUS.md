@@ -16,6 +16,11 @@
 - Sichtprüfung: synthetisch ungültiger Login-Link erzeugt `role="alert"`/`aria-live="assertive"`, der Fokus bleibt im Eingabefeld und 390×844 bleibt ohne horizontalen Überlauf.
 - Lokale Regressionstests: 191 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – Modal-Fokusisolation
+- Termin-, Verschiebe- und Schichtdialoge isolieren den Kalenderhintergrund jetzt mit `aria-hidden` und `inert`; der Skip-Link wird während eines Dialogs ebenfalls aus dem Tab-Pfad genommen.
+- Die Dialoge bleiben als eigene `aria-modal="true"`-Ziele erreichbar, während die bestehende Fokus-Rückgabe beim Abbrechen, Speichern und Escape erhalten bleibt.
+- Sichtprüfung: Termin-Dialog im 390×844-Viewport mit isoliertem Hintergrund und ohne horizontalen Überlauf; lokale Regressionstests: 192 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Lokale Punkte und Belohnungen
 - Aufgaben und Routinen können einen ganzzahligen Punktwert erhalten; erledigte Einzelaufgaben sowie erledigte Vorkommen wiederkehrender Einträge werden je stabiler Kalenderperson summiert.
 - Belohnungsziele werden in den Einstellungen angelegt, lokal gespeichert und im Übersichts-Dashboard mit Fortschrittsbalken je Person dargestellt.

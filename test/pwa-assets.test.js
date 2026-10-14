@@ -119,6 +119,16 @@ test('auth errors stay in an accessible non-blocking status message', () => {
   assert.match(styles, /\.auth-error/);
 });
 
+test('modal dialogs isolate the calendar background from keyboard focus', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+  assert.match(main, /id="app-content"/);
+  assert.match(main, /appContent\.setAttribute\('aria-hidden'/);
+  assert.match(main, /appContent\.setAttribute\('inert'/);
+  assert.match(main, /skipLink\.setAttribute\('inert'/);
+  assert.match(styles, /#app-content\{display:contents\}/);
+});
+
 test('local points and rewards stay separate from the cloud calendar path', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const rewards = fs.readFileSync(path.join(root, 'src', 'rewards.js'), 'utf8');
