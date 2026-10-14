@@ -14,6 +14,11 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
   assert.equal(manifest.icons[0].src, './apple-touch-icon.png');
 });
 
+test('app viewport enables iPhone safe-area layout', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);

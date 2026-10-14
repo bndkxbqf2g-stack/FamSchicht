@@ -8,7 +8,8 @@
 ## Update 14.10.2026 – Mitgliederlegende und Initialen
 - Das zentrale `household_members`-Modell liefert neben stabiler ID und `colorKey` jetzt auch sichere Initialen für die sichtbare Mitgliederlegende.
 - Die Legende zeigt synthetisch geprüft pro Person einen kleinen Avatar; die bestehende owner-only Persistenz und die Trennung von `household_members` und Auth-`memberships` bleiben unverändert.
-- Lokale Regressionstests: 142 bestanden; Produktions-Build erfolgreich. Desktop-Legende und 390×844-Viewport wurden sichtbar geprüft; horizontaler Überlauf trat nicht auf.
+- Die PWA-Shell optiert mit `viewport-fit=cover` zusammen mit der vorhandenen Safe-Area-CSS für iPhone-Inset-Bereiche; die echte Home-Screen-Installation bleibt eine externe Prüfung.
+- Lokale Regressionstests: 143 bestanden; Produktions-Build erfolgreich. Desktop-Legende und 390×844-Viewport wurden sichtbar geprüft; horizontaler Überlauf trat nicht auf.
 
 ## Update 14.10.2026 – Schichtserien und Vorlagen
 - Die Dienste-Ansicht kann wiederkehrende Wochentage in konkrete, unabhängig bearbeitbare Schichten mit stabiler `ownerId` auflösen; vorhandene identische Einträge werden übersprungen.
