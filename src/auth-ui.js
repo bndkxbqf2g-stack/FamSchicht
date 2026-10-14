@@ -56,7 +56,7 @@ function show(user) {
     <label>E-Mail für deinen persönlichen Anmeldelink
       <input type="email" name="email" autocomplete="email" required>
     </label>
-    <button class="primary">Anmeldelink senden</button>
+    <button type="submit" class="primary">Anmeldelink senden</button>
     <p id="login-message" class="note" aria-live="polite">
       Falls du bereits angemeldet bist, brauchst du keinen neuen Link.
       ${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}
