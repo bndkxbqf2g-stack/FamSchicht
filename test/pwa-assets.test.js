@@ -56,6 +56,8 @@ test('external calendar imports keep a read-only source contract', () => {
   assert.match(main, /read-only importiert/);
   assert.match(source, /calendarProviderCatalog/);
   assert.match(source, /same-external-id/);
+  assert.match(main, /ics-import-member/);
+  assert.match(main, /memberId: selectedMember/);
 });
 
 test('holiday settings expose a local read-only calendar source', () => {

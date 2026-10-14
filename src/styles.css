@@ -1136,6 +1136,7 @@ body.settings-open #account-shell{background:var(--home-canvas)}
 }
 
 .holiday-settings-form,.display-settings-form{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:10px}.holiday-settings-form button,.display-settings-form button{min-height:42px}.holiday-settings-form select,.display-settings-form select{width:100%}
+.data-tools-source-label{max-width:420px;margin:12px 0;font-size:12px;font-weight:750;color:var(--muted,#65756d)}.data-tools-source-label select{width:100%;margin-top:4px}
 @media(max-width:700px){.holiday-settings-form,.display-settings-form{grid-template-columns:1fr}.holiday-settings-form button,.display-settings-form button{width:100%}}
 
 /* Wall mode keeps the calendar calm, large and reversible for shared displays. */

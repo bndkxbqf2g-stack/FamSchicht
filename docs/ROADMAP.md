@@ -54,6 +54,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Haushaltsroutinen als zugewiesene, wiederkehrende Einträge mit eigenem Erledigt-Status je Vorkommen.
 - Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
 - Read-only-Quellenvertrag für ICS mit stabiler UID, Konfliktmeldung und Quellenmetadaten im bestehenden owner-only Roundtrip.
+- Optionale Zuordnung lokaler read-only-ICS-Quellen zu einer Kalenderperson.
 - Lokale read-only-Feiertagsquelle mit deutscher Bundesland-Auswahl und deterministischer Feiertagsberechnung.
 - Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.
 - Sichtbarer Sync-Status und Fehleranzeige für lokalen, laufenden, erfolgreichen und offline/fehlerhaften Zustand.

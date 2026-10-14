@@ -73,7 +73,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 ### Phase 5 – Externe Kalender und Synchronisation
 - [ ] Google Calendar Architektur
 - [ ] Outlook/Microsoft Calendar Architektur
-- [ ] Kalenderquellen pro Mitglied
+- [x] Kalenderquellen pro Mitglied für read-only-ICS
 - [x] read-only Import zuerst (ICS-Quelle)
 - [x] Konflikt-/Duplikatlogik für read-only ICS-Quellen
 - [ ] anschließend optionaler Zwei-Wege-Sync

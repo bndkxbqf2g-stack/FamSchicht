@@ -31,6 +31,11 @@
 - Ein sichtbarer „Wandmodus beenden“-Rückweg stellt die Standardansicht ohne Datenänderung wieder her.
 - Sichtprüfung mit synthetischen Daten bei 1280 CSS-Pixeln: Wandmodus sichtbar, Navigation ausgeblendet, read-only-Hinweis und Rückweg vorhanden, kein horizontaler Überlauf. Lokale Regressionstests: 175 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – ICS-Quellen pro Kalenderperson
+- Der lokale ICS-Import bietet jetzt eine optionale Zuordnung zu „Gemeinsamer Kalender“ oder einer vorhandenen Kalenderperson.
+- Die Zuordnung wird als Quellen-ID, `memberId` und Label im bestehenden read-only-Metadatenvertrag erhalten; derselbe externe Termin bleibt je Quelle deduplizierbar.
+- Es gibt weiterhin keinen Google-/Microsoft-OAuth- oder bidirektionalen Schreibpfad. Supabase-Schema, RLS und Auth bleiben unverändert.
+
 ## Update 14.10.2026 – Terminverschiebung
 - Kalendertermine können per Desktop-Drag-and-Drop oder Touch-Pointer auf einen anderen Tag verschoben werden.
 - Ein beschrifteter Verschieben-Dialog bietet denselben Vorgang als Tastatur-/Touch-Fallback; die Verschiebung erhält die stabile ID, `ownerId`, Uhrzeiten, Nachtdienstlogik und den vollständigen Mehrtagesbereich. Wiederkehrende Erledigungsdaten werden mit dem Anker verschoben; einzelne Umgangswochenenden behalten ihren Serienanker.

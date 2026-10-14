@@ -130,6 +130,7 @@ let shiftTemplates = loadShiftTemplates();
 let shiftTargets = loadShiftTargets();
 let holidayRegion = loadHolidayRegion();
 let displayMode = loadDisplayMode();
+let icsSourceMemberId = '';
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
@@ -716,6 +717,8 @@ function custodyMarkup() {
     '<option value="' + h(value) + '"' + (holidayRegion === value ? ' selected' : '') + '>' + h(label) + '</option>').join('');
   const displayOptions = displayModeOptions().map(([value, label]) =>
     '<option value="' + h(value) + '"' + (displayMode === value ? ' selected' : '') + '>' + h(label) + '</option>').join('');
+  const icsMemberOptions = [['', 'Gemeinsamer Kalender'], ...householdMembers.map(member => [member.id, member.name])].map(([value, label]) =>
+    '<option value="' + h(value) + '"' + (icsSourceMemberId === value ? ' selected' : '') + '>' + h(label) + '</option>').join('');
   return '<section class="panel custody-card"><h2>Umgangsrhythmus</h2>' +
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
@@ -723,6 +726,7 @@ function custodyMarkup() {
     '<button class="primary wide">Rhythmus eintragen</button></form></section>' +
     '<section class="panel data-tools-card"><h2>Daten sichern und austauschen</h2>' +
     '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. ICS-Termine können wieder importiert werden; der Import wird vor dem Speichern bestätigt.</p>' +
+    '<label class="data-tools-source-label">ICS-Quelle zuordnen<select id="ics-import-member" aria-label="ICS-Quelle zuordnen">' + icsMemberOptions + '</select></label>' +
     '<div class="data-tools-actions"><button type="button" id="export-json">JSON sichern</button><button type="button" id="export-ics">ICS exportieren</button><button type="button" id="import-ics">ICS importieren</button></div>' +
     '<input id="ics-import-file" class="visually-hidden" type="file" accept=".ics,text/calendar" aria-label="ICS-Datei auswählen">' +
     (dataTransferStatus ? '<p class="data-transfer-status" role="status">' + h(dataTransferStatus) + '</p>' : '') +
@@ -1058,6 +1062,9 @@ function bindControls() {
   document.querySelector('#export-ics')?.addEventListener('click', exportIcsData);
   document.querySelector('#import-ics')?.addEventListener('click', () => document.querySelector('#ics-import-file')?.click());
   document.querySelector('#ics-import-file')?.addEventListener('change', handleIcsImport);
+  document.querySelector('#ics-import-member')?.addEventListener('change', event => {
+    icsSourceMemberId = event.currentTarget.value;
+  });
   document.querySelector('#holiday-settings-form')?.addEventListener('submit', handleHolidaySettingsSubmit);
   document.querySelector('#display-settings-form')?.addEventListener('submit', handleDisplaySettingsSubmit);
   app.querySelector('#exit-wall-mode')?.addEventListener('click', () => {
@@ -1420,10 +1427,13 @@ async function handleIcsImport(event) {
   }
   try {
     const parsed = parseIcs(await file.text());
+    const selectedMember = householdMembers.find(member => member.id ===
+      (app.querySelector('#ics-import-member')?.value || icsSourceMemberId));
     const source = createReadOnlyCalendarSource({
-      id: 'ics-file',
+      id: selectedMember ? 'ics-file-' + selectedMember.id : 'ics-file',
       provider: 'ics',
-      label: 'ICS-Datei',
+      memberId: selectedMember?.id || '',
+      label: selectedMember ? 'ICS-Datei · ' + selectedMember.name : 'ICS-Datei',
     });
     const merged = mergeReadOnlyCalendarEvents(entries, parsed, source);
     if (!merged.added.length) {
