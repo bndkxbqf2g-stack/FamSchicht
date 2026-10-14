@@ -195,6 +195,19 @@ test('calendar day targets provide roving keyboard navigation', () => {
   assert.match(main, /selectCalendarDay\(dateKey\(date\), \{restoreFocus: true\}\)/);
 });
 
+test('calendar rerenders preserve a meaningful keyboard context', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(main, /id="view-title" tabindex="-1"/);
+  assert.match(main, /function focusAfterRender\(selector\)/);
+  assert.match(main, /function focusDatasetControl\(attribute, value\)/);
+  assert.match(main, /function focusViewHeading\(\)/);
+  assert.match(main, /focusAfterRender\('#prev'\)/);
+  assert.match(main, /focusAfterRender\('#next'\)/);
+  assert.match(main, /focusDatasetControl\('data-calendar-mode'/);
+  assert.match(main, /focusDatasetControl\('data-person-filter'/);
+  assert.match(main, /focusDatasetControl\('data-category-filter'/);
+});
+
 test('auth errors stay in an accessible non-blocking status message', () => {
   const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
