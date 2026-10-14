@@ -17,9 +17,9 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.15"/);
-  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.15"/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.15"/);
+  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.16"/);
+  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.16"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.16"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -32,7 +32,7 @@ test('app viewport enables iPhone safe-area layout', () => {
 
 test('visible application version matches the current cache-bust release', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-  assert.match(main, /Familienplaner · v0\.3\.15/);
+  assert.match(main, /Familienplaner · v0\.3\.16/);
 });
 
 test('release metadata stays aligned across the app shell', () => {
@@ -40,7 +40,7 @@ test('release metadata stays aligned across the app shell', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.equal(packageJson.version, '0.3.15');
+  assert.equal(packageJson.version, '0.3.16');
   assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
@@ -209,7 +209,7 @@ test('calendar day targets provide roving keyboard navigation', () => {
 test('calendar rerenders preserve a meaningful keyboard context', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /id="view-title" tabindex="-1"/);
-  assert.match(main, /const fallback = \\(\\) => view === 'settings'[\\s\\S]+document\\.querySelector\\('#view-title'\\) \\|\\| document\\.querySelector\\('#app'\\)/);
+  assert.match(main, /const fallback = \(\) => view === 'settings'[\s\S]+document\.querySelector\('#view-title'\) \|\| document\.querySelector\('#app'\)/);
   assert.match(main, /function focusAfterRender\(selector\)/);
   assert.match(main, /function focusDatasetControl\(attribute, value\)/);
   assert.match(main, /element\?\.closest\('details'\)\?\.setAttribute\('open', ''\)/);
@@ -250,8 +250,6 @@ test('settings and import rerenders preserve a meaningful keyboard context', () 
 
 test('household actions preserve focus across async owner refreshes', () => {
   const household = fs.readFileSync(path.join(root, 'src', 'household-ui.js'), 'utf8');
-  assert.match(household, /function setHouseholdMessage\(element, text, kind = 'status'\)/);
-  assert.match(household, /kind === 'error' \? 'alert' : 'status'/);
   assert.match(household, /function focusHouseholdControl\(selector\)/);
   assert.match(household, /safeRefresh\(user\)\.then\(\(\) => focusHouseholdControl\('#household-members-form button\[type="submit"\]'\)\)/);
   assert.match(household, /safeRefresh\(user\)\.then\(\(\) => focusHouseholdControl\('#household-member-add-form \[name="name"\]'\)\)/);
@@ -281,16 +279,6 @@ test('all rendered button markup declares explicit submit semantics', () => {
   for (const source of sources) assert.doesNotMatch(source, /<button(?![^>]*\btype=)[^>]*>/);
 });
 
-test('invitation acceptance can retry without duplicating an in-flight request', () => {
-  const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
-  assert.match(auth, /let inviteRequestInFlight = false/);
-  assert.match(auth, /inviteRequestInFlight = true/);
-  assert.match(auth, /inviteRequestInFlight = false/);
-  assert.match(auth, /id="retry-invitation"/);
-  assert.match(auth, /Erneut versuchen/);
-  assert.match(auth, /inviteHandled = true/);
-});
-
 test('auth errors stay in an accessible non-blocking status message', () => {
   const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
@@ -301,15 +289,27 @@ test('auth errors stay in an accessible non-blocking status message', () => {
   assert.match(styles, /\.auth-error/);
 });
 
+test('invitation acceptance can retry without duplicating an in-flight request', () => {
+  const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
+  assert.match(auth, /let inviteRequestInFlight = false/);
+  assert.match(auth, /inviteRequestInFlight = true/);
+  assert.match(auth, /inviteRequestInFlight = false/);
+  assert.match(auth, /id="retry-invitation"/);
+  assert.match(auth, /Erneut versuchen/);
+  assert.match(auth, /inviteHandled = true/);
+});
+
 test('household database errors stay user-safe in the settings UI', () => {
   const household = fs.readFileSync(path.join(root, 'src', 'household-ui.js'), 'utf8');
+  assert.match(household, /function setHouseholdMessage\(element, text, kind = 'status'\)/);
+  assert.match(household, /function invitationErrorMessage\(context, error, fallback\)/);
+  assert.match(household, /kind === 'error' \? 'alert' : 'status'/);
   assert.match(household, /Datenbank derzeit nicht erreichbar\. Der lokale Kalender bleibt verfügbar\./);
   assert.match(household, /Privater Haushalt konnte derzeit nicht erstellt werden\. Bitte später erneut versuchen\./);
   assert.match(household, /reportHouseholdError/);
-  assert.match(household, /function invitationErrorMessage\(context, error, fallback\)/);
-  assert.doesNotMatch(household, /setHouseholdMessage\(messageEl, error\.message\s*\|\|/);
   assert.match(household, /focusHouseholdControl\('#household-form \[name="name"\]'\)/);
   assert.match(household, /focusHouseholdControl\('#household-member-add-form \[name="name"\]'\)/);
+  assert.doesNotMatch(household, /setHouseholdMessage\(messageEl, error\.message\s*\|\|/);
   assert.doesNotMatch(household, /Datenbank derzeit nicht erreichbar:\s*'\s*\+\s*error\.message/);
   assert.doesNotMatch(household, /Erstellung fehlgeschlagen:\s*'\s*\+\s*(?:insertError|error)\.message/);
 });
@@ -382,7 +382,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v0.3.15/);
+  assert.match(source, /famschicht-shell-v0.3.16/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
