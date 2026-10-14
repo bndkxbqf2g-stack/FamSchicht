@@ -209,6 +209,19 @@ test('calendar rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /focusDatasetControl\('data-category-filter'/);
 });
 
+test('non-submit navigation controls declare their button type', () => {
+  const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(auth, /id="logout" type="button"/);
+  assert.match(main, /<button type="button" id="prev"/);
+  assert.match(main, /<button type="button" id="next"/);
+  assert.match(main, /<button type="button" data-calendar-mode=/);
+  assert.match(main, /<button type="button" data-person-filter=/);
+  assert.match(main, /<button type="button" data-category-filter=/);
+  assert.match(main, /<button type="button" data-view=/);
+  assert.match(main, /<button type="button" data-owner=/);
+});
+
 test('auth errors stay in an accessible non-blocking status message', () => {
   const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
