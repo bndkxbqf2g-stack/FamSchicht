@@ -17,9 +17,9 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.9"/);
-  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.9"/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.9"/);
+  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.10"/);
+  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.10"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.10"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -32,7 +32,7 @@ test('app viewport enables iPhone safe-area layout', () => {
 
 test('visible application version matches the current cache-bust release', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-  assert.match(main, /Familienplaner · v0\.3\.9/);
+  assert.match(main, /Familienplaner · v0\.3\.10/);
 });
 
 test('release metadata stays aligned across the app shell', () => {
@@ -40,7 +40,7 @@ test('release metadata stays aligned across the app shell', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.equal(packageJson.version, '0.3.9');
+  assert.equal(packageJson.version, '0.3.10');
   assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
@@ -195,6 +195,9 @@ test('calendar day targets provide roving keyboard navigation', () => {
   assert.match(main, /const boundaryKey = key === 'Home' \|\| key === 'End'/);
   assert.match(main, /if \(!offset && !boundaryKey\) return/);
   assert.match(main, /event\.preventDefault\(\);\s+if \(!offset\) return/);
+  assert.match(main, /const boundaryKey = key === 'Home' \|\| key === 'End'/);
+  assert.match(main, /if \(!offset && !boundaryKey\) return/);
+  assert.match(main, /event\.preventDefault\(\);\s+if \(!offset\) return/);
   assert.match(main, /selectCalendarDay\(dateKey\(date\), \{restoreFocus: true\}\)/);
 });
 
@@ -210,6 +213,14 @@ test('calendar rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /focusDatasetControl\('data-calendar-mode'/);
   assert.match(main, /focusDatasetControl\('data-person-filter'/);
   assert.match(main, /focusDatasetControl\('data-category-filter'/);
+});
+
+test('shift capture rerenders preserve a meaningful keyboard context', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(main, /function startShiftCapture\(\)[\s\S]+render\(\);\s+focusAfterRender\('#capture-date'\)/);
+  assert.match(main, /data-owner[\s\S]+focusDatasetControl\('data-owner'/);
+  assert.match(main, /shiftConflict = \{choice, conflicts\};\s+render\(\);\s+focusAfterRender\('\[data-shift-confirm="save"\]'\)/);
+  assert.match(main, /function advanceShiftCapture\(\)[\s\S]+focusAfterRender\(shiftCaptureDate \? '\[data-shift\]' : '#shift-capture'\)/);
 });
 
 test('non-submit navigation controls declare their button type', () => {
@@ -321,7 +332,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v0\.3\.9/);
+  assert.match(source, /famschicht-shell-v0\.3\.10/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
