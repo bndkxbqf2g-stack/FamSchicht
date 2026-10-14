@@ -43,7 +43,7 @@ function show(user) {
   if (!root) return;
   if (user) {
     root.innerHTML = `<div class="auth-status">Angemeldet: <strong>${escapeHtml(user.email || 'Konto')}</strong>
-      <button id="logout">Abmelden</button>
+      <button id="logout" type="button">Abmelden</button>
       <p id="account-status" class="note" aria-live="polite">${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}</p></div>`;
     root.querySelector('#logout').onclick = async () => {
       const {error} = await signOut();
