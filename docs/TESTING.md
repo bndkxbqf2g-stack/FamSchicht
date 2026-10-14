@@ -21,6 +21,7 @@ npm run build
 - Authentifizierungsfehler, Magic-Link-Rückkehr und sichere Owner-only Datenflüsse; keine produktiven Konten in Tests.
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.
+- Dienstplanimport-Recovery: verständliche Bild-/OCR-Fehler, keine Provider-Interna in der UI und erneute Auswahl derselben Datei nach einem fehlgeschlagenen Lauf.
 - Dienstplanung: Monatsstunden pro stabiler Besitzer-ID, OZ-Stunden getrennt, ganztägige Statuswerte sowie Konflikthinweise für zeitliche Überschneidungen mit ganztägigen, mehrtägigen und über Mitternacht laufenden Familienterminen.
 - Schichtserien und Vorlagen: Wochentagsexpansion mit stabiler `ownerId`, Duplikatvermeidung, Nachtdienst-/Statuswerte, lokale Vorlagenvalidierung und sicherer Speicher-Roundtrip.
 - Soll-/Ist-Stunden: optionale lokale Monatsziele, Dezimalkomma-Normalisierung, Grenzwerte, Speicher-Roundtrip und Differenzberechnung.
@@ -44,3 +45,4 @@ Der Dienstplanimport wird zusätzlich mit synthetischen Domain-/Parser-/Speicher
 4. GitHub Actions Qualitätsjob grün; Deploymentjob nur auf main.
 5. Für UI-Änderungen: die betroffenen Ansichten/Interaktionen im relevanten iPhone-Viewport kontrollieren; Testmethode und Grenzen angeben.
 6. Für Supabase-/RLS-Änderungen: Migrationen und Zugriffsmatrix gesondert prüfen. Eine grüne Frontend-CI bestätigt keine Datenbankrechte.
+

@@ -1,4 +1,4 @@
-# Datenbankstatus (25.09.2026)
+# Datenbankstatus
 
 ## Live-Prüfung 14.10.2026
 
@@ -7,7 +7,9 @@
 - Security- und Performance-Advisors meldeten bei der Prüfung keine Lints.
 - Die Edge Function `household-invitations` ist aktiv, verwendet `withSupabase({ auth: 'user' })` und bleibt bis zur Matrix-Prüfung ohne Mehrbenutzer-RLS-Freigabe.
 
-## Tatsächlich installierter Stand
+## Historischer installierter Stand (25.09.2026)
+
+Die folgenden Angaben stammen aus der letzten erfolgreichen Installationsprüfung. Sie sind kein Beleg dafür, dass das Projekt heute erreichbar ist.
 
 Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist ACTIVE_HEALTHY.
 
@@ -56,3 +58,4 @@ Die zuvor gemeldeten vier ungeindexierten Fremdschlüssel sind behoben. Der Perf
 Die Live-Datenbank bleibt owner-only. Der nächste Schritt ist die serverseitige Erzeugung und atomare Annahme von Einladungen mit getrennten Testkonten. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
 
 Keine echten sensiblen Familiendaten eingeben, bevor die Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
+

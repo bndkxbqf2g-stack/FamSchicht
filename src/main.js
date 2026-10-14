@@ -36,6 +36,7 @@ import {
 import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
 import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear} from './shift-roster-import.js';
 import {recognizeRosterImages} from './shift-roster-ocr.js';
+import {rosterImportErrorMessage} from './shift-roster-errors.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
 import {
   importedRosterCalendarEntries as projectRosterEntries,
@@ -1015,7 +1016,11 @@ function bindControls() {
 }
 
 async function handleRosterFilesChange(event) {
-  const files = [...(event.currentTarget.files || [])];
+  const input = event.currentTarget;
+  const files = [...(input.files || [])];
+  // Keep the File objects for the current run, but allow selecting the same
+  // photo again after an OCR error or an explicitly cancelled import.
+  input.value = '';
   if (!files.length) return;
   if (files.length > 4 || files.some(file => !file.type.startsWith('image/')) ||
       files.reduce((total, file) => total + file.size, 0) > 35 * 1024 * 1024) {
@@ -1045,7 +1050,7 @@ async function handleRosterFilesChange(event) {
   rosterImport = {month:period, selfName:'', selfMemberId:'', entries};
     rosterImportError = '';
   } catch (error) {
-    rosterImportError = error.message || 'Der Dienstplan konnte nicht gelesen werden.';
+    rosterImportError = rosterImportErrorMessage(error);
   } finally {
     rosterImportBusy = false;
     render();
@@ -1670,3 +1675,4 @@ window.addEventListener('famschicht:household-members-changed', () => {
   startCloudConnection();
 });
 window.__famschichtReady?.();
+

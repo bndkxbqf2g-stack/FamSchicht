@@ -5,6 +5,13 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Dienstplanimport-Recovery
+- Die Dienstplanansicht wurde mit synthetischen lokalen Bilddateien geprüft: Upload-Schaltfläche, lokaler OCR-Hinweis, sichere Fehlermeldung bei nicht erkannten Kürzeln und erneute Auswahl derselben Datei funktionieren sichtbar.
+- OCR-/Bildlesefehler werden auf eine verständliche JPEG-/PNG-Wiederholungsempfehlung abgebildet; Provider-interne Fehlermeldungen gelangen nicht in die Oberfläche.
+- Die Datei-Auswahl wird nach jedem Lauf zurückgesetzt, damit ein fehlgeschlagener Import ohne Umweg wiederholt werden kann. Die Bilddatei wird nicht persistiert.
+- Desktop-Prüfung bei 1280 CSS-Pixeln: kein horizontaler Überlauf. Die vollständige Happy-Path-Abnahme mit einem geeigneten synthetischen Rasterfoto und die iPhone-Viewport-Prüfung bleiben offen.
+- Lokale Regressionstests: 159 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Terminverschiebung
 - Kalendertermine können per Desktop-Drag-and-Drop oder Touch-Pointer auf einen anderen Tag verschoben werden.
 - Ein beschrifteter Verschieben-Dialog bietet denselben Vorgang als Tastatur-/Touch-Fallback; die Verschiebung erhält die stabile ID, `ownerId`, Uhrzeiten, Nachtdienstlogik und den vollständigen Mehrtagesbereich. Wiederkehrende Erledigungsdaten werden mit dem Anker verschoben; einzelne Umgangswochenenden behalten ihren Serienanker.
@@ -146,3 +153,4 @@ Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Dan
 - Personen- und Bereichsfilter werden auch in der Heute-Ansicht angewendet.
 - Der mobile Termineditor ist ein einspaltiges, scrollbares Bottom-Sheet und bleibt oberhalb der mobilen Navigation bedienbar.
 - Der Synchronisationsstatus ist auf mobilen Geräten sichtbar.
+
