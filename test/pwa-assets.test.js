@@ -41,7 +41,7 @@ test('release metadata stays aligned across the app shell', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.equal(packageJson.version, '0.3.15');
-  assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
+  assert.match(html, new RegExp('\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
 });
@@ -245,7 +245,7 @@ test('settings and import rerenders preserve a meaningful keyboard context', () 
 test('household actions preserve focus across async owner refreshes', () => {
   const household = fs.readFileSync(path.join(root, 'src', 'household-ui.js'), 'utf8');
   assert.match(household, /function setHouseholdMessage\(element, text, kind = 'status'\)/);
-  assert.match(household, /kind === 'error' \\? 'alert' : 'status'/);
+  assert.match(household, /kind === 'error' \? 'alert' : 'status'/);
   assert.match(household, /function focusHouseholdControl\(selector\)/);
   assert.match(household, /safeRefresh\(user\)\.then\(\(\) => focusHouseholdControl\('#household-members-form button\[type="submit"\]'\)\)/);
   assert.match(household, /safeRefresh\(user\)\.then\(\(\) => focusHouseholdControl\('#household-member-add-form \[name="name"\]'\)\)/);
@@ -300,8 +300,8 @@ test('household database errors stay user-safe in the settings UI', () => {
   assert.match(household, /Datenbank derzeit nicht erreichbar\. Der lokale Kalender bleibt verfügbar\./);
   assert.match(household, /Privater Haushalt konnte derzeit nicht erstellt werden\. Bitte später erneut versuchen\./);
   assert.match(household, /reportHouseholdError/);
-  assert.match(household, /focusHouseholdControl\('#household-form \\[name="name"\\]'\)/);
-  assert.match(household, /focusHouseholdControl\('#household-member-add-form \\[name="name"\\]'\)/);
+  assert.match(household, /focusHouseholdControl\('#household-form \[name="name"\]'\)/);
+  assert.match(household, /focusHouseholdControl\('#household-member-add-form \[name="name"\]'\)/);
   assert.doesNotMatch(household, /Datenbank derzeit nicht erreichbar:\s*'\s*\+\s*error\.message/);
   assert.doesNotMatch(household, /Erstellung fehlgeschlagen:\s*'\s*\+\s*(?:insertError|error)\.message/);
 });
