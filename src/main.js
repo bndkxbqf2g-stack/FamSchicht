@@ -298,7 +298,11 @@ function restoreDialogFocus() {
 }
 
 function focusAfterRender(selector) {
-  window.setTimeout(() => document.querySelector(selector)?.focus(), 0);
+  window.setTimeout(() => {
+    const element = document.querySelector(selector);
+    element?.closest('details')?.setAttribute('open', '');
+    element?.focus();
+  }, 0);
 }
 
 function focusFirstAfterRender(...selectors) {
@@ -508,7 +512,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.12</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.13</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -1585,6 +1589,7 @@ function handleShiftTemplateSave() {
     focusAfterRender('#shift-template-save');
   } catch (error) {
     showAppNotice(userError(error, 'Vorlage konnte nicht gespeichert werden.'));
+    focusAfterRender('#shift-series-form [name="title"]');
   }
 }
 
@@ -1596,7 +1601,7 @@ function handleShiftTargetsSubmit(event) {
     const normalized = normalizeShiftTargetHours(raw);
     if (raw && normalized === null) {
       showAppNotice('Bitte pro Person ein Soll zwischen 0 und 744 Stunden eingeben.');
-      input.focus();
+      focusDatasetControl('data-shift-target', input.dataset.shiftTarget);
       return;
     }
     if (normalized !== null) targets[input.dataset.shiftTarget] = normalized;
@@ -1608,6 +1613,7 @@ function handleShiftTargetsSubmit(event) {
     focusAfterRender('#shift-targets-form button[type="submit"]');
   } catch (error) {
     showAppNotice(userError(error, 'Sollstunden konnten nicht gespeichert werden.'));
+    focusAfterRender('#shift-targets-form [data-shift-target]');
   }
 }
 
@@ -1639,6 +1645,7 @@ async function handleShiftSeriesSubmit(event) {
     });
   } catch (error) {
     showAppNotice(userError(error, 'Die Serie ist ungültig.'));
+    focusAfterRender('#shift-series-form [name="startDate"]');
     return;
   }
   if (!series.length) {
@@ -1668,6 +1675,7 @@ async function handleShiftSeriesSubmit(event) {
     focusAfterRender('#shift-series-submit');
   } catch (error) {
     showAppNotice(userError(error, 'Serie konnte nicht gespeichert werden.'));
+    focusAfterRender('#shift-series-form [name="title"]');
   }
 }
 
@@ -1679,6 +1687,7 @@ function addRosterPreviewDuty() {
   const service = parseRosterCell(code);
   if (!name || !date?.startsWith(rosterImport.month + '-') || !service?.start) {
     showAppNotice('Bitte Person, Datum im importierten Monat und Dienst wählen.');
+    focusAfterRender('#roster-new-name');
     return;
   }
   rosterImport.entries.push({name, date, code:service.code, title:service.title,
@@ -1704,6 +1713,7 @@ function handleRosterImportSubmit(event) {
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue) || !selfName ||
       !shiftMembers.some(member => member.id === selfMemberId)) {
     showAppNotice('Bitte Monat, deine Person in FamSchicht und deine Zeile im Plan auswählen.');
+    focusFirstAfterRender('#roster-review-form [name="month"]', '#roster-review-form [name="selfMemberId"]', '#roster-review-form [name="selfName"]');
     return;
   }
 
@@ -1711,10 +1721,12 @@ function handleRosterImportSubmit(event) {
   const draftError = validateRosterDraft({month:monthValue, selfName, selfMemberId, entries});
   if (draftError) {
     showAppNotice(draftError);
+    focusAfterRender('#roster-review-form [data-roster-field]');
     return;
   }
   if (!entries.some(entry => normalizeRosterName(entry.name) === normalizeRosterName(selfName))) {
     showAppNotice('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
+    focusAfterRender('#roster-review-form [name="selfName"]');
     return;
   }
 
@@ -1737,6 +1749,7 @@ function handleRosterImportSubmit(event) {
     focusAfterRender('#roster-upload');
   } catch (error) {
     showAppNotice(userError(error, 'Dienstplan konnte nicht lokal gespeichert werden.'));
+    focusAfterRender('#roster-review-submit');
   }
 }
 
@@ -1778,6 +1791,7 @@ async function handleCustodySubmit(event) {
   const title = String(formData.get('title')).trim();
   if (!title) {
     showAppNotice('Bitte eine Bezeichnung eingeben.');
+    focusAfterRender('#custody-form [name="title"]');
     return;
   }
 
@@ -1786,6 +1800,7 @@ async function handleCustodySubmit(event) {
     dates = generateCustodyDates(anchor, 12, endAnchor);
   } catch (err) {
     showAppNotice(userError(err, 'Der Umgangsrhythmus ist ungültig.'));
+    focusAfterRender('#custody-form [name="anchor"]');
     return;
   }
 
@@ -1833,9 +1848,11 @@ async function handleCustodySubmit(event) {
     await persistCustodyEntries();
   } catch (err) {
     showAppNotice(userError(err, 'Umgangsrhythmus konnte nicht vollständig gespeichert werden.'));
+    focusAfterRender('#custody-submit');
     return;
   }
   render();
+  focusAfterRender('#custody-submit');
 }
 
 function exportJsonData() {
@@ -2270,6 +2287,7 @@ function handleDayDialogSubmit(event) {
   const rawEndDate = String(data.get('endDate') || date);
   if (rawEndDate < date) {
     showAppNotice('Das Enddatum darf nicht vor dem Startdatum liegen.');
+    focusAfterRender('#day-dialog-form [name="endDate"]');
     return;
   }
   const item = {
@@ -2296,6 +2314,7 @@ function handleDayDialogSubmit(event) {
     const points = normalizePoints(data.get('points'), {allowZero: true});
     if (points === null) {
       showAppNotice('Bitte für Punkte eine ganze Zahl zwischen 0 und 10000 eingeben.');
+      focusAfterRender('#day-dialog-form [name="points"]');
       return;
     }
     if (points) item.points = points;
@@ -2393,6 +2412,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
   if (!shiftOwner) {
     shiftSavePending = false;
     render();
+    focusAfterRender('[data-owner]');
     return;
   }
   void saveEntry({
