@@ -32,6 +32,10 @@ function reportHouseholdError(context, error) {
   console.warn(context, error);
 }
 
+function focusHouseholdControl(selector) {
+  window.setTimeout(() => root.querySelector(selector)?.focus(), 0);
+}
+
 function invitationMarkup() {
   return `
     <div class="invitation-panel">
@@ -170,7 +174,7 @@ async function refresh(user) {
       return;
     }
     window.dispatchEvent(new CustomEvent('famschicht:household-created'));
-    void safeRefresh(user);
+    void safeRefresh(user).then(() => focusHouseholdControl('#household-members-form button[type="submit"]'));
   };
 }
 
@@ -201,7 +205,7 @@ function bindMemberForms(householdId, members, user) {
       members.splice(0, members.length, ...saved);
       messageEl.textContent = 'Mitglieder gespeichert.';
       window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
-      void safeRefresh(user);
+      void safeRefresh(user).then(() => focusHouseholdControl('#household-members-form button[type="submit"]'));
     } catch (error) {
       messageEl.textContent = error.message === 'member name is required'
         ? 'Bitte für jede Person einen Namen eingeben.'
@@ -232,7 +236,7 @@ function bindMemberForms(householdId, members, user) {
       form.reset();
       messageEl.textContent = 'Person hinzugefügt.';
       window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
-      void safeRefresh(user);
+      void safeRefresh(user).then(() => focusHouseholdControl('#household-member-add-form [name="name"]'));
     } catch (error) {
       messageEl.textContent = error.message === 'member name is required'
         ? 'Bitte einen Namen eingeben.'
@@ -269,6 +273,7 @@ function bindInvitationForm(householdId) {
         (result.expiresAt ? '<span class="note">Gültig bis ' + escapeHtml(new Date(result.expiresAt).toLocaleDateString('de-DE')) + '.</span>' : '') +
         (result.invitationId ? '<button type="button" class="revoke-invitation">Einladung widerrufen</button>' : '');
       form.append(resultBox);
+      resultBox.querySelector('.invitation-link')?.focus();
       resultBox.querySelector('.copy-invitation').onclick = async () => {
         try {
           await navigator.clipboard.writeText(link.href);
@@ -287,18 +292,22 @@ function bindInvitationForm(householdId) {
           if (!outcome.revoked) {
             messageEl.textContent = outcome.message;
             revokeButton.disabled = false;
+            revokeButton.focus();
             return;
           }
           resultBox.remove();
           messageEl.textContent = outcome.message;
+          form.querySelector('[name="email"]')?.focus();
         } catch (error) {
           messageEl.textContent = error.message || 'Einladung konnte nicht widerrufen werden.';
           revokeButton.disabled = false;
+          revokeButton.focus();
         }
       });
       form.reset();
     } catch (error) {
       messageEl.textContent = error.message || 'Einladung konnte nicht erstellt werden.';
+      form.querySelector('[name="email"]')?.focus();
     } finally {
       button.disabled = false;
     }
