@@ -399,7 +399,8 @@ function homeOverviewMarkup(today, displayEntries = entries) {
     '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
     '<div class="home-agenda-list">' + appointmentMarkup + '</div></section>' +
     taskOverviewMarkup(today, displayEntries) +
-    '<div class="home-footer-note"><span class="home-sync-dot"></span>' + (cloud ? 'Euer Plan ist synchronisiert' : 'Dein Plan auf diesem Gerät') + '</div></section>';
+    '<div class="home-footer-note"><span class="home-sync-dot"></span>' +
+    h(syncState === 'synced' ? 'Euer Plan ist synchronisiert' : syncStatusLabel(syncState)) + '</div></section>';
 }
 
 function taskOverviewMarkup(today, displayEntries = entries) {
