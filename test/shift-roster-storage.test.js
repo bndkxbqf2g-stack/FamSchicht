@@ -36,4 +36,7 @@ test('malformed device storage is treated as an empty roster list', () => {
 test('invalid roster payloads are rejected before saving', () => {
   assert.throws(() => saveShiftRosters([{month:'2026-13', entries:[]}], memoryStorage()), /ungültige Daten/);
   assert.throws(() => saveShiftRosters([{month:'2026-11', selfMemberId:{id:'unsafe'}, entries:[]}], memoryStorage()), /ungültige Daten/);
+  assert.throws(() => saveShiftRosters([{month:'2026-02', entries:[{name:'Person Beispiel', date:'2026-02-29', code:'F1'}]}], memoryStorage()), /ungültige Daten/);
+  assert.throws(() => saveShiftRosters([{month:'2026-11', entries:[{name:'Person Beispiel', date:'2026-11-02', code:'O'}]}], memoryStorage()), /ungültige Daten/);
 });
+

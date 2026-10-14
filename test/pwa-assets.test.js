@@ -137,6 +137,14 @@ test('roster upload advertises and enforces the supported image boundary', () =>
   assert.match(ocr, /validateRosterFiles\(files\)/);
 });
 
+test('roster preview and storage share the date and service validation contract', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const storage = fs.readFileSync(path.join(root, 'src', 'shift-roster-storage.js'), 'utf8');
+  assert.match(main, /validateRosterDraft/);
+  assert.match(storage, /isRosterDateInMonth/);
+  assert.match(storage, /parseRosterCell\(entry\.code\)/);
+});
+
 test('local points and rewards stay separate from the cloud calendar path', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const rewards = fs.readFileSync(path.join(root, 'src', 'rewards.js'), 'utf8');

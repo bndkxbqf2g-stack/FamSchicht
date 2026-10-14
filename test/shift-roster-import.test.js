@@ -8,6 +8,8 @@ import {
   parseRosterPeriod,
   parseRosterYear,
   ROSTER_FILE_VALIDATION_ERROR,
+  isRosterDateInMonth,
+  validateRosterDraft,
   validateRosterFiles,
 } from '../src/shift-roster-import.js';
 
@@ -34,6 +36,19 @@ test('accepts JPEG and PNG roster files but rejects unsupported image formats', 
   assert.equal(validateRosterFiles(Array.from({length:5}, (_, index) => ({
     name:'plan-' + index + '.png', type:'image/png', size:1024,
   }))), ROSTER_FILE_VALIDATION_ERROR);
+});
+
+test('validates the roster preview before local persistence', () => {
+  const valid = {
+    month:'2026-02', selfName:'Ada Beispiel', selfMemberId:'member-a',
+    entries:[{name:'Ada Beispiel', date:'2026-02-28', code:'F1'}],
+  };
+  assert.equal(validateRosterDraft(valid), '');
+  assert.equal(isRosterDateInMonth('2026-02-28', '2026-02'), true);
+  assert.equal(isRosterDateInMonth('2026-02-29', '2026-02'), false);
+  assert.match(validateRosterDraft({...valid, entries:[{...valid.entries[0], date:'2026-02-29'}]}), /ungültiges Datum/);
+  assert.match(validateRosterDraft({...valid, entries:[{...valid.entries[0], code:'O'}]}), /ungültiges Datum oder Kürzel/);
+  assert.match(validateRosterDraft({...valid, entries:[{...valid.entries[0], name:''}]}), /Namen/);
 });
 
 test('maps recognized codes to the nearest employee row and calendar day', () => {

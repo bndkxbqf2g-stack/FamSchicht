@@ -26,6 +26,31 @@ export function validateRosterFiles(files) {
   return '';
 }
 
+export function validateRosterDraft(roster) {
+  const month = String(roster?.month || '');
+  const selfName = String(roster?.selfName || '').trim();
+  const entries = roster?.entries;
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !selfName || !Array.isArray(entries) || !entries.length) {
+    return 'Bitte Monat, deine Planzeile und mindestens einen Dienst prüfen.';
+  }
+  if (entries.some(entry => !String(entry?.name || '').trim())) {
+    return 'Jede erkannte Dienstzeile braucht einen Namen.';
+  }
+  if (entries.some(entry => !isRosterDateInMonth(entry?.date, month) || !parseRosterCell(entry?.code)?.start)) {
+    return 'Mindestens ein Dienst hat ein ungültiges Datum oder Kürzel. Bitte korrigiere die Vorschau.';
+  }
+  return '';
+}
+
+export function isRosterDateInMonth(date, month) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(String(date || '')) ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month || ''))) return false;
+  const [year, monthNumber, day] = String(date).split('-').map(Number);
+  const [monthYear, monthValue] = String(month).split('-').map(Number);
+  if (year !== monthYear || monthNumber !== monthValue) return false;
+  return day >= 1 && day <= new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+}
+
 export function parseRosterPeriod(text) {
   const year = parseRosterYear(text);
   const month = parseRosterMonth(text);

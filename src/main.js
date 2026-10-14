@@ -34,7 +34,7 @@ import {
   deleteOwnerEvent,
 } from './calendar-service.js';
 import {firstName, normalizeRosterName, parseRosterCell, shiftsOverlap} from './shift-roster.js';
-import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear, validateRosterFiles} from './shift-roster-import.js';
+import {extractBestRosterPage, mergeRosterPages, parseRosterMonth, parseRosterPeriod, parseRosterYear, validateRosterDraft, validateRosterFiles} from './shift-roster-import.js';
 import {recognizeRosterImages} from './shift-roster-ocr.js';
 import {rosterImportErrorMessage} from './shift-roster-errors.js';
 import {loadShiftRosters, replaceShiftRosterMonth, saveShiftRosters} from './shift-roster-storage.js';
@@ -1466,13 +1466,14 @@ function handleRosterImportSubmit(event) {
     return;
   }
 
-  const entries = rosterImport.entries.filter(entry => entry.name.trim());
-  if (!entries.some(entry => normalizeRosterName(entry.name) === normalizeRosterName(selfName))) {
-    showAppNotice('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
+  const entries = rosterImport.entries.map(entry => ({...entry, name:String(entry.name || '').trim()}));
+  const draftError = validateRosterDraft({month:monthValue, selfName, selfMemberId, entries});
+  if (draftError) {
+    showAppNotice(draftError);
     return;
   }
-  if (entries.some(entry => !entry.date.startsWith(monthValue + '-') || !parseRosterCell(entry.code)?.start)) {
-    showAppNotice('Mindestens ein Dienst hat ein ungültiges Datum oder Kürzel. Bitte korrigiere die Vorschau.');
+  if (!entries.some(entry => normalizeRosterName(entry.name) === normalizeRosterName(selfName))) {
+    showAppNotice('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
     return;
   }
 
