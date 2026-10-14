@@ -437,7 +437,7 @@ function render() {
     days.map(day => day
       ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b><button type="button" class="day-select' +
         (day === dateKey(focusedDate) ? ' selected' : '') + '" data-day-select="' + day + '"' +
-        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' aria-label="' + h(new Date(day + 'T12:00:00').toLocaleDateString('de-DE', {
+        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' tabindex="' + (day === dateKey(focusedDate) ? '0' : '-1') + '" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End" aria-label="' + h(new Date(day + 'T12:00:00').toLocaleDateString('de-DE', {
           weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
         }) + (day === today ? ' · Heute' : '')) + '">' + Number(day.slice(-2)) + '</button></b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
@@ -1135,11 +1135,40 @@ const shiftAbbreviations = {
 };
 function shiftShortLabel(title) { return shiftAbbreviations[title] || title; }
 
-function selectCalendarDay(day) {
+function selectCalendarDay(day, {restoreFocus = false} = {}) {
   if (!day) return;
   focusedDate = new Date(day + 'T12:00:00');
   month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
   render();
+  if (restoreFocus) {
+    window.setTimeout(() => document.querySelector('[data-day-select="' + day + '"]')?.focus(), 0);
+  }
+}
+
+function moveCalendarDayByKeyboard(event) {
+  const day = event.currentTarget?.dataset?.daySelect;
+  if (!day) return;
+  const key = event.key;
+  const date = new Date(day + 'T12:00:00');
+  let offset = 0;
+  if (calendarMode === 'day') {
+    if (key === 'ArrowLeft' || key === 'ArrowUp') offset = -1;
+    if (key === 'ArrowRight' || key === 'ArrowDown') offset = 1;
+  } else {
+    if (key === 'ArrowLeft') offset = -1;
+    if (key === 'ArrowRight') offset = 1;
+    if (key === 'ArrowUp') offset = -7;
+    if (key === 'ArrowDown') offset = 7;
+  }
+  if (key === 'Home') {
+    offset = -((date.getDay() + 6) % 7);
+  } else if (key === 'End') {
+    offset = 6 - ((date.getDay() + 6) % 7);
+  }
+  if (!offset) return;
+  event.preventDefault();
+  date.setDate(date.getDate() + offset);
+  selectCalendarDay(dateKey(date), {restoreFocus: true});
 }
 
 function bindControls() {
@@ -1264,7 +1293,8 @@ function bindControls() {
     };
   });
   app.querySelectorAll('[data-day-select]').forEach(button => {
-    button.addEventListener('click', () => selectCalendarDay(button.dataset.daySelect));
+    button.addEventListener('click', () => selectCalendarDay(button.dataset.daySelect, {restoreFocus: true}));
+    button.addEventListener('keydown', moveCalendarDayByKeyboard);
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {
