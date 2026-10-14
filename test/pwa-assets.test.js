@@ -17,9 +17,9 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.6"/);
-  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.6"/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.6"/);
+  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.7"/);
+  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.7"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.7"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -32,7 +32,7 @@ test('app viewport enables iPhone safe-area layout', () => {
 
 test('visible application version matches the current cache-bust release', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-  assert.match(main, /Familienplaner · v0\.3\.6/);
+  assert.match(main, /Familienplaner · v0\.3\.7/);
 });
 
 test('app shell exposes keyboard navigation and account dialog semantics', () => {
@@ -125,6 +125,19 @@ test('entry deletion uses an accessible in-app confirmation dialog', () => {
   assert.match(main, /h\(e\.title \+ ' löschen'\)/);
   assert.match(main, /h\(entry\.title \+ ' löschen'\)/);
   assert.doesNotMatch(main, /if \(!confirm\('Eintrag löschen\?'\)\)/);
+});
+
+test('all destructive and import confirmations use the shared modal contract', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(main, /function openConfirmationDialog\(/);
+  assert.match(main, /id="confirmation-dialog-form"/);
+  assert.match(main, /const dialogOpen = Boolean\([^\n]*confirmationDialog/);
+  assert.match(html, /id="confirmation-root"/);
+  assert.match(main, /confirmationRoot\.innerHTML/);
+  assert.match(main, /document\.querySelector\('#confirmation-dialog-form'\)/);
+  assert.match(main, /onConfirm: \(\) =>/);
+  assert.doesNotMatch(main, /\bconfirm\(/);
 });
 
 test('dialog focus restoration survives rerendered trigger nodes', () => {
