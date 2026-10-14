@@ -4,6 +4,12 @@
 - Die autoritative Supabase-Management-API meldet das Projekt aktuell als `INACTIVE`.
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
+- Ein lokaler Supabase-Sicherheits-Preflight schützt jetzt owner-only-RLS-Migrationen, private Einladungstabellen, den authentifizierten Edge-Grenzpfad und das Fehlen von Secret-Material im Client; die Live-Matrix bleibt davon ausdrücklich unberührt.
+
+## Update 14.10.2026 – Supabase-Sicherheits-Preflight
+- Die CI prüft jetzt statisch die owner-only-`household_members`-RLS-Policies inklusive `USING`/`WITH CHECK`, die privaten Einladungsgrants, Hash-/Lock-/Einmalannahme und den authentifizierten Edge-Function-Grenzpfad.
+- Client-Code darf kein Service-Role-/Secret-Material enthalten; erläuternde Kommentare werden dabei nicht als Schlüsselmaterial gewertet.
+- Lokale Regressionstests: 202 bestanden; Produktions-Build erfolgreich. Die getrennte Live-Matrix mit Owner, Partner, Coparent und Fremdkonto bleibt wegen `INACTIVE`-Projekt offen.
 
 ## Update 14.10.2026 – Tastaturziele für Kalendertage
 - Jeder sichtbare Kalendertag ist jetzt ein eigenes beschriftetes Tastaturziel mit lokalisiertem Datum; der fokussierte Tag trägt zusätzlich `aria-current="date"`.
