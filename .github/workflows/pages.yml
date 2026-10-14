@@ -12,6 +12,9 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ vars.FAMSCHICHT_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.FAMSCHICHT_SUPABASE_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,6 +37,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ vars.FAMSCHICHT_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.FAMSCHICHT_SUPABASE_PUBLISHABLE_KEY }}
     concurrency:
       group: pages
       cancel-in-progress: true
@@ -64,3 +70,4 @@ jobs:
           done
           echo 'Published page missing or serving unbuilt source.' >&2
           exit 1
+

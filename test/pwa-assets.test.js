@@ -119,6 +119,23 @@ test('auth errors stay in an accessible non-blocking status message', () => {
   assert.match(styles, /\.auth-error/);
 });
 
+test('Supabase client reads only the intended build configuration', () => {
+  const auth = fs.readFileSync(path.join(root, 'src', 'auth.js'), 'utf8');
+  const runtime = fs.readFileSync(path.join(root, 'src', 'runtime-config.js'), 'utf8');
+  const workflow = fs.readFileSync(path.join(root, '.github', 'workflows', 'pages.yml'), 'utf8');
+  const example = fs.readFileSync(path.join(root, '.env.example'), 'utf8');
+  assert.match(auth, /runtime-config\.js/);
+  assert.match(auth, /supabaseConfig\.url/);
+  assert.doesNotMatch(auth, /https:\/\/[^'"\s]+\.supabase\.co/);
+  assert.doesNotMatch(auth, /sb_publishable_[A-Za-z0-9_-]{12,}/);
+  assert.match(runtime, /VITE_SUPABASE_URL/);
+  assert.match(runtime, /VITE_SUPABASE_PUBLISHABLE_KEY/);
+  assert.match(workflow, /FAMSCHICHT_SUPABASE_URL/);
+  assert.match(workflow, /FAMSCHICHT_SUPABASE_PUBLISHABLE_KEY/);
+  assert.match(example, /VITE_SUPABASE_URL=https:\/\/your-project-ref\.supabase\.co/);
+  assert.match(example, /VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_replace_me/);
+});
+
 test('modal dialogs isolate the calendar background from keyboard focus', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');

@@ -11,6 +11,7 @@ Vite-basierte JavaScript-Web-App.
 - src/custody.js: Umgangsrhythmus.
 - src/security.js: UI-Sichtbarkeits-/Escaping-Helfer.
 - src/auth.js: Supabase-Client und Auth.
+- src/runtime-config.js: Build-Variablen für Supabase-URL und Publishable Key mit lokalem Konfigurationsstatus.
 - src/auth-ui.js: Anmeldung/Abmeldung.
 - src/household-ui.js: Haushalts-Setup, owner-only Mitgliederverwaltung und Einladungs-UI.
 - src/household-members.js: fachliche Haushaltsmitglieder mit stabiler ID, Farbe und Initialen.
@@ -39,6 +40,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 
 ## Datenfluss heute
 - Offline/Fallback: lokale Kalendereinträge + Bootstrap-Mitglieder -> Kalender-UI.
+- Supabase-Konfiguration: `.env.local` oder GitHub-Pages-Variablen -> `runtime-config.js` -> echter Supabase-Client; fehlen die Variablen, bleibt der Auth-/Transportadapter ohne Netzwerkzugriff im lokalen Modus.
 - Optionale Sollstunden: Monatsziele pro schichtberechtigter Person -> lokaler Gerätespeicher -> Dienstplanübersicht; diese Werte werden nicht als Kalenderereignisse oder Supabase-Daten synchronisiert.
 - Importierte Dienstpläne: Foto -> OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos werden nach der OCR nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
 - Externe Kalender: ICS-Datei -> optionale Zuordnung zu einer Kalenderperson -> read-only Quellenvertrag -> stabile externe UID/Fingerprint-Prüfung -> neue Termine oder explizit ausgewiesene Duplikate/Konflikte. Importierte Termine tragen die Quellenmetadaten im bestehenden `metadata`-Roundtrip und bleiben in der Oberfläche nicht bearbeitbar.

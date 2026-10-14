@@ -41,6 +41,7 @@ npm run build
 - Synchronisationsstatus: unbekannte Zustände fallen auf lokal zurück; Labels/Klassen für laufend, synchronisiert, offline und Fehler bleiben konsistent.
 - Accessibility-/Recovery-Sichtprüfung: Skip-Link, Dialogsemantik, Einstellungen-Öffnen bei Desktop und 390×844 sowie sichtbarer Offline-/Fehlerstatus; vollständige Tastaturabnahme aller Ansichten bleibt offen.
 - Modale Tastaturführung: Vorwärts-/Rückwärts-Tab bleibt im aktiven Termin-, Verschiebe-, Schicht- oder Einstellungen-Dialog; der 390×844-Check prüft zusätzlich `inert`-Hintergrund und horizontalen Überlauf.
+- Laufzeitkonfiguration: Clientcode enthält keine fest verdrahtete Supabase-URL oder Publishable-Key-Werte; `.env.example` und GitHub-Pages-Variablen sind verdrahtet, und ein Browserlauf ohne Variablen bleibt sichtbar im lokalen Modus.
 
 Die derzeitige Testsuite nutzt Node `node:test` für Domänenlogik und Serviceverträge. Es gibt keinen Browser-Automation-, Screenshot- oder Golden-Test-Runner in der aktuellen Abhängigkeit. Deshalb werden keine fragilen Bilddateien oder zusätzlichen UI-Test-Abhängigkeiten allein für diese Standardisierungsänderung eingeführt. Wenn ein konkreter UI-Fehler geändert wird, ergänze zuerst einen reproduzierbaren Regressionstest im vorhandenen Node-Teststil; bei Änderungen an Layout/Touch-Verhalten muss zusätzlich ein Browser-/iPhone-Viewport sichtbar geprüft und das Ergebnis im PR dokumentiert werden. Screenshots nur mit synthetischen Daten erstellen.
 
@@ -54,4 +55,6 @@ Der Dienstplanimport wird zusätzlich mit synthetischen Domain-/Parser-/Speicher
 4. GitHub Actions Qualitätsjob grün; Deploymentjob nur auf main.
 5. Für UI-Änderungen: die betroffenen Ansichten/Interaktionen im relevanten iPhone-Viewport kontrollieren; Testmethode und Grenzen angeben.
 6. Für Supabase-/RLS-Änderungen: Migrationen und Zugriffsmatrix gesondert prüfen. Eine grüne Frontend-CI bestätigt keine Datenbankrechte.
+
+Der Supabase-Sicherheits-Preflight prüft owner-only-RLS-Migrationen, private Einladungstabellen, atomare Tokenannahme, den Edge-Auth-Grenzpfad und das Fehlen von Service-Role-/Secret-Material im Client. Er ist kein Ersatz für die noch offene Live-Matrix mit getrennten Konten.
 

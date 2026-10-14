@@ -5,6 +5,12 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 - Ein lokaler Supabase-Sicherheits-Preflight schützt jetzt owner-only-RLS-Migrationen, private Einladungstabellen, den authentifizierten Edge-Grenzpfad und das Fehlen von Secret-Material im Client; die Live-Matrix bleibt davon ausdrücklich unberührt.
+- Supabase-URL und Publishable Key werden aus der Build-Konfiguration gelesen. Ohne Variablen bleibt die App kontrolliert im lokalen Modus; GitHub Pages erhält die Werte ausschließlich über Repository-Variablen.
+
+## Update 14.10.2026 – Supabase-Laufzeitkonfiguration
+- `src/auth.js` enthält keine fest verdrahtete Projekt-URL oder Schlüssel mehr; `src/runtime-config.js` liest `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- Lokale Entwicklung nutzt `.env.local` nach Vorlage aus `.env.example`. Fehlen die Variablen, stellt ein No-op-Client den lokalen Modus ohne Cloud-Versuche bereit.
+- Der Pages-Workflow übernimmt `FAMSCHICHT_SUPABASE_URL` und `FAMSCHICHT_SUPABASE_PUBLISHABLE_KEY` als Build-Variablen. Lokale Regressionstests: 203 bestanden; Produktions-Build erfolgreich; die Live-Matrix bleibt wegen `INACTIVE`-Projekt offen.
 
 ## Update 14.10.2026 – Supabase-Sicherheits-Preflight
 - Die CI prüft jetzt statisch die owner-only-`household_members`-RLS-Policies inklusive `USING`/`WITH CHECK`, die privaten Einladungsgrants, Hash-/Lock-/Einmalannahme und den authentifizierten Edge-Function-Grenzpfad.
