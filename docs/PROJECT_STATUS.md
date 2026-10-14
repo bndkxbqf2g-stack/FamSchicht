@@ -11,6 +11,7 @@
 - Fehlerpfade in Schichtvorlagen, Sollstunden, Dienstplanprüfung, Umgangsrhythmus und Termindialogen öffnen nach der Meldung das betroffene Korrekturfeld; Fokusziele in Disclosure-Bereichen öffnen deren Bereich vorher.
 - Beim Öffnen der Dienste-Ansicht bleibt der Einstiegsfokus auf dem sichtbaren Starttag-Feld der Schnellerfassung.
 - Beim Aktivieren des Wall-Modus wandert der Fokus auf den sichtbaren Rückweg; beim Zurückwechseln auf den Übernehmen-Button.
+- Der lokale Kalenderdialog-Audit mit synthetischem Termin bestätigt Bearbeiten, Verschieben und Löschbestätigung mit Rückwärts-Tab, Escape-Rückgabe und stabilen Auslösern; eine Löschung wurde nicht bestätigt.
 - Sichtbare Kalendertage verwenden ein roving Tab-Ziel; Pfeil-, Home- und End-Tasten verschieben den Fokus semantisch über den Kalender.
 - Ansichtswechsel, Monatsnavigation und Kalenderfilter geben den Fokus nach dem Rendern an den neuen Kontext zurück; die Filter-Aufklappung bleibt dabei geöffnet.
 - Der Laptop-Browserlauf mit synthetischem Umgangstermin bestätigt den Dialog auch über der Einstellungsansicht: Fokus auf „Abbrechen“, `inert` für Kalender und Einstellungen sowie Rückgabe an „Rhythmus eintragen“ nach dem Abbruch; es wurde nichts gespeichert oder gelöscht.
