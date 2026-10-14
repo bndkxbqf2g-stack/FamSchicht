@@ -241,10 +241,37 @@ function closeDialogAndRestoreFocus(clearDialog) {
   restoreDialogFocus();
 }
 
+function rememberDialogFocus(element) {
+  if (!element) return null;
+  return {
+    id: element.id || '',
+    editId: element.dataset?.edit || '',
+    moveOpenId: element.dataset?.moveOpen || '',
+    taskNew: element.hasAttribute?.('data-task-new') || false,
+  };
+}
+
+function resolveDialogFocus(target) {
+  if (!target) return null;
+  if (target.id) return document.getElementById(target.id);
+  if (target.editId) {
+    return [...document.querySelectorAll('[data-edit]')]
+      .find(element => element.dataset.edit === target.editId) || null;
+  }
+  if (target.moveOpenId) {
+    return [...document.querySelectorAll('[data-move-open]')]
+      .find(element => element.dataset.moveOpen === target.moveOpenId) || null;
+  }
+  if (target.taskNew) return document.querySelector('[data-task-new]');
+  return null;
+}
+
 function restoreDialogFocus() {
-  const returnFocus = dialogReturnFocus;
+  const returnTarget = dialogReturnFocus;
   dialogReturnFocus = null;
-  window.setTimeout(() => returnFocus?.focus?.(), 0);
+  const focusTarget = () => resolveDialogFocus(returnTarget)?.focus?.();
+  focusTarget();
+  window.setTimeout(focusTarget, 0);
 }
 
 function appNoticeMarkup() {
@@ -1239,7 +1266,7 @@ function bindControls() {
       const item = entries.find(entry => entry.id === element.dataset.edit);
       if (item?.type === 'family') openDayDialog(item.date, item.id, element);
       if (item?.type === 'shift') {
-        dialogReturnFocus = element;
+        dialogReturnFocus = rememberDialogFocus(element);
         shiftDialogEventId = item.id;
         render();
         window.setTimeout(() => document.querySelector('#shift-edit-form [name="date"]')?.focus(), 0);
@@ -1825,11 +1852,14 @@ function downloadFile(name, content, type) {
 }
 
 function openDayDialog(date, eventId = null, trigger = document.activeElement) {
-  dialogReturnFocus = trigger;
+  dialogReturnFocus = rememberDialogFocus(trigger);
   dayDialogDate = date;
   dayDialogEventId = eventId;
   render();
-  window.setTimeout(() => document.querySelector('#day-dialog-form [name="title"]')?.focus(), 0);
+  const focusSelector = '#day-dialog-form [name="date"]';
+  const focusField = () => document.querySelector(focusSelector)?.focus();
+  focusField();
+  window.setTimeout(focusField, 0);
 }
 
 function closeDayDialog() {
@@ -1842,7 +1872,7 @@ function closeDayDialog() {
 
 function openMoveDialog(id, sourceDate, trigger = document.activeElement) {
   if (!entries.some(entry => entry.id === id) || !sourceDate) return;
-  dialogReturnFocus = trigger;
+  dialogReturnFocus = rememberDialogFocus(trigger);
   moveDialog = {id, sourceDate};
   render();
   document.querySelector('#move-dialog-form [name="targetDate"]')?.focus();
@@ -1895,7 +1925,7 @@ function dayDialogMarkup() {
   return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="day-dialog-title" tabindex="-1">' +
     '<h2 id="day-dialog-title">' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
     '<p class="note">' + label + '</p><form id="day-dialog-form">' +
-    '<label>Von<input name="date" type="date" required value="' + h(selectedDate) + '"></label>' +
+    '<label>Von<input name="date" type="date" required autofocus value="' + h(selectedDate) + '"></label>' +
     '<label>Bis<input name="endDate" type="date" value="' + h(existing?.endDate || selectedDate) + '"></label>' +
     (existing ? '<label>Beginn<input name="start" type="time" value="' + h(existing?.start || '') + '"></label>' +
       '<label>Ende<input name="end" type="time" value="' + h(existing?.end || '') + '"></label>' : '') +

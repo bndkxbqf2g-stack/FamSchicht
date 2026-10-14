@@ -17,7 +17,7 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.3"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.4"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -109,6 +109,16 @@ test('runtime errors remain visible and dialogs restore keyboard focus', () => {
   assert.match(main, /write-error/);
 });
 
+test('dialog focus restoration survives rerendered trigger nodes', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(main, /function rememberDialogFocus\(element\)/);
+  assert.match(main, /function resolveDialogFocus\(target\)/);
+  assert.match(main, /const returnTarget = dialogReturnFocus/);
+  assert.match(main, /resolveDialogFocus\(returnTarget\)/);
+  assert.match(main, /dialogReturnFocus = rememberDialogFocus\(element\)/);
+  assert.match(main, /dialogReturnFocus = rememberDialogFocus\(trigger\)/);
+});
+
 test('calendar days expose semantic keyboard targets', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
@@ -164,6 +174,7 @@ test('modal dialogs keep Tab focus inside the active dialog', () => {
   assert.match(main, /dialog\.querySelectorAll\(/);
   assert.match(main, /event\.shiftKey/);
   assert.match(main, /tabindex="-1"/);
+  assert.match(main, /name="date" type="date" required autofocus/);
 });
 
 test('roster upload advertises and enforces the supported image boundary', () => {

@@ -21,6 +21,11 @@
 - Die lokale Kalenderablage akzeptiert jetzt nur synthetische Ereignisse mit stabiler ID, unterstütztem Typ, echtem Datum und gültigen Uhrzeiten.
 - Beschädigte oder strukturell unvollständige Payloads werden nicht überschrieben; die bestehende sichtbare Storage-Recovery bleibt der Wiederherstellungspfad.
 
+## Update 14.10.2026 – Dynamischer Dialogfokus
+- Dialoge speichern jetzt stabile Trigger-Schlüssel statt veralteter DOM-Referenzen; nach einem dynamischen Rendern wird der neue Auslöser wieder fokussiert.
+- Beim Bearbeiten erhält das sichtbare Datumsfeld den Einstiegsfokus; die frühere Fokussierung eines geschlossenen „Weitere Optionen“-Bereichs ist entfernt.
+- Browserprüfung mit synthetischem Termin: Bearbeiten öffnet mit Fokus auf `Von`, Abbrechen gibt den Fokus an „Synthetischer Familientermin bearbeiten“ zurück. Lokale Regressionstests: 207 bestanden.
+
 ## Update 14.10.2026 – Supabase-Laufzeitkonfiguration
 - `src/auth.js` enthält keine fest verdrahtete Projekt-URL oder Schlüssel mehr; `src/runtime-config.js` liest `VITE_SUPABASE_URL` und `VITE_SUPABASE_PUBLISHABLE_KEY`.
 - Lokale Entwicklung nutzt `.env.local` nach Vorlage aus `.env.example`. Fehlen die Variablen, stellt ein No-op-Client den lokalen Modus ohne Cloud-Versuche bereit.
