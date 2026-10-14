@@ -296,6 +296,21 @@ function restoreDialogFocus() {
   window.setTimeout(focusTarget, 0);
 }
 
+function focusAfterRender(selector) {
+  window.setTimeout(() => document.querySelector(selector)?.focus(), 0);
+}
+
+function focusDatasetControl(attribute, value) {
+  const datasetKey = attribute.replace(/^data-/, '').replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+  window.setTimeout(() => [...document.querySelectorAll('[' + attribute + ']')]
+    .find(element => element.dataset?.[datasetKey] === value)
+    ?.focus(), 0);
+}
+
+function focusViewHeading() {
+  focusAfterRender('#view-title');
+}
+
 function appNoticeMarkup() {
   if (!appNotice?.message) return '';
   const role = appNotice.kind === 'error' ? 'alert' : 'status';
@@ -484,7 +499,7 @@ function render() {
       .join('') +
     '</nav><div class="sidebar-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' +
     h(syncStatusLabel(syncState)) + '</div></aside>' +
-    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1>' +
+    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1 id="view-title" tabindex="-1">' +
     (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender') +
     '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
@@ -1224,17 +1239,20 @@ function bindControls() {
     focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, -1);
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
+    focusAfterRender('#prev');
   });
   app.querySelector('#next')?.addEventListener('click', () => {
     focusedDate = shiftCalendarDate(calendarMode === 'month' ? month : focusedDate, calendarMode, 1);
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
+    focusAfterRender('#next');
   });
   app.querySelector('#go-today')?.addEventListener('click', () => {
     const now = new Date();
     month = new Date(now.getFullYear(), now.getMonth(), 1, 12);
     focusedDate = now;
     render();
+    focusAfterRender('#go-today');
   });
   app.querySelector('#add-today')?.addEventListener('click', () => {
     openDayDialog(dateKey(new Date()));
@@ -1261,8 +1279,10 @@ function bindControls() {
       view = button.dataset.view;
       if (view === 'shift') {
         startShiftCapture();
+        focusViewHeading();
       } else {
         render();
+        focusViewHeading();
       }
     };
   });
@@ -1272,18 +1292,21 @@ function bindControls() {
     button.onclick = () => {
       calendarMode = button.dataset.calendarMode;
       render();
+      focusDatasetControl('data-calendar-mode', button.dataset.calendarMode);
     };
   });
   app.querySelectorAll('[data-person-filter]').forEach(button => {
     button.onclick = () => {
       personFilter = button.dataset.personFilter;
       render();
+      focusDatasetControl('data-person-filter', button.dataset.personFilter);
     };
   });
   app.querySelectorAll('[data-category-filter]').forEach(button => {
     button.onclick = () => {
       categoryFilter = button.dataset.categoryFilter;
       render();
+      focusDatasetControl('data-category-filter', button.dataset.categoryFilter);
     };
   });
   app.querySelectorAll('[data-day]').forEach(day => {
