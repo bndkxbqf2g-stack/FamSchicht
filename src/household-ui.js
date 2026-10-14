@@ -142,7 +142,7 @@ async function refresh(user) {
     <label>Name deines Familienkalenders
       <input name="name" maxlength="80" required value="Unser Familienkalender">
     </label>
-    <button class="primary">Privaten Haushalt erstellen</button>
+    <button type="submit" class="primary">Privaten Haushalt erstellen</button>
     <p class="note" id="household-message">Zunächst hast ausschließlich du Zugriff.</p>
   </form>`;
   const form = root.querySelector('#household-form');
