@@ -1158,3 +1158,11 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   .display-wall .entry{font-size:10px;padding:5px 4px}
 }
 
+/* Calendar dates are keyboard targets as well as pointer targets. */
+.day > b{display:block;font-size:12px;color:#5d6a65}
+.day-select{min-width:25px;min-height:25px;padding:0 4px;border:0;border-radius:99px;background:transparent;color:inherit;font:inherit;font-weight:700;line-height:1;cursor:pointer}
+.day-select.selected{box-shadow:inset 0 0 0 1px var(--line,#dfe8e1)}
+.today > b .day-select{background:var(--accent,#176b58);color:#fff}
+.day-select:focus-visible{outline:0;box-shadow:var(--focus-ring,0 0 0 3px rgba(49,95,82,.22))}
+@media(max-width:600px){.day > b{font-size:11px}.day-select{min-width:23px;min-height:23px;padding:0 3px}}
+

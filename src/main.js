@@ -377,8 +377,11 @@ function render() {
           (calendarMode === 'week' ? ' ' + date.getDate() : '') + '</b>';
       }).join('')) +
     days.map(day => day
-      ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b>' +
-        Number(day.slice(-2)) + '</b>' +
+      ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b><button type="button" class="day-select' +
+        (day === dateKey(focusedDate) ? ' selected' : '') + '" data-day-select="' + day + '"' +
+        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' aria-label="' + h(new Date(day + 'T12:00:00').toLocaleDateString('de-DE', {
+          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+        }) + (day === today ? ' · Heute' : '')) + '">' + Number(day.slice(-2)) + '</button></b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => {
             const readOnly = isWallMode(displayMode) || isReadOnlyCalendarEntry(e);
@@ -999,6 +1002,13 @@ const shiftAbbreviations = {
 };
 function shiftShortLabel(title) { return shiftAbbreviations[title] || title; }
 
+function selectCalendarDay(day) {
+  if (!day) return;
+  focusedDate = new Date(day + 'T12:00:00');
+  month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
+  render();
+}
+
 function bindControls() {
   app.querySelectorAll('#roster-upload, #roster-replace').forEach(button => {
     button.addEventListener('click', () => app.querySelector('#roster-files')?.click());
@@ -1116,11 +1126,12 @@ function bindControls() {
   });
   app.querySelectorAll('[data-day]').forEach(day => {
     day.onclick = event => {
-      if (event.target.closest('[data-remove], [data-edit], [data-move-open]')) return;
-      focusedDate = new Date(day.dataset.day + 'T12:00:00');
-      month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
-      render();
+      if (event.target.closest('[data-remove], [data-edit], [data-move-open], [data-day-select]')) return;
+      selectCalendarDay(day.dataset.day);
     };
+  });
+  app.querySelectorAll('[data-day-select]').forEach(button => {
+    button.addEventListener('click', () => selectCalendarDay(button.dataset.daySelect));
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {

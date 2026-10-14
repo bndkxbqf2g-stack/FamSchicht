@@ -5,6 +5,11 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Tastaturziele für Kalendertage
+- Jeder sichtbare Kalendertag ist jetzt ein eigenes beschriftetes Tastaturziel mit lokalisiertem Datum; der fokussierte Tag trägt zusätzlich `aria-current="date"`.
+- Die bestehende Maus-/Touch-Auswahl bleibt erhalten, während Bearbeiten, Löschen und Verschieben weiterhin getrennte Interaktionen bleiben.
+- Sichtprüfung: 31 Tagesbuttons bei 390×844, Auswahl vom 14. auf den 15. Oktober und kein horizontaler Überlauf; lokale Regressionstests: 190 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Lokale Punkte und Belohnungen
 - Aufgaben und Routinen können einen ganzzahligen Punktwert erhalten; erledigte Einzelaufgaben sowie erledigte Vorkommen wiederkehrender Einträge werden je stabiler Kalenderperson summiert.
 - Belohnungsziele werden in den Einstellungen angelegt, lokal gespeichert und im Übersichts-Dashboard mit Fortschrittsbalken je Person dargestellt.

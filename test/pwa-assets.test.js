@@ -100,6 +100,15 @@ test('runtime errors remain visible and dialogs restore keyboard focus', () => {
   assert.match(main, /write-error/);
 });
 
+test('calendar days expose semantic keyboard targets', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+  assert.match(main, /data-day-select/);
+  assert.match(main, /aria-current="date"/);
+  assert.match(main, /selectCalendarDay/);
+  assert.match(styles, /\.day-select:focus-visible/);
+});
+
 test('local points and rewards stay separate from the cloud calendar path', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const rewards = fs.readFileSync(path.join(root, 'src', 'rewards.js'), 'utf8');
