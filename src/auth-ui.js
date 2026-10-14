@@ -12,10 +12,18 @@ let lastRequest = 0;
 let inviteHandled = false;
 let inviteStatus = '';
 
-function showInviteMessage(text) {
+function setAuthMessage(message, text, kind = 'status') {
+  if (!message) return;
+  message.textContent = text;
+  message.className = 'note' + (kind === 'error' ? ' auth-error' : '');
+  message.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  message.setAttribute('aria-live', kind === 'error' ? 'assertive' : 'polite');
+}
+
+function showInviteMessage(text, kind = 'status') {
   inviteStatus = text;
   const message = root.querySelector('#account-status');
-  if (message) message.textContent = text;
+  setAuthMessage(message, text, kind);
 }
 
 async function acceptPendingInvitation(user) {
@@ -27,7 +35,7 @@ async function acceptPendingInvitation(user) {
     window.history.replaceState({}, '', cleanUrl);
     showInviteMessage('Einladung angenommen. Dein Familienzugang ist vorbereitet.');
   } catch {
-    showInviteMessage('Einladung konnte nicht angenommen werden. Prüfe den Link oder melde dich mit der eingeladenen E-Mail-Adresse an.');
+    showInviteMessage('Einladung konnte nicht angenommen werden. Prüfe den Link oder melde dich mit der eingeladenen E-Mail-Adresse an.', 'error');
   }
 }
 
@@ -39,7 +47,7 @@ function show(user) {
       <p id="account-status" class="note" aria-live="polite">${escapeHtml(accountStatusText({hasInvite: Boolean(pendingInvite), inviteStatus}))}</p></div>`;
     root.querySelector('#logout').onclick = async () => {
       const {error} = await signOut();
-      if (error) alert(error.message);
+      if (error) setAuthMessage(root.querySelector('#account-status'), 'Abmelden derzeit nicht möglich. Bitte später erneut versuchen.', 'error');
     };
     void acceptPendingInvitation(user);
     return;
@@ -67,12 +75,12 @@ function show(user) {
     verifyButton.disabled = true;
     try {
       const {error} = await verifyLoginLink(input.value);
-      msg.textContent = error
+      setAuthMessage(msg, error
         ? 'Dieser Link ist abgelaufen oder wurde bereits geöffnet. Fordere einen neuen Link an und kopiere ihn in der E-Mail, ohne ihn vorher anzutippen.'
-        : 'Anmeldung erfolgreich.';
+        : 'Anmeldung erfolgreich.', error ? 'error' : 'status');
       if (error) input.focus();
     } catch {
-      msg.textContent = 'Anmeldelink konnte nicht verarbeitet werden.';
+      setAuthMessage(msg, 'Anmeldelink konnte nicht verarbeitet werden.', 'error');
     } finally {
       verifyButton.disabled = false;
     }
@@ -91,16 +99,16 @@ function show(user) {
       const {error} = await sendLoginLink(email);
       if (error) {
         const limited = error.status === 429 || /rate limit/i.test(error.message);
-        msg.textContent = limited
+        setAuthMessage(msg, limited
           ? 'Supabase hat das E-Mail-Limit erreicht. Bitte später erneut versuchen. Mehrfaches Klicken hilft nicht.'
-          : 'Anmeldung derzeit nicht möglich: ' + error.message;
+          : 'Anmeldung derzeit nicht möglich. Bitte später erneut versuchen.', 'error');
         if (limited) lastRequest = Date.now();
       } else {
         lastRequest = Date.now();
-        msg.textContent = 'Anmeldelink angefordert. In der E-Mail den Link lange drücken → Kopieren. Nicht vorher öffnen, da er nur einmal funktioniert.';
+        setAuthMessage(msg, 'Anmeldelink angefordert. In der E-Mail den Link lange drücken → Kopieren. Nicht vorher öffnen, da er nur einmal funktioniert.');
       }
     } catch {
-      msg.textContent = 'Verbindungsfehler. Bitte später erneut versuchen.';
+      setAuthMessage(msg, 'Verbindungsfehler. Bitte später erneut versuchen.', 'error');
     } finally {
       button.disabled = false;
     }
@@ -114,3 +122,4 @@ void supabase.auth.getUser().then(({data, error}) => {
   console.warn('Auth session konnte nicht geprüft werden; lokaler Modus bleibt aktiv.', error);
   show(null);
 });
+

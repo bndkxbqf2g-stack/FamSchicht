@@ -10,6 +10,12 @@
 - Die bestehende Maus-/Touch-Auswahl bleibt erhalten, während Bearbeiten, Löschen und Verschieben weiterhin getrennte Interaktionen bleiben.
 - Sichtprüfung: 31 Tagesbuttons bei 390×844, Auswahl vom 14. auf den 15. Oktober und kein horizontaler Überlauf; lokale Regressionstests: 190 bestanden; Produktions-Build erfolgreich.
 
+## Update 14.10.2026 – Auth-Fehlerpfad
+- Fehler aus Linkprüfung, Linkanforderung, Einladungsannahme und Abmeldung erscheinen als zugängliche Status-/Alert-Meldungen im Anmeldedialog statt als blockierende Browser-Alerts.
+- Provider-Fehlerdetails werden im Auth-UI nicht mehr roh ausgegeben; die Konsole bleibt für die technische Session-Diagnose getrennt von der Nutzeroberfläche.
+- Sichtprüfung: synthetisch ungültiger Login-Link erzeugt `role="alert"`/`aria-live="assertive"`, der Fokus bleibt im Eingabefeld und 390×844 bleibt ohne horizontalen Überlauf.
+- Lokale Regressionstests: 191 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Lokale Punkte und Belohnungen
 - Aufgaben und Routinen können einen ganzzahligen Punktwert erhalten; erledigte Einzelaufgaben sowie erledigte Vorkommen wiederkehrender Einträge werden je stabiler Kalenderperson summiert.
 - Belohnungsziele werden in den Einstellungen angelegt, lokal gespeichert und im Übersichts-Dashboard mit Fortschrittsbalken je Person dargestellt.

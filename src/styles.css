@@ -468,6 +468,7 @@ body{background:var(--source-canvas)}
 #account-shell #household{padding:18px}
 #account-shell #household form{margin:0}
 #account-shell .note{line-height:1.45}
+#account-shell .auth-error{color:#9f2d2d;font-weight:650}
 @media(max-width:700px){
   #account-shell{width:calc(100% - 20px);margin:14px auto}
   .account-intro{padding:0 2px}

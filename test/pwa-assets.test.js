@@ -109,6 +109,16 @@ test('calendar days expose semantic keyboard targets', () => {
   assert.match(styles, /\.day-select:focus-visible/);
 });
 
+test('auth errors stay in an accessible non-blocking status message', () => {
+  const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
+  const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+  assert.doesNotMatch(auth, /\balert\(/);
+  assert.match(auth, /setAuthMessage/);
+  assert.match(auth, /role.*alert/);
+  assert.match(auth, /Anmeldung derzeit nicht möglich\. Bitte später erneut versuchen\./);
+  assert.match(styles, /\.auth-error/);
+});
+
 test('local points and rewards stay separate from the cloud calendar path', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const rewards = fs.readFileSync(path.join(root, 'src', 'rewards.js'), 'utf8');
