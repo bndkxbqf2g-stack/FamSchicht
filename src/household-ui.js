@@ -28,6 +28,10 @@ function message(text) {
   root.innerHTML = '<p class="note">' + escapeHtml(text) + '</p>';
 }
 
+function reportHouseholdError(context, error) {
+  console.warn(context, error);
+}
+
 function invitationMarkup() {
   return `
     <div class="invitation-panel">
@@ -114,7 +118,8 @@ async function refresh(user) {
     .limit(1);
   if (current !== requestId) return;
   if (error) {
-    message('Datenbank derzeit nicht erreichbar: ' + error.message);
+    reportHouseholdError('Haushalt konnte nicht geladen werden.', error);
+    message('Datenbank derzeit nicht erreichbar. Der lokale Kalender bleibt verfügbar.');
     return;
   }
   if (data?.length) {
@@ -151,14 +156,16 @@ async function refresh(user) {
       const {error: insertError} = await supabase.from('households')
         .insert({name, owner_id: user.id});
       if (insertError) {
+        reportHouseholdError('Privater Haushalt konnte nicht erstellt werden.', insertError);
         form.querySelector('#household-message').textContent =
-          'Erstellung fehlgeschlagen: ' + insertError.message;
+          'Privater Haushalt konnte derzeit nicht erstellt werden. Bitte später erneut versuchen.';
         button.disabled = false;
         return;
       }
     } catch (error) {
+      reportHouseholdError('Privater Haushalt konnte nicht erstellt werden.', error);
       form.querySelector('#household-message').textContent =
-        'Erstellung fehlgeschlagen: ' + (error.message || 'Verbindung derzeit nicht erreichbar.');
+        'Privater Haushalt konnte derzeit nicht erstellt werden. Bitte später erneut versuchen.';
       button.disabled = false;
       return;
     }

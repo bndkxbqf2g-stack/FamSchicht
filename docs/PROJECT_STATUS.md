@@ -1,5 +1,10 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Sichere Household-Fehlerbehandlung
+- Haushalts-/Datenbankfehler werden in den Einstellungen nur noch als neutrale, handlungsorientierte Meldung angezeigt; technische Fehler bleiben für die Diagnose in der Konsole.
+- Die Erstellung eines privaten Haushalts überschreibt keine Providerdetails in der Nutzeroberfläche und lässt den lokalen Kalender als sicheren Fallback bestehen.
+- Regressionstests: 209 bestanden; Produktions-Build und Asset-Budget erfolgreich.
+
 ## Update 14.10.2026 – Cache-Bust- und Versionskonsistenz
 - Die drei ausgelieferten App-Module verwenden jetzt gemeinsam `v0.3.5`; die sichtbare FamSchicht-Versionsanzeige bleibt damit auf demselben Release-Stand.
 - Ein frisch gestarteter lokaler Vite-Browserlauf liefert `auth-ui.js?v=0.3.5`, `household-ui.js?v=0.3.5` und `main.js?v=0.3.5` und zeigt `Familienplaner · v0.3.5`.
