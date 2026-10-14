@@ -37,14 +37,14 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [ ] Drag/Move nur falls stabil auf Touch und Desktop
 
 ### Phase 2 – Familie, Rollen und Sichtbarkeit
-- [ ] Haushaltsmitglieder als eigenes Modell
+- [x] Haushaltsmitglieder als eigenes Modell
 - [ ] Martin / Steffi / Kinder / weitere Mitglieder
-- [ ] individuelle Farben und Avatare/Initialen
+- [x] individuelle Farben und Avatare/Initialen
 - [ ] Einladung/Beitritt
 - [ ] Rollen: Owner / Erwachsener / Kind / Gast
 - [ ] Sichtbarkeit pro Ereignis
 - [ ] persönliche vs. gemeinsame Einträge
-- [ ] bestehende Schicht-Owner sauber in Mitgliedsmodell migrieren
+- [x] bestehende Schicht-Owner sauber in Mitgliedsmodell migrieren
 - [ ] Anna später gezielt mit eingeschränktem Bereich/Kind-Kontext einbindbar
 
 ### Phase 3 – Schichtplanung als FamSchicht-Spezialität

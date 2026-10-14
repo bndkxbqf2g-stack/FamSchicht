@@ -16,7 +16,7 @@ npm run build
 - Kalenderdatum, Monats-/Wochen-/Tagesnavigation, Zeitzonen und Schichtzeiten.
 - Schnelländerung und Bearbeitung: bestehende ID erhalten, aktualisieren statt duplizieren, Besitzer und Terminbereich erhalten.
 - Mehrtägige, ganztägige und wiederkehrende Termine, einschließlich Datenbank-Roundtrip.
-- Haushaltsmitglieder, stabile `ownerId`, Legacy-`owner` und Personen-/Kategorie-Filter.
+- Haushaltsmitglieder, stabile `ownerId`, Legacy-`owner`, Personen-/Kategorie-Filter und Initialen-/Farblegende.
 - Authentifizierungsfehler, Magic-Link-Rückkehr und sichere Owner-only Datenflüsse; keine produktiven Konten in Tests.
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.

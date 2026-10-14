@@ -4,6 +4,7 @@ import {
   bootstrapHouseholdMembers,
   createHouseholdMember,
   memberFilterOptions,
+  memberInitials,
   memberNamesById,
   householdMemberFromRecord,
   householdMemberToRecord,
@@ -86,4 +87,11 @@ test('bootstrap household includes Anna as non-shift coparent', () => {
   assert.equal(anna.name, 'Anna');
   assert.equal(anna.shiftEligible, false);
   assert.equal(anna.colorKey, 'anna');
+});
+
+test('member initials are stable for single and multi-word names', () => {
+  assert.equal(memberInitials(bootstrapHouseholdMembers[0]), 'M');
+  assert.equal(memberInitials('Anna Schmidt'), 'AS');
+  assert.equal(memberInitials('Élodie du Lac'), 'ÉL');
+  assert.equal(memberInitials(''), '?');
 });

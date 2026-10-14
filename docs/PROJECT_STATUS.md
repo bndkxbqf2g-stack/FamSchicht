@@ -5,6 +5,11 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Mitgliederlegende und Initialen
+- Das zentrale `household_members`-Modell liefert neben stabiler ID und `colorKey` jetzt auch sichere Initialen für die sichtbare Mitgliederlegende.
+- Die Legende zeigt synthetisch geprüft pro Person einen kleinen Avatar; die bestehende owner-only Persistenz und die Trennung von `household_members` und Auth-`memberships` bleiben unverändert.
+- Lokale Regressionstests: 142 bestanden; Produktions-Build erfolgreich. Desktop-Legende und 390×844-Viewport wurden sichtbar geprüft; horizontaler Überlauf trat nicht auf.
+
 ## Update 14.10.2026 – Schichtserien und Vorlagen
 - Die Dienste-Ansicht kann wiederkehrende Wochentage in konkrete, unabhängig bearbeitbare Schichten mit stabiler `ownerId` auflösen; vorhandene identische Einträge werden übersprungen.
 - Systemvorlagen für Früh-, Spät-, Zwischen- und Nachtdienst sowie Statuswerte stehen bereit. Eigene Vorlagen werden ausschließlich lokal auf dem Gerät gespeichert.

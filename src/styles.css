@@ -38,6 +38,7 @@ body{background:var(--app-bg);color:var(--text)}
 .app-workspace{min-width:0;padding:28px clamp(18px,3vw,44px) 56px;max-width:1500px;width:100%;margin:0 auto}
 .app-topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:0 2px 18px}.app-topbar h1{font-size:30px;letter-spacing:-.035em;margin:2px 0 0}.eyebrow{margin:0;color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
 .member-legend{display:flex;gap:8px;flex-wrap:wrap}.member{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:750}.member.martin{background:var(--martin-soft);color:#8b3e3a}.member.steffi{background:var(--steffi-soft);color:#315f95}
+.member{display:inline-flex;align-items:center;gap:6px}.member-avatar{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:var(--person,#315f52);color:#fff;font-size:10px;font-weight:850;letter-spacing:.02em}
 .calendar-panel{margin:0;padding:20px;border-radius:22px;box-shadow:0 12px 40px rgba(50,49,43,.06);border:1px solid #edeae4}
 .calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}.calendar-toolbar .month{position:static;background:transparent;padding:0;gap:8px}.calendar-toolbar .month h2{min-width:190px;margin:0;font-size:20px;text-transform:capitalize}.calendar-toolbar .month button{width:36px;height:36px;border:1px solid var(--line);font-size:18px;background:#fff}
 .calendar-actions{display:flex;gap:8px}.calendar-actions button{padding:9px 12px}
