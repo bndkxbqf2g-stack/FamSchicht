@@ -201,6 +201,7 @@ test('calendar day targets provide roving keyboard navigation', () => {
 test('calendar rerenders preserve a meaningful keyboard context', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /id="view-title" tabindex="-1"/);
+  assert.match(main, /const fallback = \\(\\) => view === 'settings'[\\s\\S]+document\\.querySelector\\('#view-title'\\) \\|\\| document\\.querySelector\\('#app'\\)/);
   assert.match(main, /function focusAfterRender\(selector\)/);
   assert.match(main, /function focusDatasetControl\(attribute, value\)/);
   assert.match(main, /element\?\.closest\('details'\)\?\.setAttribute\('open', ''\)/);
