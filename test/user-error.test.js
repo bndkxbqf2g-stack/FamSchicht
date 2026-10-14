@@ -15,6 +15,8 @@ test('hides technical transport and database details behind the fallback', () =>
     'Failed to fetch https://example.invalid',
     'JWT expired while calling Supabase RPC',
     'row-level security policy rejected the request',
+    'duplicate key value violates unique constraint calendar_events_pkey',
+    'column owner_id does not exist (status code 500)',
   ]) {
     assert.equal(userError(new Error(message), 'Änderung konnte nicht gespeichert werden.'),
       'Änderung konnte nicht gespeichert werden.');
