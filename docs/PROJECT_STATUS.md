@@ -1,5 +1,11 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Gemeinsame In-App-Bestätigungen
+- Serienkonflikte, Dienstplan-Ersetzung, Umgangsrhythmus, JSON-/ICS-Import und Belohnungslöschung verwenden jetzt denselben zugänglichen modalen Bestätigungsdialog wie das Terminlöschen; native blockierende `confirm()`-Aufrufe sind aus dem App-Code entfernt.
+- Bestätigungsdialoge sperren den Hintergrund mit `inert`, halten Tab/Shift+Tab im Dialog, deaktivieren während der Verarbeitung gegen Doppelklicks und geben den Fokus an stabile Auslöser oder den Kalender zurück.
+- Die ausgelieferten Module und die sichtbare App-Version stehen auf `v0.3.7`; Regressionstests: 211 bestanden.
+- Der Laptop-Browserlauf mit synthetischem Umgangstermin bestätigt den Dialog auch über der Einstellungsansicht: Fokus auf „Abbrechen“, `inert` für Kalender und Einstellungen sowie Rückgabe an „Rhythmus eintragen“ nach dem Abbruch; es wurde nichts gespeichert oder gelöscht.
+
 ## Update 14.10.2026 – Zugängliche Löschbestätigung
 - Das Löschen eigener Kalendertermine verwendet jetzt einen integrierten modalen Bestätigungsdialog statt des blockierenden Browser-`confirm()`-Dialogs.
 - Der Dialog nutzt die bestehende `aria-modal`-/`inert`-/Tab-Fokusführung, setzt den Fokus sicher zurück und bietet bei entfernten Karten einen stabilen Fallback; Löschziele tragen den jeweiligen Termin im zugänglichen Namen.
