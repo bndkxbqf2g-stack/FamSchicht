@@ -71,8 +71,8 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Haushaltsroutinen
 
 ### Phase 5 – Externe Kalender und Synchronisation
-- [ ] Google Calendar Architektur
-- [ ] Outlook/Microsoft Calendar Architektur
+- [x] Google Calendar Architektur als read-only-Adaptervertrag (OAuth bleibt externe Freigabe)
+- [x] Outlook/Microsoft Calendar Architektur als read-only-Adaptervertrag (OAuth bleibt externe Freigabe)
 - [x] Kalenderquellen pro Mitglied für read-only-ICS
 - [x] read-only Import zuerst (ICS-Quelle)
 - [x] Konflikt-/Duplikatlogik für read-only ICS-Quellen
