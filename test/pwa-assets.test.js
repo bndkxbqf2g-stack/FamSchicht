@@ -119,6 +119,12 @@ test('runtime errors remain visible and dialogs restore keyboard focus', () => {
   const storage = fs.readFileSync(path.join(root, 'src', 'storage.js'), 'utf8');
   assert.match(main, /id="app-notice"/);
   assert.match(main, /id="storage-notice"/);
+  assert.match(main, /dataTransferStatus = userError\(error, 'Die JSON-Sicherung konnte nicht importiert werden\.'/);
+  assert.match(main, /dataTransferStatus = userError\(error, 'Die ICS-Datei konnte nicht importiert werden\.'/);
+  assert.match(main, /holidayStatus = userError\(error, 'Die Feiertagsauswahl konnte nicht gespeichert werden\.'/);
+  assert.match(main, /displayStatus = userError\(error, 'Die Darstellung konnte nicht gespeichert werden\.'/);
+  assert.match(main, /rewardStatus = userError\(error, 'Belohnung konnte nicht gespeichert werden\.'/);
+  assert.doesNotMatch(main, /(?:dataTransferStatus|holidayStatus|displayStatus|rewardStatus) = error\.message \|\|/);
   assert.match(main, /restoreDialogFocus/);
   assert.match(main, /function updateEntry\(item\)[\s\S]+const reopenShift = item\.type === 'shift'[\s\S]+focusAfterRender\('#shift-edit-form \[name="date"\]'\)[\s\S]+restoreDialogFocus\(\)/);
   assert.match(main, /async function saveEntry\(item, afterSave, afterError\)[\s\S]+afterError\?\.\(\);[\s\S]+showAppNotice\([\s\S]+restoreDialogFocus\(\)/);
