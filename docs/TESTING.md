@@ -16,7 +16,7 @@ npm run build
 - Kalenderdatum, Monats-/Wochen-/Tagesnavigation, Zeitzonen und Schichtzeiten.
 - Schnelländerung und Bearbeitung: bestehende ID erhalten, aktualisieren statt duplizieren, Besitzer und Terminbereich erhalten.
 - Mehrtägige, ganztägige und wiederkehrende Termine, einschließlich Datenbank-Roundtrip.
-- Haushaltsmitglieder, stabile `ownerId`, Legacy-`owner`, Personen-/Kategorie-Filter und Initialen-/Farblegende.
+- Haushaltsmitglieder, stabile `ownerId`, Legacy-`owner`, Personen-/Kategorie-Filter, Initialen-/Farblegende sowie owner-only Anlegen/Bearbeiten von Name, Typ, Farbe und Schichtberechtigung.
 - Authentifizierungsfehler, Magic-Link-Rückkehr und sichere Owner-only Datenflüsse; keine produktiven Konten in Tests.
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.
@@ -27,6 +27,7 @@ npm run build
 - Aufgaben-Domänenvertrag: wiederkehrende Vorkommen, unabhängige `completedDates`, Legacy-Einzelaufgaben und Persistenz-/ICS-Roundtrip.
 - Haushaltsroutinen: eigener Ereignistyp mit Personenzuweisung, wiederkehrenden Vorkommen, individuellem Erledigt-Status, Kalenderfilter und ICS-Roundtrip.
 - PWA-Vertrag: Manifest, Standalone-Startkonfiguration, Icon und network-first Service-Worker-Fallback.
+- Mitgliederverwaltung: stabile IDs beim Bearbeiten, synthetisches Anlegen von `adult`/`child`/`guest`, Farboptionen und sicherer Service-Roundtrip; Löschung wird bis zur Referenz-/Archivierungsentscheidung nicht getestet oder angeboten.
 
 Die derzeitige Testsuite nutzt Node `node:test` für Domänenlogik und Serviceverträge. Es gibt keinen Browser-Automation-, Screenshot- oder Golden-Test-Runner in der aktuellen Abhängigkeit. Deshalb werden keine fragilen Bilddateien oder zusätzlichen UI-Test-Abhängigkeiten allein für diese Standardisierungsänderung eingeführt. Wenn ein konkreter UI-Fehler geändert wird, ergänze zuerst einen reproduzierbaren Regressionstest im vorhandenen Node-Teststil; bei Änderungen an Layout/Touch-Verhalten muss zusätzlich ein Browser-/iPhone-Viewport sichtbar geprüft und das Ergebnis im PR dokumentiert werden. Screenshots nur mit synthetischen Daten erstellen.
 

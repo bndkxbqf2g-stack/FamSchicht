@@ -1,5 +1,14 @@
 import {supabase} from './auth.js';
 import {
+  createHouseholdMember,
+  memberColorOptions,
+  memberInitials,
+} from './household-members.js';
+import {
+  ensureOwnerHouseholdMembers,
+  saveOwnerHouseholdMembers,
+} from './household-member-service.js';
+import {
   createHouseholdInvitation,
   revokeHouseholdInvitation,
 } from './invitation-service.js';
@@ -9,6 +18,11 @@ import {escapeHtml} from './security.js';
 
 const root = document.querySelector('#household');
 let requestId = 0;
+const memberTypeOptions = [
+  ['adult', 'Erwachsene Person'],
+  ['child', 'Kind'],
+  ['guest', 'Gast'],
+];
 
 function message(text) {
   root.innerHTML = '<p class="note">' + escapeHtml(text) + '</p>';
@@ -37,6 +51,55 @@ function invitationMarkup() {
     </div>`;
 }
 
+function optionMarkup(options, selected) {
+  return options.map(([value, label]) =>
+    '<option value="' + escapeHtml(value) + '"' + (value === selected ? ' selected' : '') + '>' +
+    escapeHtml(label) + '</option>').join('');
+}
+
+function colorOptionsFor(member) {
+  return memberColorOptions.some(([value]) => value === member.colorKey)
+    ? memberColorOptions
+    : [[member.colorKey, member.colorKey], ...memberColorOptions];
+}
+
+function memberManagementMarkup(members, errorMessage = '') {
+  if (errorMessage) {
+    return '<section class="member-management"><h3>Haushaltsmitglieder</h3><p class="note" role="alert">' +
+      escapeHtml(errorMessage) + '</p></section>';
+  }
+
+  const rows = members.map((member, index) =>
+    '<fieldset class="member-editor-row"><legend><span class="member-avatar ' + escapeHtml(member.colorKey) +
+    '" aria-hidden="true">' + escapeHtml(memberInitials(member)) + '</span>' + escapeHtml(member.name) + '</legend>' +
+    '<label>Name<input name="member-name-' + index + '" maxlength="80" required value="' + escapeHtml(member.name) + '"></label>' +
+    '<label>Typ<select name="member-type-' + index + '">' + optionMarkup(memberTypeOptions, member.type) + '</select></label>' +
+    '<label>Farbe<select name="member-color-' + index + '">' + optionMarkup(colorOptionsFor(member), member.colorKey) + '</select></label>' +
+    '<label class="member-shift-toggle"><input name="member-shift-' + index + '" type="checkbox"' +
+    (member.shiftEligible ? ' checked' : '') + '> Für Dienste auswählbar</label></fieldset>').join('');
+
+  return '<section class="member-management"><h3>Haushaltsmitglieder</h3>' +
+    '<p class="note">Kalenderpersonen bleiben vom Login getrennt. Nur der Owner kann Namen, Typ, Farbe und Dienstberechtigung ändern.</p>' +
+    '<form id="household-members-form" class="member-editor-form">' + rows +
+    '<button class="primary" type="submit">Änderungen speichern</button>' +
+    '<p id="member-save-message" class="note" role="status"></p></form>' +
+    '<form id="household-member-add-form" class="member-add-form">' +
+    '<h4>Weitere Person hinzufügen</h4>' +
+    '<label>Name<input name="name" maxlength="80" required placeholder="z. B. Kind oder Oma"></label>' +
+    '<label>Typ<select name="type">' + optionMarkup(memberTypeOptions, 'child') + '</select></label>' +
+    '<label>Farbe<select name="colorKey">' + optionMarkup(memberColorOptions, 'blue') + '</select></label>' +
+    '<label class="member-shift-toggle"><input name="shiftEligible" type="checkbox"> Für Dienste auswählbar</label>' +
+    '<button class="primary" type="submit">Person hinzufügen</button>' +
+    '<p id="member-add-message" class="note" role="status"></p></form></section>';
+}
+
+function householdMarkup(household, members, memberError = '') {
+  return '<p class="household-name">Dein Familienhaushalt: <strong>' +
+    escapeHtml(household.name) + '</strong></p>' +
+    '<p class="note">Kalendersynchronisierung bleibt bis zur geprüften Zugriffsfreigabe owner-only.</p>' +
+    memberManagementMarkup(members, memberError) + invitationMarkup();
+}
+
 async function refresh(user) {
   const current = ++requestId;
   if (!user) {
@@ -56,10 +119,17 @@ async function refresh(user) {
   }
   if (data?.length) {
     const household = data[0];
-    root.innerHTML = '<p class="household-name">Dein Familienhaushalt: <strong>' +
-      escapeHtml(household.name) + '</strong></p>' +
-      '<p class="note">Kalendersynchronisierung bleibt bis zur geprüften Zugriffsfreigabe owner-only.</p>' +
-      invitationMarkup();
+    let members = [];
+    let memberError = '';
+    try {
+      members = await ensureOwnerHouseholdMembers(supabase, household.id);
+    } catch (memberLoadError) {
+      console.warn('Haushaltsmitglieder konnten nicht geladen werden.', memberLoadError);
+      memberError = 'Mitgliederverwaltung derzeit nicht erreichbar. Der Kalender bleibt owner-only.';
+    }
+    if (current !== requestId) return;
+    root.innerHTML = householdMarkup(household, members, memberError);
+    bindMemberForms(household.id, members, user);
     bindInvitationForm(household.id);
     return;
   }
@@ -95,6 +165,72 @@ async function refresh(user) {
     window.dispatchEvent(new CustomEvent('famschicht:household-created'));
     void safeRefresh(user);
   };
+}
+
+function memberId() {
+  return 'member-' + (crypto.randomUUID?.() || Date.now().toString(36));
+}
+
+function bindMemberForms(householdId, members, user) {
+  const form = root.querySelector('#household-members-form');
+  form?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"]');
+    const messageEl = form.querySelector('#member-save-message');
+    const data = new FormData(form);
+    let updated;
+    try {
+      updated = members.map((member, index) => createHouseholdMember({
+        id: member.id,
+        name: String(data.get('member-name-' + index) || '').trim(),
+        type: String(data.get('member-type-' + index) || member.type),
+        colorKey: String(data.get('member-color-' + index) || member.colorKey),
+        shiftEligible: data.get('member-shift-' + index) === 'on',
+      }));
+      button.disabled = true;
+      messageEl.textContent = 'Mitglieder werden gespeichert …';
+      const saved = await saveOwnerHouseholdMembers(supabase, updated, householdId);
+      members.splice(0, members.length, ...saved);
+      messageEl.textContent = 'Mitglieder gespeichert.';
+      window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
+    } catch (error) {
+      messageEl.textContent = error.message === 'member name is required'
+        ? 'Bitte für jede Person einen Namen eingeben.'
+        : 'Mitglieder konnten nicht gespeichert werden.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  root.querySelector('#household-member-add-form')?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector('button[type="submit"]');
+    const messageEl = form.querySelector('#member-add-message');
+    const data = new FormData(form);
+    try {
+      const member = createHouseholdMember({
+        id: memberId(),
+        name: String(data.get('name') || '').trim(),
+        type: String(data.get('type') || 'child'),
+        colorKey: String(data.get('colorKey') || 'blue'),
+        shiftEligible: data.get('shiftEligible') === 'on',
+      });
+      button.disabled = true;
+      messageEl.textContent = 'Person wird gespeichert …';
+      const saved = await saveOwnerHouseholdMembers(supabase, [...members, member], householdId);
+      members.splice(0, members.length, ...saved);
+      form.reset();
+      messageEl.textContent = 'Person hinzugefügt.';
+      window.dispatchEvent(new CustomEvent('famschicht:household-members-changed'));
+    } catch (error) {
+      messageEl.textContent = error.message === 'member name is required'
+        ? 'Bitte einen Namen eingeben.'
+        : 'Person konnte nicht hinzugefügt werden.';
+    } finally {
+      button.disabled = false;
+    }
+  });
 }
 
 function bindInvitationForm(householdId) {

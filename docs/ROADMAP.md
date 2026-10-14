@@ -39,6 +39,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Data-API-Grants gehärtet.
 - Zentrales Haushaltsmitglieder-Domänenmodell.
 - Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
+- Owner-only Mitgliederverwaltung für Kalenderpersonen: Anlegen und Bearbeiten von Name, Typ, Farbe und Schichtberechtigung mit stabilen IDs.
 - Schichtfilter, Darstellung und Persistenz verwenden stabile `ownerId`; Legacy-Namen bleiben Fallback.
 - Sicherer Einladungs-/Beitrittsfluss fachlich dokumentiert und serverseitig umgesetzt.
 - Getesteter Client-Domänenvertrag für E-Mail, Rolle und opaken Token.

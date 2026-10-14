@@ -1,5 +1,14 @@
 const MEMBER_TYPES = new Set(['adult', 'child', 'guest']);
 
+export const memberColorOptions = Object.freeze([
+  ['martin', 'Koralle'],
+  ['steffi', 'Türkis'],
+  ['anna', 'Violett'],
+  ['amber', 'Amber'],
+  ['blue', 'Blau'],
+  ['slate', 'Schiefer'],
+]);
+
 export function createHouseholdMember({
   id,
   name,

@@ -1419,4 +1419,7 @@ supabase.auth.onAuthStateChange(() => {
 window.addEventListener('famschicht:household-created', () => {
   startCloudConnection();
 });
+window.addEventListener('famschicht:household-members-changed', () => {
+  startCloudConnection();
+});
 window.__famschichtReady?.();

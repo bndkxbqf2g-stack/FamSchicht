@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   bootstrapHouseholdMembers,
   createHouseholdMember,
+  memberColorOptions,
   memberFilterOptions,
   memberInitials,
   memberNamesById,
@@ -94,4 +95,10 @@ test('member initials are stable for single and multi-word names', () => {
   assert.equal(memberInitials('Anna Schmidt'), 'AS');
   assert.equal(memberInitials('Élodie du Lac'), 'ÉL');
   assert.equal(memberInitials(''), '?');
+});
+
+test('member color options use stable safe keys', () => {
+  assert.deepEqual(memberColorOptions.map(([key]) => key), [
+    'martin', 'steffi', 'anna', 'amber', 'blue', 'slate',
+  ]);
 });

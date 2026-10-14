@@ -543,9 +543,17 @@ body.settings-open #account-shell{
 .invitation-link{width:100%;font-size:12px}
 .invitation-result .revoke-invitation{border-color:#d8b6b1;background:#fff8f7;color:#8a332e}
 .invitation-status{margin-top:8px}
+.member-management{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line,#e7e4de)}
+.member-management h3,.member-management h4{margin:0;font-size:17px}.member-management h4{font-size:14px}
+.member-management .note{margin:0}.member-editor-form,.member-add-form{display:grid;gap:10px}
+.member-editor-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.7fr) minmax(130px,.7fr) auto;align-items:end;gap:9px;margin:0;padding:10px;border:1px solid var(--line,#e7e4de);border-radius:12px;background:#fbfcfa}
+.member-editor-row legend{grid-column:1/-1;display:flex;align-items:center;gap:7px;padding:0;font-weight:800}.member-editor-row label,.member-add-form label{display:grid;gap:4px;font-size:12px;font-weight:700;color:var(--muted,#65756d)}
+.member-editor-row input,.member-editor-row select,.member-add-form input,.member-add-form select{width:100%;min-width:0}.member-avatar{flex:0 0 23px}.member-shift-toggle{display:flex!important;align-items:center;gap:6px;min-height:42px;white-space:nowrap}.member-shift-toggle input{width:18px;height:18px;accent-color:var(--home-green,#315f52)}
+.member-add-form{grid-template-columns:minmax(0,1fr) minmax(130px,.7fr) minmax(130px,.7fr) auto;align-items:end;padding-top:10px;border-top:1px dashed #cad8cc}.member-add-form h4,.member-add-form .note{grid-column:1/-1}.member-add-form button{align-self:end}
 @media(max-width:700px){
-  .invitation-form,.invitation-result{grid-template-columns:1fr}
-  .invitation-form button,.invitation-result button{width:100%}
+  .invitation-form,.invitation-result,.member-editor-row,.member-add-form{grid-template-columns:1fr}
+  .invitation-form button,.invitation-result button,.member-management button{width:100%}
+  .member-editor-row legend,.member-add-form h4,.member-add-form .note{grid-column:auto}
 }
 
 
@@ -687,12 +695,21 @@ body.settings-open #account-shell{
 .member.martin,.entry.owner-martin{--person:#d64f5b;--person-soft:#fde3e6}
 .member.steffi,.entry.owner-steffi{--person:#16a6a1;--person-soft:#d9f5f2}
 .member.anna,.entry.owner-anna{--person:#8a5ac2;--person-soft:#eee2fb}
+.member.amber,.entry.owner-amber{--person:#d89425;--person-soft:#fff0cf}
+.member.blue,.entry.owner-blue{--person:#527fc4;--person-soft:#e5eefb}
+.member.slate,.entry.owner-slate{--person:#718096;--person-soft:#edf0f4}
 .member.martin{background:#fde3e6;color:#8f2633}
 .member.steffi{background:#d9f5f2;color:#087b77}
 .member.anna{background:#eee2fb;color:#6940a1}
+.member.amber{background:#fff0cf;color:#8b5a0b}
+.member.blue{background:#e5eefb;color:#315f95}
+.member.slate{background:#edf0f4;color:#4a5568}
 .entry.owner-martin{background:#fde3e6;border-left-color:#d64f5b;color:#7e2430}
 .entry.owner-steffi{background:#d9f5f2;border-left-color:#16a6a1;color:#08716d}
 .entry.owner-anna{background:#eee2fb;border-left-color:#8a5ac2;color:#603e91}
+.entry.owner-amber{background:#fff0cf;border-left-color:#d89425;color:#8b5a0b}
+.entry.owner-blue{background:#e5eefb;border-left-color:#527fc4;color:#315f95}
+.entry.owner-slate{background:#edf0f4;border-left-color:#718096;color:#4a5568}
 .today-item.owner-martin{border-left-color:#d64f5b}
 .today-item.owner-steffi{border-left-color:#16a6a1}
 .today-item.owner-anna{border-left-color:#8a5ac2}

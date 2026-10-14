@@ -18,6 +18,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Dienstplanfotos können lokal per OCR gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.
 - Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen Mitglieder-IDs.
 - Personenfilter, Schichtauswahl und die Mitgliederlegende mit individuellen Farben/Initialen werden aus diesem Modell erzeugt.
+- Angemeldete Owner können Kalenderpersonen in den Einstellungen anlegen und Name, Typ, Farbe sowie Schichtberechtigung ändern; die stabilen IDs bleiben dabei erhalten.
 - Neue Schichten speichern neben dem Anzeigenamen eine stabile `ownerId`; ältere Einträge mit nur `owner` bleiben lesbar.
 - Supabase Magic-Link-Authentifizierung und owner-only Haushalt.
 - Für angemeldete Owner werden `calendar_events` über Supabase geladen, angelegt, geändert und gelöscht.
@@ -28,6 +29,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Der Einladungsfluss für Partner/coparent ist technisch vorbereitet, aber noch nicht für Mehrbenutzer-RLS freigegeben.
 - Keine Erweiterung der Live-RLS auf mehrere Haushaltsmitglieder.
 - Keine Realtime-Synchronisierung zwischen getrennten Konten.
+- Eine Löschaktion für Kalenderpersonen ist bewusst noch nicht angeboten, solange die sichere Umhängung bestehender `ownerId`-Referenzen nicht festgelegt ist.
 - Keine Nutzung echter sensibler Familiendaten, bevor Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
 
 ## Entwicklung

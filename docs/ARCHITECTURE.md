@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Stand: 25.09.2026
+Stand: 14.10.2026
 
 ## Client
 Vite-basierte JavaScript-Web-App.
@@ -12,7 +12,7 @@ Vite-basierte JavaScript-Web-App.
 - src/security.js: UI-Sichtbarkeits-/Escaping-Helfer.
 - src/auth.js: Supabase-Client und Auth.
 - src/auth-ui.js: Anmeldung/Abmeldung.
-- src/household-ui.js: Haushalts-Setup.
+- src/household-ui.js: Haushalts-Setup, owner-only Mitgliederverwaltung und Einladungs-UI.
 - src/household-members.js: fachliche Haushaltsmitglieder mit stabiler ID, Farbe und Initialen.
 - src/household-member-service.js: owner-scoped Persistenz der fachlichen Haushaltsmitglieder.
 - src/shift-roster-*.js: Dienstplan-OCR, lokale Speicherung, Schichtlogik und Kalenderprojektion.
@@ -35,6 +35,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Optionale Sollstunden: Monatsziele pro schichtberechtigter Person -> lokaler Gerätespeicher -> Dienstplanübersicht; diese Werte werden nicht als Kalenderereignisse oder Supabase-Daten synchronisiert.
 - Importierte Dienstpläne: Foto -> OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos werden nach der OCR nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
 - Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.
+- Owner-Mitgliederverwaltung: Einstellungen -> `ensureOwnerHouseholdMembers`/`saveOwnerHouseholdMembers` -> `household_members`; neue Personen erhalten eine stabile ID, bestehende `ownerId`-Referenzen werden beim Bearbeiten nicht geändert.
 - `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.
 
 ## Zielarchitektur
@@ -47,4 +48,5 @@ Lokaler Speicher darf später höchstens kontrollierter Cache/Migrationsquelle s
 - Datenlücken explizit behandeln.
 - RLS ist die serverseitige Sicherheitsgrenze; UI-Prüfungen ersetzen sie nicht.
 - Keine freien Membership-Schreibrechte aus dem Browser.
+- Kalenderpersonen dürfen owner-only bearbeitet und ergänzt werden; Löschung bleibt bis zu einer sicheren Referenz-/Archivierungsstrategie deaktiviert.
 - Dienstplanfotos und importierte Teamdaten bleiben lokal auf dem Gerät; OCR-Ergebnisse müssen vor dem Speichern geprüft und bestätigt werden.

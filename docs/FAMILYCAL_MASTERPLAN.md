@@ -38,7 +38,7 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 
 ### Phase 2 – Familie, Rollen und Sichtbarkeit
 - [x] Haushaltsmitglieder als eigenes Modell
-- [ ] Martin / Steffi / Kinder / weitere Mitglieder
+- [x] Martin / Steffi / Kinder / weitere Mitglieder
 - [x] individuelle Farben und Avatare/Initialen
 - [ ] Einladung/Beitritt
 - [ ] Rollen: Owner / Erwachsener / Kind / Gast

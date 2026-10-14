@@ -5,6 +5,12 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Owner-Mitgliederverwaltung
+- Der Owner kann in den Einstellungen Kalenderpersonen anlegen und bestehende Personen ändern: Anzeigename, fachlicher Typ (`adult`, `child`, `guest`), Farbe und Schichtberechtigung.
+- Neue und geänderte Personen werden über den bestehenden owner-scoped `household_members`-Service mit stabiler Mitglieder-ID gespeichert; `memberships` bleibt das getrennte Modell für authentifizierte Zugriffsrollen.
+- Eine Löschaktion ist noch nicht freigegeben. Vorher braucht es eine explizite Umhängungs-/Archivierungsregel für vorhandene Termine und Schichten mit `ownerId`; dadurch werden keine bestehenden Kalenderreferenzen still ungültig.
+- Lokale Regressionstests: 144 bestanden; Produktions-Build erfolgreich. Desktop-/390×844-Layout und die ausgeloggte Einstellungenansicht wurden sichtbar geprüft. Eine eingeloggte Cloud-Ansicht konnte wegen des aktuell `INACTIVE` gemeldeten Supabase-Projekts nicht ausgeführt werden.
+
 ## Update 14.10.2026 – Mitgliederlegende und Initialen
 - Das zentrale `household_members`-Modell liefert neben stabiler ID und `colorKey` jetzt auch sichere Initialen für die sichtbare Mitgliederlegende.
 - Die Legende zeigt synthetisch geprüft pro Person einen kleinen Avatar; die bestehende owner-only Persistenz und die Trennung von `household_members` und Auth-`memberships` bleiben unverändert.
