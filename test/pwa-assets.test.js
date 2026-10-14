@@ -120,6 +120,8 @@ test('runtime errors remain visible and dialogs restore keyboard focus', () => {
   assert.match(main, /id="app-notice"/);
   assert.match(main, /id="storage-notice"/);
   assert.match(main, /restoreDialogFocus/);
+  assert.match(main, /function updateEntry\(item\)[\s\S]+const reopenShift = item\.type === 'shift'[\s\S]+focusAfterRender\('#shift-edit-form \[name="date"\]'\)[\s\S]+restoreDialogFocus\(\)/);
+  assert.match(main, /async function saveEntry\(item, afterSave, afterError\)[\s\S]+afterError\?\.\(\);[\s\S]+showAppNotice\([\s\S]+restoreDialogFocus\(\)/);
   assert.match(main, /closeDayDialog/);
   assert.match(main, /app\.setAttribute\('aria-hidden'/);
   assert.match(main, /app\.setAttribute\('inert'/);
