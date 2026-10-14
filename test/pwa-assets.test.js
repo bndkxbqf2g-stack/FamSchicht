@@ -222,6 +222,15 @@ test('non-submit navigation controls declare their button type', () => {
   assert.match(main, /<button type="button" data-owner=/);
 });
 
+test('all rendered button markup declares explicit submit semantics', () => {
+  const sources = [
+    fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8'),
+    fs.readFileSync(path.join(root, 'src', 'household-ui.js'), 'utf8'),
+    fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8'),
+  ];
+  for (const source of sources) assert.doesNotMatch(source, /<button(?![^>]*\\btype=)[^>]*>/);
+});
+
 test('auth errors stay in an accessible non-blocking status message', () => {
   const auth = fs.readFileSync(path.join(root, 'src', 'auth-ui.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
