@@ -4,6 +4,52 @@ const MONTH_NAMES = {
   januar:1, februar:2, maerz:3, marz:3, april:4, mai:5, juni:6,
   juli:7, august:8, september:9, oktober:10, november:11, dezember:12,
 };
+const MAX_ROSTER_FILES = 4;
+const MAX_ROSTER_BYTES = 35 * 1024 * 1024;
+export const ROSTER_FILE_VALIDATION_ERROR = 'Bitte höchstens vier JPEG- oder PNG-Bilddateien mit zusammen maximal 35 MB auswählen.';
+
+export function validateRosterFiles(files) {
+  const selected = [...(files || [])];
+  const unsupported = selected.some(file => {
+    const type = String(file?.type || '').toLowerCase();
+    const name = String(file?.name || '').toLowerCase();
+    const hasExtension = /\.[a-z0-9]+$/.test(name);
+    const supportedExtension = /\.(?:jpe?g|png)$/.test(name);
+    if (hasExtension && !supportedExtension) return true;
+    return !['image/jpeg', 'image/jpg', 'image/png'].includes(type) &&
+      !(type === '' && supportedExtension);
+  });
+  const totalBytes = selected.reduce((total, file) => total + Math.max(0, Number(file?.size) || 0), 0);
+  if (selected.length > MAX_ROSTER_FILES || unsupported || totalBytes > MAX_ROSTER_BYTES) {
+    return ROSTER_FILE_VALIDATION_ERROR;
+  }
+  return '';
+}
+
+export function validateRosterDraft(roster) {
+  const month = String(roster?.month || '');
+  const selfName = String(roster?.selfName || '').trim();
+  const entries = roster?.entries;
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month) || !selfName || !Array.isArray(entries) || !entries.length) {
+    return 'Bitte Monat, deine Planzeile und mindestens einen Dienst prüfen.';
+  }
+  if (entries.some(entry => !String(entry?.name || '').trim())) {
+    return 'Jede erkannte Dienstzeile braucht einen Namen.';
+  }
+  if (entries.some(entry => !isRosterDateInMonth(entry?.date, month) || !parseRosterCell(entry?.code)?.start)) {
+    return 'Mindestens ein Dienst hat ein ungültiges Datum oder Kürzel. Bitte korrigiere die Vorschau.';
+  }
+  return '';
+}
+
+export function isRosterDateInMonth(date, month) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(String(date || '')) ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(String(month || ''))) return false;
+  const [year, monthNumber, day] = String(date).split('-').map(Number);
+  const [monthYear, monthValue] = String(month).split('-').map(Number);
+  if (year !== monthYear || monthNumber !== monthValue) return false;
+  return day >= 1 && day <= new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+}
 
 export function parseRosterPeriod(text) {
   const year = parseRosterYear(text);
@@ -127,3 +173,4 @@ function wordText(word) {
 }
 function centerX(word) { return (word.bbox.x0 + word.bbox.x1) / 2; }
 function centerY(word) { return (word.bbox.y0 + word.bbox.y1) / 2; }
+

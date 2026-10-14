@@ -1,3 +1,5 @@
+import {validateRosterFiles} from './shift-roster-import.js';
+
 const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
 const OCR_OUTPUT = {blocks:true};
 
@@ -5,6 +7,8 @@ let tesseractPromise;
 
 export async function recognizeRosterImages(files, onProgress = () => {}) {
   if (!files?.length) throw new Error('Bitte wähle mindestens ein Planfoto aus.');
+  const validationError = validateRosterFiles(files);
+  if (validationError) throw new Error(validationError);
   const tesseract = await loadTesseract();
   const worker = await tesseract.createWorker('deu', 1, {
     logger: message => onProgress(message),
@@ -214,3 +218,4 @@ function histogramPercentile(histogram, total, percentile) {
   }
   return 255;
 }
+

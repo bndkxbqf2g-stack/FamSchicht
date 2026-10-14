@@ -1,6 +1,6 @@
 # Sicherer Einladungs- und Beitrittsfluss
 
-Stand: 28.09.2026
+Stand: 14.10.2026
 
 ## Ziel
 `partner` und `coparent` sollen einem bestehenden Haushalt mit einem eigenen Supabase-Auth-Konto beitreten können, ohne dass der Browser frei in `memberships` schreiben darf.
@@ -48,7 +48,7 @@ Ein bereits vorhandenes Membership darf nicht stillschweigend auf eine andere Ro
 ## Aktueller Umsetzungsstand
 - Serverseitige Erzeugung, atomare Annahme und Widerruf sind über die JWT-geschützte Edge Function `household-invitations` und service_role-interne RPCs umgesetzt.
 - Die Owner-UI für Erzeugung liegt im ausgelagerten Einstellungen-Bereich; der Empfänger wird nach dem Magic-Link-Login automatisch zur Annahme geführt.
-- Die UI bietet den Widerruf noch nicht an. Mehrbenutzer-RLS bleibt bis zur Zugriffsmatrix bewusst deaktiviert.
+- Die Owner-UI bietet Erzeugung, Kopieren und Widerruf des zuletzt erzeugten Links an. Mehrbenutzer-RLS bleibt bis zur Zugriffsmatrix bewusst deaktiviert.
 
 ## Technische Richtung
 Für Erzeugung und Annahme wird eine serverseitige Supabase-Grenze verwendet, bevorzugt JWT-geschützte Edge Functions. Die Browser-App erhält keinen Service-Role-Key.

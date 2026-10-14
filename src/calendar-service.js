@@ -1,3 +1,5 @@
+import {isTaskLikeEntry, normalizeCompletedDates} from './task-planning.js';
+
 export function toDatabaseEvent(event, householdId, userId) {
   if (!householdId) throw new Error('householdId is required for database events');
   if (!userId) throw new Error('userId is required for database events');
@@ -28,7 +30,7 @@ export function toDatabaseEvent(event, householdId, userId) {
 export function fromDatabaseEvent(row) {
   const start = new Date(row.starts_at);
   const end = new Date(row.ends_at);
-  return {
+  const event = {
     id: row.id,
     type: row.category === 'shift' ? 'shift' : 'family',
     title: row.title,
@@ -42,13 +44,27 @@ export function fromDatabaseEvent(row) {
     anchor: row.metadata?.anchor || undefined,
     owner: row.category === 'shift' ? (row.metadata?.owner || undefined) : undefined,
     ownerId: row.metadata?.ownerId || undefined,
+    calendarSourceId: row.metadata?.calendarSourceId || undefined,
+    calendarProvider: row.metadata?.calendarProvider || undefined,
+    calendarSourceLabel: row.metadata?.calendarSourceLabel || undefined,
+    externalId: row.metadata?.externalId || undefined,
+    readOnly: row.metadata?.readOnly === true,
     recurrence: row.category !== 'shift' && row.metadata?.recurrence
       ? row.metadata.recurrence
       : undefined,
     eventKind: row.category !== 'shift' && row.metadata?.eventKind
       ? row.metadata.eventKind
       : undefined,
+    priority: row.category !== 'shift' && row.metadata?.priority
+      ? row.metadata.priority
+      : undefined,
+    completed: row.category !== 'shift' && row.metadata?.completed === true,
   };
+  const completedDates = row.category !== 'shift'
+    ? normalizeCompletedDates(row.metadata?.completedDates)
+    : [];
+  if (completedDates.length) event.completedDates = completedDates;
+  return event;
 }
 
 export async function loadOwnerEvents(supabase, householdId) {
@@ -99,12 +115,14 @@ export async function deleteOwnerEvent(supabase, eventId, householdId) {
 }
 
 function shiftMetadata(event) {
-  if (event.ownerId) return {ownerId: event.ownerId};
-  return event.owner ? {owner: event.owner} : {};
+  const metadata = sourceMetadata(event);
+  if (event.ownerId) metadata.ownerId = event.ownerId;
+  else if (event.owner) metadata.owner = event.owner;
+  return metadata;
 }
 
 function familyMetadata(event) {
-  const metadata = {};
+  const metadata = sourceMetadata(event);
   if (event.recurrence && event.recurrence !== 'none') {
     metadata.recurrence = event.recurrence;
   }
@@ -112,6 +130,23 @@ function familyMetadata(event) {
     metadata.eventKind = event.eventKind;
   }
   if (event.ownerId) metadata.ownerId = event.ownerId;
+  if (isTaskLikeEntry(event)) {
+    if (event.priority) metadata.priority = event.priority;
+    if (typeof event.completed === 'boolean') metadata.completed = event.completed;
+    const completedDates = normalizeCompletedDates(event.completedDates);
+    if (completedDates.length) metadata.completedDates = completedDates;
+  }
+  return metadata;
+}
+
+function sourceMetadata(event) {
+  const metadata = {};
+  if (event.source && event.source !== 'supabase') metadata.source = event.source;
+  if (event.calendarSourceId) metadata.calendarSourceId = event.calendarSourceId;
+  if (event.calendarProvider) metadata.calendarProvider = event.calendarProvider;
+  if (event.calendarSourceLabel) metadata.calendarSourceLabel = event.calendarSourceLabel;
+  if (event.externalId) metadata.externalId = event.externalId;
+  if (event.readOnly === true) metadata.readOnly = true;
   return metadata;
 }
 
@@ -130,3 +165,4 @@ function localDateKey(d) {
 function localTime(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
 function pad(n) { return String(n).padStart(2, '0'); }
 function hasMeaningfulTime(d) { return d.getHours() !== 0 || d.getMinutes() !== 0; }
+

@@ -8,9 +8,24 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Monats-, Wochen-, Tages- und Heute-Ansicht.
 - Familien- und Schichttermine inklusive Wiederholungen und mehrtägigen Ereignissen.
 - Schicht-Schnellerfassung für Frühdienst, Spätdienst, Zwischendienst, Nachtdienst, SG-Tag, Urlaub und Fortbildung.
+- Monatsübersicht der Dienste je Person, getrennte OZ-Stunden und Konflikthinweise bei Familien-/Kinderterminen; zusätzlich ist `Krank` als ganztägiger Status erfassbar.
+- Schichtserien über Wochentage sowie wiederverwendbare lokale Vorlagen für Zeitdienste und Statuswerte.
+- Optionale Monats-Sollstunden je Person mit lokaler Speicherung und sichtbarer Ist-/Soll-Differenz.
+- Gemeinsame Aufgaben mit Zuweisung, Fälligkeit, Priorität und Erledigt-Status direkt in der Übersicht; wiederkehrende Aufgaben werden je Vorkommen geführt.
+- Haushaltsroutinen werden als wiederkehrende, zugewiesene Einträge mit eigenem Erledigt-Status je Vorkommen geführt.
+- JSON-Sicherung sowie ICS-Import und -Export für den lokalen Kalenderaustausch.
+- JSON-Sicherungen können nach Validierung und Bestätigung duplikatbewusst wiederhergestellt werden.
+- Installierbare PWA-Shell mit network-first Offline-/Retry-Fallback.
+- Sichtbarer Synchronisationsstatus für lokal, laufend, synchronisiert, offline und Fehler; bei erneuter Verbindung wird der Cloud-Check automatisch wiederholt.
+- Lokaler read-only-Wandmodus für große gemeinsame Displays mit sichtbarem Rückweg.
+- Lokale Speicherfehler werden sichtbar gemeldet; beschädigte Kalenderdaten werden nicht still überschrieben und können per JSON-Sicherung wiederhergestellt werden.
+- Lokale Punktewerte für Aufgaben/Routinen und Belohnungsziele mit Fortschritt je Kalenderperson; diese Daten bleiben bewusst auf dem Gerät.
+- Tastaturfreundlicher Einstellungen-Dialog mit Skip-Link, Dialogsemantik, Escape-Schließen und grundlegender ARIA-Navigation.
+- Termine lassen sich im Kalender per Maus/Touch auf einen anderen Tag ziehen; ein zugänglicher Verschieben-Dialog dient als zuverlässiger Fallback und verschiebt auch mehrtägige, wiederkehrende und nächtliche Einträge korrekt.
 - Dienstplanfotos können lokal per OCR gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.
 - Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen Mitglieder-IDs.
-- Personenfilter und Schichtauswahl werden aus diesem Modell erzeugt.
+- Personenfilter, Schichtauswahl und die Mitgliederlegende mit individuellen Farben/Initialen werden aus diesem Modell erzeugt.
+- Angemeldete Owner können Kalenderpersonen in den Einstellungen anlegen und Name, Typ, Farbe sowie Schichtberechtigung ändern; die stabilen IDs bleiben dabei erhalten.
 - Neue Schichten speichern neben dem Anzeigenamen eine stabile `ownerId`; ältere Einträge mit nur `owner` bleiben lesbar.
 - Supabase Magic-Link-Authentifizierung und owner-only Haushalt.
 - Für angemeldete Owner werden `calendar_events` über Supabase geladen, angelegt, geändert und gelöscht.
@@ -18,9 +33,10 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 
 ## Noch nicht freigegeben
 
-- Kein Mehrbenutzer-Einladungsfluss für Partner/coparent.
+- Der Einladungsfluss für Partner/coparent ist technisch vorbereitet, aber noch nicht für Mehrbenutzer-RLS freigegeben.
 - Keine Erweiterung der Live-RLS auf mehrere Haushaltsmitglieder.
 - Keine Realtime-Synchronisierung zwischen getrennten Konten.
+- Eine Löschaktion für Kalenderpersonen ist bewusst noch nicht angeboten, solange die sichere Umhängung bestehender `ownerId`-Referenzen nicht festgelegt ist.
 - Keine Nutzung echter sensibler Familiendaten, bevor Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
 
 ## Entwicklung
@@ -38,6 +54,7 @@ Details zu OCR, Kürzeln, lokaler Speicherung und manueller Prüfung: [`docs/SHI
 **Datenschutz:** Keine Supabase-Service-Role-/Secret-Schlüssel oder unnötige sensible Familieninformationen im Repository speichern.
 
 
-## Release 0.3.1
+## Aktueller Release 0.3.17
 
-Die freigegebene helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht; Fachlogik und owner-only RLS bleiben unverändert.
+Die helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht. Der aktuelle Release enthält neutrale Startup-Recovery, zentrale sichere Nutzerfehler-Fallbacks und einen konsistenten PWA-Cache-Bust; Fachlogik und owner-only RLS bleiben unverändert.
+

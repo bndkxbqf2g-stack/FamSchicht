@@ -1,11 +1,13 @@
 {
   "name": "famschicht",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.17",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "check:source": "node scripts/check-source-syntax.mjs",
+    "check:build": "node scripts/check-build-budget.mjs",
     "preview": "vite preview",
     "test": "node --test"
   },
@@ -16,3 +18,4 @@
     "@supabase/supabase-js": "2.57.4"
   }
 }
+
