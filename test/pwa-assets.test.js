@@ -87,6 +87,17 @@ test('display preferences expose a reversible read-only wall mode', () => {
   assert.match(source, /Wandmodus/);
 });
 
+test('runtime errors remain visible and dialogs restore keyboard focus', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const storage = fs.readFileSync(path.join(root, 'src', 'storage.js'), 'utf8');
+  assert.match(main, /id="app-notice"/);
+  assert.match(main, /id="storage-notice"/);
+  assert.match(main, /restoreDialogFocus/);
+  assert.match(main, /closeDayDialog/);
+  assert.match(storage, /loadState/);
+  assert.match(main, /write-error/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);

@@ -18,6 +18,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Installierbare PWA-Shell mit network-first Offline-/Retry-Fallback.
 - Sichtbarer Synchronisationsstatus für lokal, laufend, synchronisiert, offline und Fehler; bei erneuter Verbindung wird der Cloud-Check automatisch wiederholt.
 - Lokaler read-only-Wandmodus für große gemeinsame Displays mit sichtbarem Rückweg.
+- Lokale Speicherfehler werden sichtbar gemeldet; beschädigte Kalenderdaten werden nicht still überschrieben und können per JSON-Sicherung wiederhergestellt werden.
 - Tastaturfreundlicher Einstellungen-Dialog mit Skip-Link, Dialogsemantik, Escape-Schließen und grundlegender ARIA-Navigation.
 - Termine lassen sich im Kalender per Maus/Touch auf einen anderen Tag ziehen; ein zugänglicher Verschieben-Dialog dient als zuverlässiger Fallback und verschiebt auch mehrtägige, wiederkehrende und nächtliche Einträge korrekt.
 - Dienstplanfotos können lokal per OCR gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.

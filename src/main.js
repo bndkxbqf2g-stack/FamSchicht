@@ -1,4 +1,4 @@
-import {load, save} from './storage.js';
+import {loadState, save} from './storage.js';
 import {dateKey, SHIFT_NAMES, shiftTimes, nextShiftCaptureDate, changedShift} from './dates.js';
 import {escapeHtml as h, canSee} from './security.js';
 import {generateCustodyDates, missingCustodyDates} from './custody.js';
@@ -106,7 +106,8 @@ if ('serviceWorker' in navigator) {
   }, {once: true});
 }
 
-let entries = load();
+const initialLocalState = loadState();
+let entries = initialLocalState.events;
 let month = new Date();
 let focusedDate = new Date();
 let calendarMode = 'month';
@@ -141,6 +142,10 @@ let shiftTargetStatus = '';
 let dataTransferStatus = '';
 let holidayStatus = '';
 let displayStatus = '';
+let localStorageStatus = initialLocalState.status;
+let storageNoticeDismissed = false;
+let appNotice = null;
+let dialogReturnFocus = null;
 let suppressMoveClickId = null;
 let suppressMoveClickUntil = 0;
 
@@ -179,6 +184,67 @@ month.setDate(1);
 
 const app = document.querySelector('#app');
 
+function loadLocalEntries() {
+  const state = loadState();
+  localStorageStatus = state.status;
+  storageNoticeDismissed = false;
+  return state.events;
+}
+
+function saveLocalEntries(nextEntries) {
+  try {
+    save(nextEntries);
+    localStorageStatus = 'loaded';
+    storageNoticeDismissed = false;
+  } catch (error) {
+    localStorageStatus = 'write-error';
+    storageNoticeDismissed = false;
+    throw error;
+  }
+}
+
+function userError(error, fallback) {
+  const message = String(error?.message || '').trim();
+  return message && message.length <= 240 ? message : fallback;
+}
+
+function showAppNotice(message, kind = 'error') {
+  appNotice = {message: String(message || '').trim(), kind};
+  render();
+}
+
+function closeDialogAndRestoreFocus(clearDialog) {
+  clearDialog();
+  render();
+  restoreDialogFocus();
+}
+
+function restoreDialogFocus() {
+  const returnFocus = dialogReturnFocus;
+  dialogReturnFocus = null;
+  window.setTimeout(() => returnFocus?.focus?.(), 0);
+}
+
+function appNoticeMarkup() {
+  if (!appNotice?.message) return '';
+  const role = appNotice.kind === 'error' ? 'alert' : 'status';
+  return '<div id="app-notice" class="app-notice ' + h(appNotice.kind) + '" role="' + role + '" aria-live="assertive">' +
+    '<span>' + h(appNotice.message) + '</span><button type="button" id="dismiss-app-notice" aria-label="Meldung schließen">Schließen</button></div>';
+}
+
+function storageNoticeMarkup() {
+  if (storageNoticeDismissed) return '';
+  const messages = {
+    corrupt: 'Lokale Kalenderdaten konnten nicht gelesen werden. Stelle in den Einstellungen eine JSON-Sicherung wieder her; die beschädigten Daten wurden nicht überschrieben.',
+    unavailable: 'Der lokale Speicher ist in diesem Browser nicht verfügbar. Nutze eine aktive Browser-Sitzung oder die Cloud-Persistenz.',
+    'write-error': 'Lokale Kalenderdaten konnten nicht gespeichert werden. Prüfe den freien Speicher oder stelle eine JSON-Sicherung wieder her.',
+  };
+  const message = messages[localStorageStatus];
+  if (!message) return '';
+  return '<div id="storage-notice" class="app-notice warning" role="alert" aria-live="assertive">' +
+    '<span>' + h(message) + '</span><button type="button" id="dismiss-storage-notice" aria-label="Speicherhinweis schließen">Schließen</button></div>';
+}
+
 async function connectCloud() {
   const current = ++cloudConnectionId;
   syncState = navigator.onLine === false ? 'offline' : 'connecting';
@@ -186,7 +252,7 @@ async function connectCloud() {
   if (navigator.onLine === false) {
     cloud = null;
     applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = load();
+    entries = loadLocalEntries();
     return;
   }
 
@@ -198,7 +264,7 @@ async function connectCloud() {
     cloud = null;
     syncState = 'local';
     applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = load();
+    entries = loadLocalEntries();
     render();
     return;
   }
@@ -214,7 +280,7 @@ async function connectCloud() {
     cloud = null;
     syncState = error ? 'error' : 'local';
     applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = load();
+    entries = loadLocalEntries();
     render();
     return;
   }
@@ -347,7 +413,7 @@ function render() {
     '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
     '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
-    body +
+    appNoticeMarkup() + storageNoticeMarkup() + body +
     (dayDialogDate ? dayDialogMarkup() : '') +
     (shiftDialogEventId ? shiftDialogMarkup() : '') +
     (moveDialog ? moveDialogMarkup() : '') +
@@ -356,6 +422,14 @@ function render() {
   document.body.classList.toggle('settings-open', view === 'settings');
   document.querySelector('#account-shell')?.setAttribute('aria-hidden', String(view !== 'settings'));
   document.querySelector('#custody-settings').innerHTML = view === 'settings' ? custodyMarkup() : '';
+  document.querySelector('#dismiss-app-notice')?.addEventListener('click', () => {
+    appNotice = null;
+    render();
+  });
+  document.querySelector('#dismiss-storage-notice')?.addEventListener('click', () => {
+    storageNoticeDismissed = true;
+    render();
+  });
   bindControls();
 }
 
@@ -365,7 +439,7 @@ function startCloudConnection() {
     syncState = navigator.onLine === false ? 'offline' : 'error';
     cloud = null;
     applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = load();
+    entries = loadLocalEntries();
     render();
   });
 }
@@ -382,9 +456,7 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (dayDialogDate) {
-    dayDialogDate = null;
-    dayDialogEventId = null;
-    render();
+    closeDayDialog();
     return;
   }
   if (moveDialog) {
@@ -392,8 +464,7 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (shiftDialogEventId) {
-    shiftDialogEventId = null;
-    render();
+    closeShiftDialog();
   }
 });
 
@@ -754,7 +825,7 @@ function moveEntryToDate(id, sourceDate, targetDate) {
     suppressMoveClickUntil = Date.now() + 500;
     void updateEntry(moved);
   } catch (error) {
-    alert(error.message || 'Der Eintrag konnte nicht verschoben werden.');
+    showAppNotice(userError(error, 'Der Eintrag konnte nicht verschoben werden.'));
   }
 }
 
@@ -788,7 +859,7 @@ function bindMoveControls() {
         const move = JSON.parse(payload);
         moveEntryToDate(move.id, move.sourceDate, day.dataset.day);
       } catch (error) {
-        alert(error.message || 'Der Eintrag konnte nicht verschoben werden.');
+        showAppNotice(userError(error, 'Der Eintrag konnte nicht verschoben werden.'));
       }
     });
   });
@@ -1008,15 +1079,13 @@ function bindControls() {
     if (options) options.hidden = !['task', 'routine'].includes(event.currentTarget.value);
   });
   app.querySelector('#day-dialog-cancel')?.addEventListener('click', () => {
-    dayDialogDate = null;
-    dayDialogEventId = null;
-    render();
+    closeDayDialog();
   });
   app.querySelector('#move-dialog-form')?.addEventListener('submit', handleMoveDialogSubmit);
   app.querySelector('#move-dialog-cancel')?.addEventListener('click', closeMoveDialog);
 
   app.querySelectorAll('[data-move-open]').forEach(button => {
-    button.onclick = () => openMoveDialog(button.dataset.moveOpen, button.dataset.moveDate);
+    button.onclick = () => openMoveDialog(button.dataset.moveOpen, button.dataset.moveDate, button);
   });
 
   app.querySelectorAll('[data-edit]').forEach(element => {
@@ -1024,8 +1093,13 @@ function bindControls() {
       if (event.target.closest('[data-remove]')) return;
       event.stopPropagation();
       const item = entries.find(entry => entry.id === element.dataset.edit);
-      if (item?.type === 'family') openDayDialog(item.date, item.id);
-      if (item?.type === 'shift') { shiftDialogEventId = item.id; render(); }
+      if (item?.type === 'family') openDayDialog(item.date, item.id, element);
+      if (item?.type === 'shift') {
+        dialogReturnFocus = element;
+        shiftDialogEventId = item.id;
+        render();
+        window.setTimeout(() => document.querySelector('#shift-edit-form [name="date"]')?.focus(), 0);
+      }
     };
     element.onclick = activate;
     element.onkeydown = event => {
@@ -1041,12 +1115,12 @@ function bindControls() {
       try {
         if (cloud) await deleteOwnerEvent(supabase, id, cloud.householdId);
         entries = entries.filter(entry => entry.id !== id);
-        if (!cloud) save(entries);
+        if (!cloud) saveLocalEntries(entries);
         render();
       } catch (err) {
         syncState = 'error';
         render();
-        alert('Löschen fehlgeschlagen: ' + err.message);
+        showAppNotice(userError(err, 'Löschen fehlgeschlagen.'));
       }
     };
   });
@@ -1077,7 +1151,7 @@ function bindControls() {
     render();
   });
   app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
-  app.querySelector('#shift-edit-cancel')?.addEventListener('click', () => { shiftDialogEventId = null; render(); });
+  app.querySelector('#shift-edit-cancel')?.addEventListener('click', closeShiftDialog);
   app.querySelector('#capture-date')?.addEventListener('change', event => {
     if (event.target.value) {
       shiftCaptureDate = event.target.value;
@@ -1198,7 +1272,7 @@ function handleShiftTemplateSave() {
     shiftSeriesStatus = `Vorlage „${template.name}“ wurde auf diesem Gerät gespeichert.`;
     render();
   } catch (error) {
-    alert(error.message || 'Vorlage konnte nicht gespeichert werden.');
+    showAppNotice(userError(error, 'Vorlage konnte nicht gespeichert werden.'));
   }
 }
 
@@ -1209,7 +1283,7 @@ function handleShiftTargetsSubmit(event) {
     const raw = String(input.value || '').trim();
     const normalized = normalizeShiftTargetHours(raw);
     if (raw && normalized === null) {
-      alert('Bitte pro Person ein Soll zwischen 0 und 744 Stunden eingeben.');
+      showAppNotice('Bitte pro Person ein Soll zwischen 0 und 744 Stunden eingeben.');
       input.focus();
       return;
     }
@@ -1220,7 +1294,7 @@ function handleShiftTargetsSubmit(event) {
     shiftTargetStatus = 'Sollstunden wurden auf diesem Gerät gespeichert.';
     render();
   } catch (error) {
-    alert(error.message || 'Sollstunden konnten nicht gespeichert werden.');
+    showAppNotice(userError(error, 'Sollstunden konnten nicht gespeichert werden.'));
   }
 }
 
@@ -1243,7 +1317,7 @@ async function handleShiftSeriesSubmit(event) {
       existing: entries,
     });
   } catch (error) {
-    alert(error.message || 'Die Serie ist ungültig.');
+    showAppNotice(userError(error, 'Die Serie ist ungültig.'));
     return;
   }
   if (!series.length) {
@@ -1261,11 +1335,11 @@ async function handleShiftSeriesSubmit(event) {
   try {
     if (cloud) await saveOwnerEvents(supabase, series, cloud.householdId, cloud.userId);
     entries.push(...series);
-    if (!cloud) save(entries);
+    if (!cloud) saveLocalEntries(entries);
     shiftSeriesStatus = `${series.length} Dienste wurden als Serie eingetragen.`;
     render();
   } catch (error) {
-    alert('Serie konnte nicht gespeichert werden: ' + error.message);
+    showAppNotice(userError(error, 'Serie konnte nicht gespeichert werden.'));
   }
 }
 
@@ -1276,7 +1350,7 @@ function addRosterPreviewDuty() {
   const code = app.querySelector('#roster-new-code')?.value;
   const service = parseRosterCell(code);
   if (!name || !date?.startsWith(rosterImport.month + '-') || !service?.start) {
-    alert('Bitte Person, Datum im importierten Monat und Dienst wählen.');
+    showAppNotice('Bitte Person, Datum im importierten Monat und Dienst wählen.');
     return;
   }
   rosterImport.entries.push({name, date, code:service.code, title:service.title,
@@ -1294,17 +1368,17 @@ function handleRosterImportSubmit(event) {
   const selfMemberId = String(new FormData(form).get('selfMemberId') || '');
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthValue) || !selfName ||
       !shiftMembers.some(member => member.id === selfMemberId)) {
-    alert('Bitte Monat, deine Person in FamSchicht und deine Zeile im Plan auswählen.');
+    showAppNotice('Bitte Monat, deine Person in FamSchicht und deine Zeile im Plan auswählen.');
     return;
   }
 
   const entries = rosterImport.entries.filter(entry => entry.name.trim());
   if (!entries.some(entry => normalizeRosterName(entry.name) === normalizeRosterName(selfName))) {
-    alert('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
+    showAppNotice('Deine ausgewählte Zeile enthält keine erkannten Dienste. Prüfe den Namen oder die OCR-Erkennung.');
     return;
   }
   if (entries.some(entry => !entry.date.startsWith(monthValue + '-') || !parseRosterCell(entry.code)?.start)) {
-    alert('Mindestens ein Dienst hat ein ungültiges Datum oder Kürzel. Bitte korrigiere die Vorschau.');
+    showAppNotice('Mindestens ein Dienst hat ein ungültiges Datum oder Kürzel. Bitte korrigiere die Vorschau.');
     return;
   }
 
@@ -1317,7 +1391,7 @@ function handleRosterImportSubmit(event) {
     rosterImportError = '';
     render();
   } catch (error) {
-    alert('Dienstplan konnte nicht lokal gespeichert werden: ' + error.message);
+    showAppNotice(userError(error, 'Dienstplan konnte nicht lokal gespeichert werden.'));
   }
 }
 
@@ -1358,7 +1432,7 @@ async function handleCustodySubmit(event) {
   const endAnchor = formData.get('endAnchor');
   const title = String(formData.get('title')).trim();
   if (!title) {
-    alert('Bitte eine Bezeichnung eingeben.');
+    showAppNotice('Bitte eine Bezeichnung eingeben.');
     return;
   }
 
@@ -1366,7 +1440,7 @@ async function handleCustodySubmit(event) {
   try {
     dates = generateCustodyDates(anchor, 12, endAnchor);
   } catch (err) {
-    alert(err.message);
+    showAppNotice(userError(err, 'Der Umgangsrhythmus ist ungültig.'));
     return;
   }
 
@@ -1388,9 +1462,9 @@ async function handleCustodySubmit(event) {
   try {
     if (cloud) await saveOwnerEvents(supabase, added, cloud.householdId, cloud.userId);
     entries.push(...added);
-    if (!cloud) save(entries);
+    if (!cloud) saveLocalEntries(entries);
   } catch (err) {
-    alert('Umgangsrhythmus konnte nicht vollständig gespeichert werden: ' + err.message);
+    showAppNotice(userError(err, 'Umgangsrhythmus konnte nicht vollständig gespeichert werden.'));
     await connectCloud();
     return;
   }
@@ -1437,7 +1511,7 @@ async function handleJsonImport(event) {
     if (!confirm(merged.added.length + ' neue Termine aus der JSON-Sicherung wiederherstellen?' + conflictNote)) return;
     const restored = merged.added;
     if (cloud) await saveOwnerEvents(supabase, restored, cloud.householdId, cloud.userId);
-    if (!cloud) save([...entries, ...restored]);
+    if (!cloud) saveLocalEntries([...entries, ...restored]);
     entries.push(...restored);
     dataTransferStatus = `${restored.length} Termine wurden aus der JSON-Sicherung wiederhergestellt.` +
       (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
@@ -1489,7 +1563,7 @@ async function handleIcsImport(event) {
     if (!confirm(merged.added.length + ' neue Termine aus der ICS-Datei importieren?' + conflictNote)) return;
     const imported = merged.added;
     if (cloud) await saveOwnerEvents(supabase, imported, cloud.householdId, cloud.userId);
-    if (!cloud) save([...entries, ...imported]);
+    if (!cloud) saveLocalEntries([...entries, ...imported]);
     entries.push(...imported);
     dataTransferStatus = `${imported.length} Termine wurden read-only importiert.` +
       (merged.duplicates.length ? ` ${merged.duplicates.length} Duplikat(e) übersprungen.` : '') + conflictNote;
@@ -1536,22 +1610,38 @@ function downloadFile(name, content, type) {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function openDayDialog(date, eventId = null) {
+function openDayDialog(date, eventId = null, trigger = document.activeElement) {
+  dialogReturnFocus = trigger;
   dayDialogDate = date;
   dayDialogEventId = eventId;
   render();
+  window.setTimeout(() => document.querySelector('#day-dialog-form [name="title"]')?.focus(), 0);
 }
 
-function openMoveDialog(id, sourceDate) {
+function closeDayDialog() {
+  if (!dayDialogDate) return;
+  closeDialogAndRestoreFocus(() => {
+    dayDialogDate = null;
+    dayDialogEventId = null;
+  });
+}
+
+function openMoveDialog(id, sourceDate, trigger = document.activeElement) {
   if (!entries.some(entry => entry.id === id) || !sourceDate) return;
+  dialogReturnFocus = trigger;
   moveDialog = {id, sourceDate};
   render();
   document.querySelector('#move-dialog-form [name="targetDate"]')?.focus();
 }
 
 function closeMoveDialog() {
-  moveDialog = null;
-  render();
+  if (!moveDialog) return;
+  closeDialogAndRestoreFocus(() => { moveDialog = null; });
+}
+
+function closeShiftDialog() {
+  if (!shiftDialogEventId) return;
+  closeDialogAndRestoreFocus(() => { shiftDialogEventId = null; });
 }
 
 function moveDialogMarkup() {
@@ -1571,9 +1661,10 @@ function handleMoveDialogSubmit(event) {
   event.preventDefault();
   const targetDate = String(new FormData(event.currentTarget).get('targetDate') || '');
   const current = moveDialog;
-  moveDialog = null;
-  if (current) moveEntryToDate(current.id, current.sourceDate, targetDate);
-  else render();
+  if (current) {
+    closeDialogAndRestoreFocus(() => { moveDialog = null; });
+    moveEntryToDate(current.id, current.sourceDate, targetDate);
+  } else render();
 }
 
 function dayDialogMarkup() {
@@ -1627,7 +1718,7 @@ function handleDayDialogSubmit(event) {
   const date = String(data.get('date') || dayDialogDate);
   const rawEndDate = String(data.get('endDate') || date);
   if (rawEndDate < date) {
-    alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
+    showAppNotice('Das Enddatum darf nicht vor dem Startdatum liegen.');
     return;
   }
   const item = {
@@ -1778,15 +1869,16 @@ async function updateEntry(item) {
       );
     }
     entries = entries.map(entry => entry.id === item.id ? item : entry);
-    if (!cloud) save(entries);
+    if (!cloud) saveLocalEntries(entries);
     focusedDate = new Date(item.date + 'T12:00:00');
     month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
     render();
+    restoreDialogFocus();
   } catch (err) {
     syncState = 'error';
     if (item.type === 'shift') shiftDialogEventId = item.id;
     render();
-    alert('Änderung konnte nicht gespeichert werden: ' + err.message);
+    showAppNotice(userError(err, 'Änderung konnte nicht gespeichert werden.'));
   }
 }
 
@@ -1794,13 +1886,14 @@ async function saveEntry(item, afterSave, afterError) {
   try {
     if (cloud) await saveOwnerEvent(supabase, item, cloud.householdId, cloud.userId);
     entries.push(item);
-    if (!cloud) save(entries);
+    if (!cloud) saveLocalEntries(entries);
     afterSave?.();
     render();
+    restoreDialogFocus();
   } catch (err) {
     syncState = 'error';
     afterError?.();
-    alert('Speichern fehlgeschlagen: ' + err.message);
+    showAppNotice(userError(err, 'Speichern fehlgeschlagen.'));
   }
 }
 

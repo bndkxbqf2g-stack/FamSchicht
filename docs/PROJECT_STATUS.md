@@ -5,6 +5,14 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Accessibility- und lokale Recovery-Härtung
+- Lokale Kalenderdaten werden jetzt mit einem expliziten Ladezustand gelesen: beschädigte oder nicht verfügbare Browser-Speicher werden nicht still als leer behandelt und nicht automatisch überschrieben.
+- Schreibfehler im lokalen Modus zeigen einen zugänglichen, schließbaren Live-Hinweis mit JSON-Wiederherstellung als nächstem sicheren Schritt; die bisherigen Cloud-/Offline-Fallbacks bleiben erhalten.
+- Fehler aus Verschieben, Speichern, Löschen, Dienstplan-, Umgangs- und Vorlagenabläufen werden als `role=alert` im App-Kontext statt ausschließlich über blockierende Browser-Alerts angezeigt.
+- Termin-, Verschiebe- und Schichtdialoge setzen den Fokus beim Öffnen auf das erste sinnvolle Feld, schließen per Escape/Abbrechen und geben den Fokus an das auslösende Element zurück.
+- Sichtprüfung: Dialogfokus und Escape auf Desktop; 390×844 inklusive Einstellungen ohne horizontalen Überlauf. Vollständige Accessibility-Abnahme aller Kalenderinteraktionen sowie echte iPhone-Home-Screen-Prüfung bleiben offen.
+- Lokale Regressionstests: 184 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Dienstplanimport-Recovery
 - Die Dienstplanansicht wurde mit synthetischen lokalen Bilddateien geprüft: Upload-Schaltfläche, lokaler OCR-Hinweis, sichere Fehlermeldung bei nicht erkannten Kürzeln und erneute Auswahl derselben Datei funktionieren sichtbar.
 - OCR-/Bildlesefehler werden auf eine verständliche JPEG-/PNG-Wiederholungsempfehlung abgebildet; Provider-interne Fehlermeldungen gelangen nicht in die Oberfläche.

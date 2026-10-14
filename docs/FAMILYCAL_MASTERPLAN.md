@@ -89,14 +89,14 @@ Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials au�
 - [x] Offline/Retry-Konzept
 - [ ] Echtzeit-Sync zwischen Haushaltsgeräten
 - [ ] Benachrichtigungen
-- [ ] Accessibility
+- [ ] Accessibility (Grundsemantik, Live-Fehlerhinweise und Dialogfokus umgesetzt; vollständige Abnahme aller Interaktionen offen)
 - [ ] Ladezeit/Performance
 - [x] Datenexport
 - [ ] Account-/Haushaltslöschung
 - [ ] Security-/RLS-Audit
 - [ ] Schema-Migrationstest
 - [ ] End-to-End Kernabläufe
-- [ ] Fehlerzustände und Recovery
+- [ ] Fehlerzustände und Recovery (lokale Storage-/Schreibfehler und zentrale UI-Fehlermeldungen umgesetzt; vollständige Abnahme offen)
 - [ ] Dokumentation
 - [ ] finaler Repo-/CI-/UX-Audit
 
