@@ -1,5 +1,10 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Statisches Quell-Gate
+- CI prüft jetzt vor den Regressionstests alle JavaScript-/MJS-Quellen des App-, Test-, Script- und PWA-Pfads mit Node.js `--check`.
+- Das neue Gate benötigt keine zusätzliche Laufzeitabhängigkeit; ein vollständiges ESLint-Gate bleibt ausdrücklich eine separate spätere Qualitätsentscheidung.
+- Regressionstests: 209 bestanden; Syntaxprüfung, Produktions-Build und Asset-Budget erfolgreich.
+
 ## Update 14.10.2026 – Sichere Household-Fehlerbehandlung
 - Haushalts-/Datenbankfehler werden in den Einstellungen nur noch als neutrale, handlungsorientierte Meldung angezeigt; technische Fehler bleiben für die Diagnose in der Konsole.
 - Die Erstellung eines privaten Haushalts überschreibt keine Providerdetails in der Nutzeroberfläche und lässt den lokalen Kalender als sicheren Fallback bestehen.
@@ -229,7 +234,7 @@ Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach 
 - Mehrbenutzer-RLS für `partner`/`coparent` ist noch nicht aktiviert.
 - Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
-- Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
+- Ein vollständiges ESLint-Gate existiert noch nicht; CI führt jetzt zusätzlich eine dependency-freie statische JavaScript-/MJS-Syntaxprüfung aus und behält Tests, Build, Deployment und Published-App-Verifikation bei.
 - Punkte-/Belohnungsziele sind als bewusst lokaler Block umgesetzt; sie werden nicht nach Supabase synchronisiert.
 - Google-/Outlook-OAuth und bidirektionale externe Synchronisation sind noch nicht umgesetzt; ICS bleibt der lokale, dateibasierte Austauschweg.
 

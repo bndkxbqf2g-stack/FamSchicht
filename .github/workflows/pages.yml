@@ -21,6 +21,8 @@ jobs:
         with:
           node-version: '22'
       - run: npm install
+      - name: Check source syntax
+        run: npm run check:source
       - name: Run tests
         run: npm test
       - name: Build app

@@ -2,7 +2,7 @@
 
 ## Aktueller CI-Vertrag
 
-`.github/workflows/pages.yml` führt für Pushes und Pull Requests gegen `main` mit Node.js 22 `npm install`, `npm test` und `npm run build` aus. Pages wird nur nach erfolgreicher Qualitätsprüfung aus Nicht-PR-Ereignissen veröffentlicht. Der Workflow prüft anschließend, ob die veröffentlichte URL das gebaute Vite-Bundle referenziert.
+`.github/workflows/pages.yml` führt für Pushes und Pull Requests gegen `main` mit Node.js 22 `npm install`, `npm run check:source`, `npm test` und `npm run build` aus. Pages wird nur nach erfolgreicher Qualitätsprüfung aus Nicht-PR-Ereignissen veröffentlicht. Der Workflow prüft anschließend, ob die veröffentlichte URL das gebaute Vite-Bundle referenziert.
 
 Nach dem Build prüft `npm run check:build` ein bewusst begrenztes Roh-/gzip-Budget für JS- und CSS-Assets. Der Dienstplan-OCR-Code wird erst beim Öffnen des Imports dynamisch geladen; das Budget schützt deshalb den Startpfad, ohne die OCR-Funktion zu entfernen.
 
@@ -62,4 +62,6 @@ Der Dienstplanimport wird zusätzlich mit synthetischen Domain-/Parser-/Speicher
 6. Für Supabase-/RLS-Änderungen: Migrationen und Zugriffsmatrix gesondert prüfen. Eine grüne Frontend-CI bestätigt keine Datenbankrechte.
 
 Der Supabase-Sicherheits-Preflight prüft owner-only-RLS-Migrationen, private Einladungstabellen, atomare Tokenannahme, den Edge-Auth-Grenzpfad und das Fehlen von Service-Role-/Secret-Material im Client. Er ist kein Ersatz für die noch offene Live-Matrix mit getrennten Konten.
+
+`npm run check:source` prüft alle JavaScript-/MJS-Dateien des App-, Test-, Script- und PWA-Quellpfads mit Node.js `--check`; es ist ein Syntax-Gate und kein Ersatz für ein vollständiges ESLint-Gate.
 
