@@ -17,6 +17,7 @@
 - Asynchrone Speicherfehler zeigen weiterhin eine zugängliche Fehlermeldung und geben den Fokus jetzt zurück; bei fehlgeschlagenen Schichtänderungen öffnet sich das Datumsfeld erneut als direkter Korrekturpunkt.
 - Die automatische Einladungsannahme verhindert parallele Wiederholungen und bietet nach einem neutralen transienten Fehler einen sichtbaren erneuten Versuch; der rohe Token bleibt unverändert und wird nicht ausgegeben.
 - Haushalts-, Mitglieder- und Einladungsfehler werden jetzt als assertive Live-Meldungen angekündigt und fokussieren den passenden lokalen Korrekturpunkt; Providerdetails bleiben ausschließlich in der Diagnosekonsole.
+- Technische Transport-/Cloud-Fehler werden über eine zentrale Nutzerfehler-Abbildung auf neutrale Fallbacks reduziert; kurze fachliche Validierungsmeldungen bleiben sichtbar.
 - Sichtbare Kalendertage verwenden ein roving Tab-Ziel; Pfeil-, Home- und End-Tasten verschieben den Fokus semantisch über den Kalender.
 - Ansichtswechsel, Monatsnavigation und Kalenderfilter geben den Fokus nach dem Rendern an den neuen Kontext zurück; die Filter-Aufklappung bleibt dabei geöffnet.
 - Der Laptop-Browserlauf mit synthetischem Umgangstermin bestätigt den Dialog auch über der Einstellungsansicht: Fokus auf „Abbrechen“, `inert` für Kalender und Einstellungen sowie Rückgabe an „Rhythmus eintragen“ nach dem Abbruch; es wurde nichts gespeichert oder gelöscht.
