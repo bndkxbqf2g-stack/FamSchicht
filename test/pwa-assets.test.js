@@ -17,9 +17,9 @@ test('PWA manifest points at the installable FamSchicht shell', () => {
 test('app viewport enables iPhone safe-area layout', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   assert.match(html, /name="viewport" content="[^"]*viewport-fit=cover/);
-  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.11"/);
-  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.11"/);
-  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.11"/);
+  assert.match(html, /src="\.\/src\/auth-ui\.js\?v=0\.3\.12"/);
+  assert.match(html, /src="\.\/src\/household-ui\.js\?v=0\.3\.12"/);
+  assert.match(html, /src="\.\/src\/main\.js\?v=0\.3\.12"/);
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const install = fs.readFileSync(path.join(root, 'src', 'pwa-install.js'), 'utf8');
   assert.match(main, /pwaInstallMarkup/);
@@ -32,7 +32,7 @@ test('app viewport enables iPhone safe-area layout', () => {
 
 test('visible application version matches the current cache-bust release', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
-  assert.match(main, /Familienplaner · v0\.3\.11/);
+  assert.match(main, /Familienplaner · v0\.3\.12/);
 });
 
 test('release metadata stays aligned across the app shell', () => {
@@ -40,7 +40,7 @@ test('release metadata stays aligned across the app shell', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.equal(packageJson.version, '0.3.11');
+  assert.equal(packageJson.version, '0.3.12');
   assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
@@ -195,9 +195,6 @@ test('calendar day targets provide roving keyboard navigation', () => {
   assert.match(main, /const boundaryKey = key === 'Home' \|\| key === 'End'/);
   assert.match(main, /if \(!offset && !boundaryKey\) return/);
   assert.match(main, /event\.preventDefault\(\);\s+if \(!offset\) return/);
-  assert.match(main, /const boundaryKey = key === 'Home' \|\| key === 'End'/);
-  assert.match(main, /if \(!offset && !boundaryKey\) return/);
-  assert.match(main, /event\.preventDefault\(\);\s+if \(!offset\) return/);
   assert.match(main, /selectCalendarDay\(dateKey\(date\), \{restoreFocus: true\}\)/);
 });
 
@@ -221,6 +218,20 @@ test('shift capture rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /data-owner[\s\S]+focusDatasetControl\('data-owner'/);
   assert.match(main, /shiftConflict = \{choice, conflicts\};\s+render\(\);\s+focusAfterRender\('\[data-shift-confirm="save"\]'\)/);
   assert.match(main, /function advanceShiftCapture\(\)[\s\S]+focusAfterRender\(shiftCaptureDate \? '\[data-shift\]' : '#shift-capture'\)/);
+});
+
+test('settings and import rerenders preserve a meaningful keyboard context', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(main, /function focusFirstAfterRender\(\.\.\.selectors\)/);
+  assert.match(main, /shiftSeriesStatus = `Vorlage[\s\S]+render\(\);\s+focusAfterRender\('#shift-template-save'\)/);
+  assert.match(main, /shiftTargetStatus = 'Sollstunden wurden auf diesem Gerät gespeichert\.';\s+render\(\);\s+focusAfterRender\('#shift-targets-form button\[type="submit"\]'\)/);
+  assert.match(main, /function handleRosterFilesChange[\s\S]+focusAfterRender\('#roster-progress'\)[\s\S]+focusFirstAfterRender\('#roster-review-form \[name="month"\]', '#roster-upload'\)/);
+  assert.match(main, /dataTransferStatus = 'JSON-Sicherung wurde heruntergeladen\.';\s+render\(\);\s+focusAfterRender\('#export-json'\)/);
+  assert.match(main, /dataTransferStatus = `\$\{exportEntries.length\} Einträge wurden als ICS exportiert\.`;\s+render\(\);\s+focusAfterRender\('#export-ics'\)/);
+  assert.match(main, /function handleHolidaySettingsSubmit[\s\S]+focusAfterRender\('#holiday-settings-form button\[type="submit"\]'\)/);
+  assert.match(main, /function handleDisplaySettingsSubmit[\s\S]+focusAfterRender\('#display-settings-form button\[type="submit"\]'\)/);
+  assert.match(main, /function handleRewardSubmit[\s\S]+focusAfterRender\('#reward-form \[name="title"\]'\)/);
+  assert.match(main, /id="roster-progress" role="status" tabindex="-1"/);
 });
 
 test('household actions preserve focus across async owner refreshes', () => {
@@ -341,7 +352,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v0\.3\.11/);
+  assert.match(source, /famschicht-shell-v0.3.12/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
