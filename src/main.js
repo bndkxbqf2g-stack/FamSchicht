@@ -279,7 +279,8 @@ function resolveDialogFocus(target) {
   }
   if (target.rewardRemoveId) {
     return [...document.querySelectorAll('[data-reward-remove]')]
-      .find(element => element.dataset.rewardRemove === target.rewardRemoveId) || document.querySelector('#app');
+      .find(element => element.dataset.rewardRemove === target.rewardRemoveId) ||
+      document.querySelector('#reward-form [name="title"]') || document.querySelector('#app');
   }
   if (target.taskNew) return document.querySelector('[data-task-new]');
   return null;
@@ -298,6 +299,18 @@ function restoreDialogFocus() {
 
 function focusAfterRender(selector) {
   window.setTimeout(() => document.querySelector(selector)?.focus(), 0);
+}
+
+function focusFirstAfterRender(...selectors) {
+  window.setTimeout(() => {
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        element.focus();
+        break;
+      }
+    }
+  }, 0);
 }
 
 function focusDatasetControl(attribute, value) {
@@ -495,7 +508,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.11</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.12</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -772,7 +785,7 @@ function shiftRosterMarkup(today) {
 
   if (rosterImportBusy) {
     return '<section class="panel shift-roster"><h2>Dienstplan wird gelesen …</h2>' +
-      '<p id="roster-progress" role="status">' + h(rosterImportError || 'Bitte einen Moment warten.') + '</p>' +
+      '<p id="roster-progress" role="status" tabindex="-1">' + h(rosterImportError || 'Bitte einen Moment warten.') + '</p>' +
       '<progress class="roster-progress" max="1" value="0"></progress>' + privacy + '</section>';
   }
 
@@ -1206,6 +1219,7 @@ function bindControls() {
     rosterImport = null;
     rosterImportError = '';
     render();
+    focusAfterRender('#roster-upload');
   });
   app.querySelector('#roster-review-form')?.addEventListener('submit', handleRosterImportSubmit);
   app.querySelector('#roster-review-form [name="selfName"]')?.addEventListener('change', event => {
@@ -1238,6 +1252,7 @@ function bindControls() {
       const index = Number(button.dataset.rosterRemove);
       rosterImport.entries.splice(index, 1);
       render();
+      focusAfterRender('#roster-add-duty');
     });
   });
   app.querySelector('#prev')?.addEventListener('click', () => {
@@ -1419,6 +1434,7 @@ function bindControls() {
         ? 'Installation abgebrochen. Du kannst sie später erneut starten.'
         : 'Dieser Browser bietet gerade keinen Installationsdialog an.';
     render();
+    focusAfterRender('#pwa-install');
   });
   document.querySelector('#reward-form')?.addEventListener('submit', handleRewardSubmit);
   document.querySelectorAll('[data-reward-remove]').forEach(button => {
@@ -1428,6 +1444,7 @@ function bindControls() {
     displayMode = saveDisplayMode('standard');
     displayStatus = 'Wandmodus wurde beendet.';
     render();
+    focusViewHeading();
   });
   app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
   app.querySelector('#shift-edit-cancel')?.addEventListener('click', closeShiftDialog);
@@ -1454,6 +1471,7 @@ async function handleRosterFilesChange(event) {
   if (validationError) {
     rosterImportError = validationError;
     render();
+    focusAfterRender('#roster-upload');
     return;
   }
 
@@ -1461,6 +1479,7 @@ async function handleRosterFilesChange(event) {
   rosterImportBusy = true;
   rosterImportError = 'OCR wird auf diesem Gerät gestartet …';
   render();
+  focusAfterRender('#roster-progress');
   try {
     const pages = await recognizeRosterImagesOnDemand(files, updateRosterOcrProgress);
     const ocrTexts = pages.flatMap(page => [page.text, ...(page.alternatives || []).map(item => item.text)]);
@@ -1482,6 +1501,7 @@ async function handleRosterFilesChange(event) {
   } finally {
     rosterImportBusy = false;
     render();
+    focusFirstAfterRender('#roster-review-form [name="month"]', '#roster-upload');
   }
 }
 
@@ -1562,6 +1582,7 @@ function handleShiftTemplateSave() {
     shiftTemplates = saveShiftTemplates(upsertShiftTemplate(shiftTemplates, template));
     shiftSeriesStatus = `Vorlage „${template.name}“ wurde auf diesem Gerät gespeichert.`;
     render();
+    focusAfterRender('#shift-template-save');
   } catch (error) {
     showAppNotice(userError(error, 'Vorlage konnte nicht gespeichert werden.'));
   }
@@ -1584,6 +1605,7 @@ function handleShiftTargetsSubmit(event) {
     shiftTargets = saveShiftTargets(targets);
     shiftTargetStatus = 'Sollstunden wurden auf diesem Gerät gespeichert.';
     render();
+    focusAfterRender('#shift-targets-form button[type="submit"]');
   } catch (error) {
     showAppNotice(userError(error, 'Sollstunden konnten nicht gespeichert werden.'));
   }
@@ -1622,6 +1644,7 @@ async function handleShiftSeriesSubmit(event) {
   if (!series.length) {
     shiftSeriesStatus = 'Alle ausgewählten Dienste existieren in diesem Zeitraum bereits.';
     render();
+    focusAfterRender('#shift-series-submit');
     return;
   }
 
@@ -1642,6 +1665,7 @@ async function handleShiftSeriesSubmit(event) {
   try {
     await persistShiftSeries(series);
     render();
+    focusAfterRender('#shift-series-submit');
   } catch (error) {
     showAppNotice(userError(error, 'Serie konnte nicht gespeichert werden.'));
   }
@@ -1661,6 +1685,7 @@ function addRosterPreviewDuty() {
     start:service.start, end:service.end, notCounted:false});
   rosterImport.entries.sort((a, b) => a.date.localeCompare(b.date) || a.name.localeCompare(b.name, 'de'));
   render();
+  focusAfterRender('#roster-add-duty');
 }
 
 function persistRosterReplacement(replacement) {
@@ -1709,6 +1734,7 @@ function handleRosterImportSubmit(event) {
   try {
     persistRosterReplacement(replacement);
     render();
+    focusAfterRender('#roster-upload');
   } catch (error) {
     showAppNotice(userError(error, 'Dienstplan konnte nicht lokal gespeichert werden.'));
   }
@@ -1821,6 +1847,7 @@ function exportJsonData() {
   }, null, 2), 'application/json');
   dataTransferStatus = 'JSON-Sicherung wurde heruntergeladen.';
   render();
+  focusAfterRender('#export-json');
 }
 
 async function persistJsonImport(restored, merged, conflictNote) {
@@ -1839,6 +1866,7 @@ async function handleJsonImport(event) {
   if (file.size > 5 * 1024 * 1024) {
     dataTransferStatus = 'Die JSON-Sicherung ist zu groß (maximal 5 MB).';
     render();
+    focusAfterRender('#import-json');
     return;
   }
   try {
@@ -1849,6 +1877,7 @@ async function handleJsonImport(event) {
         ? `${merged.conflicts.length} JSON-Konflikt(e) benötigen eine manuelle Prüfung; vorhandene Termine wurden nicht überschrieben.`
         : 'Keine neuen Termine in der JSON-Sicherung gefunden.';
       render();
+      focusAfterRender('#import-json');
       return;
     }
     const conflictNote = merged.conflicts.length
@@ -1866,6 +1895,7 @@ async function handleJsonImport(event) {
   } catch (error) {
     dataTransferStatus = error.message || 'Die JSON-Sicherung konnte nicht importiert werden.';
     render();
+    focusAfterRender('#import-json');
   }
 }
 
@@ -1874,6 +1904,7 @@ function exportIcsData() {
   downloadFile('famschicht.ics', eventsToIcs(exportEntries), 'text/calendar;charset=utf-8');
   dataTransferStatus = `${exportEntries.length} Einträge wurden als ICS exportiert.`;
   render();
+  focusAfterRender('#export-ics');
 }
 
 async function persistIcsImport(imported, merged, conflictNote) {
@@ -1892,6 +1923,7 @@ async function handleIcsImport(event) {
   if (file.size > 5 * 1024 * 1024) {
     dataTransferStatus = 'Die ICS-Datei ist zu groß (maximal 5 MB).';
     render();
+    focusAfterRender('#import-ics');
     return;
   }
   try {
@@ -1912,6 +1944,7 @@ async function handleIcsImport(event) {
           : 'Keine neuen ICS-Termine gefunden.'
         : 'Die ICS-Datei enthält keine lesbaren Termine.';
       render();
+      focusAfterRender('#import-ics');
       return;
     }
     const conflictNote = merged.conflicts.length
@@ -1929,6 +1962,7 @@ async function handleIcsImport(event) {
   } catch (error) {
     dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
     render();
+    focusAfterRender('#import-ics');
   }
 }
 
@@ -1942,6 +1976,7 @@ function handleHolidaySettingsSubmit(event) {
     holidayStatus = error.message || 'Die Feiertagsauswahl konnte nicht gespeichert werden.';
   }
   render();
+  focusAfterRender('#holiday-settings-form button[type="submit"]');
 }
 
 function handleDisplaySettingsSubmit(event) {
@@ -1957,6 +1992,7 @@ function handleDisplaySettingsSubmit(event) {
     displayStatus = error.message || 'Die Darstellung konnte nicht gespeichert werden.';
   }
   render();
+  focusAfterRender('#display-settings-form button[type="submit"]');
 }
 
 function handleRewardSubmit(event) {
@@ -1967,6 +2003,7 @@ function handleRewardSubmit(event) {
   if (!title || points === null) {
     rewardStatus = 'Bitte einen Namen und eine ganze Punktzahl zwischen 1 und 10000 eingeben.';
     render();
+    focusAfterRender(!title ? '#reward-form [name="title"]' : '#reward-form [name="points"]');
     return;
   }
   try {
@@ -1981,6 +2018,7 @@ function handleRewardSubmit(event) {
     rewardStatus = userError(error, 'Belohnung konnte nicht gespeichert werden.');
   }
   render();
+  focusAfterRender('#reward-form [name="title"]');
 }
 
 function handleRewardRemove(id, trigger = document.activeElement) {
@@ -2307,7 +2345,7 @@ function shiftCaptureMarkup() {
     '<label>Starttag wählen<input id="capture-date" type="date" value="' + h(shiftCaptureDate) + '"></label>' +
     '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
     '<p class="shift-owner-label">Dienstplan für</p><div class="shift-owner">' +
-    shiftMembers.map(member => '<button type="button" data-owner="' + h(member.id) + '" class="' +
+      shiftMembers.map(member => '<button type="button" data-owner="' + h(member.id) + '" class="' +
       (shiftOwnerId === member.id ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
     '</div>' +
     conflictMarkup +
