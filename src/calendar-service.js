@@ -1,3 +1,5 @@
+import {normalizeCompletedDates} from './task-planning.js';
+
 export function toDatabaseEvent(event, householdId, userId) {
   if (!householdId) throw new Error('householdId is required for database events');
   if (!userId) throw new Error('userId is required for database events');
@@ -28,7 +30,7 @@ export function toDatabaseEvent(event, householdId, userId) {
 export function fromDatabaseEvent(row) {
   const start = new Date(row.starts_at);
   const end = new Date(row.ends_at);
-  return {
+  const event = {
     id: row.id,
     type: row.category === 'shift' ? 'shift' : 'family',
     title: row.title,
@@ -48,7 +50,16 @@ export function fromDatabaseEvent(row) {
     eventKind: row.category !== 'shift' && row.metadata?.eventKind
       ? row.metadata.eventKind
       : undefined,
+    priority: row.category !== 'shift' && row.metadata?.priority
+      ? row.metadata.priority
+      : undefined,
+    completed: row.category !== 'shift' && row.metadata?.completed === true,
   };
+  const completedDates = row.category !== 'shift'
+    ? normalizeCompletedDates(row.metadata?.completedDates)
+    : [];
+  if (completedDates.length) event.completedDates = completedDates;
+  return event;
 }
 
 export async function loadOwnerEvents(supabase, householdId) {
@@ -112,6 +123,12 @@ function familyMetadata(event) {
     metadata.eventKind = event.eventKind;
   }
   if (event.ownerId) metadata.ownerId = event.ownerId;
+  if (event.eventKind === 'task') {
+    if (event.priority) metadata.priority = event.priority;
+    if (typeof event.completed === 'boolean') metadata.completed = event.completed;
+    const completedDates = normalizeCompletedDates(event.completedDates);
+    if (completedDates.length) metadata.completedDates = completedDates;
+  }
   return metadata;
 }
 

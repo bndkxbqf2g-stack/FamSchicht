@@ -538,6 +538,7 @@ body.settings-open #account-shell{
 .invitation-result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;padding:10px;border-radius:12px;background:#f6f8fc;border:1px solid #dbe4f1}
 .invitation-result .note{grid-column:1/-1}
 .invitation-link{width:100%;font-size:12px}
+.invitation-result .revoke-invitation{border-color:#d8b6b1;background:#fff8f7;color:#8a332e}
 .invitation-status{margin-top:8px}
 @media(max-width:700px){
   .invitation-form,.invitation-result{grid-template-columns:1fr}
@@ -858,6 +859,7 @@ body{background:var(--home-canvas);color:var(--home-ink)}
 .editor-more{border-color:var(--home-line)}
 .editor-more summary{color:var(--home-green)}
 .invitation-result{background:#f7f8f5;border-color:var(--home-line)}
+.invitation-result .revoke-invitation{border-color:#d8c0bb;background:#fff8f7;color:#8a332e}
 body.settings-open #account-shell{background:var(--home-canvas)}
 .account-close{border-color:var(--home-line);color:var(--home-green)}
 .view-all .selected-day{
@@ -1004,3 +1006,26 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   .calendar.month-view .entry{font-size:9px}
   .shift-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Shared task list and task editor */
+.home-tasks{display:grid;gap:12px;margin-top:20px;padding:20px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 8px 28px rgba(50,49,43,.05)}
+.home-tasks h2{margin:3px 0 0;font-size:20px}.home-task-list{display:grid;gap:8px}.home-task-item{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid #ebe9e3;border-left:4px solid #d6a43b;border-radius:13px;background:#fffdf7}
+.home-task-item.priority-high{border-left-color:#d27567;background:#fff8f5}.home-task-item.priority-low{border-left-color:#8ca79b;background:#fbfdfb}.home-task-item>button{display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #d8ded9;border-radius:50%;background:#fff;color:var(--accent);font-size:22px;line-height:1}.home-task-item>div{min-width:0}.home-task-item strong{display:block;overflow-wrap:anywhere}.home-task-item small{display:block;margin-top:3px;color:var(--muted);font-size:11px}.task-priority{color:var(--muted);font-size:11px;font-weight:800}.home-task-empty{padding:18px;border:1px dashed #d5dfd9;border-radius:13px;color:var(--muted)}.home-task-empty strong,.home-task-empty span{display:block}.home-task-empty span{margin-top:4px;font-size:12px}
+.task-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:11px 12px;border:1px solid #edf0ec;border-radius:12px;background:#fafbf9}.task-options[hidden]{display:none}.task-checkbox{display:flex;align-items:center;gap:8px;align-self:end;min-height:42px}.task-checkbox input{width:18px;height:18px;accent-color:var(--accent)}
+.entry.task.completed,.today-item.task.completed{opacity:.58;text-decoration:line-through}.entry.task.completed::before,.today-item.task.completed::before{content:'✓ ';font-weight:850}
+@media(max-width:700px){.home-tasks{padding:16px;margin-top:14px}.home-task-item{grid-template-columns:34px 1fr;gap:8px}.task-priority{grid-column:2}.task-options{grid-template-columns:1fr}}
+
+/* Local export/import controls */
+.data-tools-card{display:grid;gap:10px}.data-tools-card h2{margin:0}.data-tools-card>p{margin:0;color:var(--muted);line-height:1.5}.data-tools-actions{display:flex;gap:8px;flex-wrap:wrap}.data-tools-actions button{min-height:42px}.data-transfer-status{padding:9px 11px;border-radius:10px;background:#e8f1eb;color:var(--home-green,var(--accent));font-weight:700;font-size:12px}
+@media(max-width:700px){.data-tools-actions{display:grid;grid-template-columns:1fr}.data-tools-actions button{width:100%}}
+
+/* Shift planning: monthly totals and deliberate collision confirmation */
+.shift-month-summary{display:grid;gap:10px;padding:14px;border:1px solid #dfe8e1;border-radius:16px;background:#fbfdfb}
+.shift-month-summary .roster-heading{align-items:flex-start}.shift-month-summary h3{margin:3px 0 0;font-size:17px}
+.shift-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.shift-summary-card{display:grid;gap:4px;padding:11px 12px;border:1px solid #e3ebe5;border-radius:12px;background:#fff}
+.shift-summary-card strong{font-size:14px}.shift-summary-card span,.shift-summary-card small{color:var(--muted,#65756d);font-size:12px}
+.shift-summary-card small{font-size:11px;color:#8a5e37}
+.shift-conflict{display:grid;gap:8px;padding:13px;border:1px solid #e3b5a9;border-radius:14px;background:#fff6f2;color:#6f332b}
+.shift-conflict p,.shift-conflict ul{margin:0}.shift-conflict ul{display:grid;gap:4px;padding-left:20px;font-size:13px}.shift-conflict .dialog-actions{justify-content:flex-start;flex-wrap:wrap}
+@media(max-width:700px){.shift-month-summary{padding:12px}.shift-summary-grid{grid-template-columns:1fr 1fr}.shift-conflict .dialog-actions{display:grid;grid-template-columns:1fr}.shift-conflict .dialog-actions button{width:100%}}

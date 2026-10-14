@@ -45,3 +45,8 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Privater Einladungsspeicher live installiert; Browserrollen haben keinen Zugriff.
 - Einladungs-UI im ausgelagerten Einstellungen-Bereich mit Magic-Link-Rückkehr und Regressionstest.
 - Fehlende FK-Indizes live ergänzt und im Repository gespiegelt.
+- Lokale Dienstplan-Monatsübersicht pro schichtberechtigter Person mit getrennten angerechneten/OZ-Stunden.
+- Konflikthinweise bei Schichterfassung für Familien-/Kindertermine sowie expliziter ganztägiger Status `Krank`.
+- Gemeinsame Aufgabenliste mit Person, Fälligkeit, Priorität, Erledigt-Status und Übersichts-Dashboard.
+- Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
+- Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.

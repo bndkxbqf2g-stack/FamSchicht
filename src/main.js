@@ -40,6 +40,14 @@ import {
   importedRosterCalendarEntries as projectRosterEntries,
   suggestedRosterMemberId,
 } from './shift-roster-calendar.js';
+import {findShiftConflicts, summarizeShiftMonth} from './shift-planning.js';
+import {eventsToIcs, parseIcs} from './calendar-ics.js';
+import {
+  isTaskCompletedOnDate,
+  setTaskOccurrenceCompleted,
+  taskOccurrences,
+  toggleTaskOccurrence,
+} from './task-planning.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -82,6 +90,8 @@ let shiftRosters = loadShiftRosters();
 let rosterImport = null;
 let rosterImportBusy = false;
 let rosterImportError = '';
+let shiftConflict = null;
+let dataTransferStatus = '';
 
 function applyHouseholdMembers(members) {
   householdMembers = members?.length
@@ -198,7 +208,7 @@ function render() {
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => {
             const imported = e.source === 'shift-roster-import';
-            return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
+            return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + (isTaskCompletedOnDate(e, day) ? ' completed' : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (imported ? '' : ' data-edit="' + h(e.id) + '" role="button" tabindex="0" aria-label="' + h(e.title) + ' bearbeiten"') + '>' +
             (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
             '<span class="entry-label">' + h(e.title) + '</span>' +
@@ -266,7 +276,7 @@ function todayOverviewMarkup(today, displayEntries = entries) {
     '<div class="today-actions"><button id="add-today" class="primary">+ Termin</button></div></div>' +
     '<div class="today-list">' +
     (items.length
-      ? items.map(entry => '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + '"' +
+      ? items.map(entry => '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + (isTaskCompletedOnDate(entry, today) ? ' completed' : '') + '"' +
           (entry.source === 'shift-roster-import' ? '' : ' data-edit="' + h(entry.id) + '" role="button" tabindex="0"') + '>' +
           '<time>' + h(eventTimeLabel(entry)) + '</time><div><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') +
@@ -291,7 +301,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
   }
   upcoming.sort(compareAgendaItems);
   const nextShift = upcoming.find(item => item.entry.type === 'shift');
-  const appointments = upcoming.filter(item => item.entry.type !== 'shift').slice(0, 4);
+  const appointments = upcoming.filter(item => item.entry.type !== 'shift' && item.entry.eventKind !== 'task').slice(0, 4);
   const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
     new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
   const nextShiftMarkup = nextShift
@@ -317,7 +327,38 @@ function homeOverviewMarkup(today, displayEntries = entries) {
     '<section class="home-agenda"><div class="home-section-heading"><div><span class="home-kicker">Die nächsten Tage</span><h2>Anstehende Termine</h2></div>' +
     '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
     '<div class="home-agenda-list">' + appointmentMarkup + '</div></section>' +
+    taskOverviewMarkup(today, displayEntries) +
     '<div class="home-footer-note"><span class="home-sync-dot"></span>' + (cloud ? 'Euer Plan ist synchronisiert' : 'Dein Plan auf diesem Gerät') + '</div></section>';
+}
+
+function taskOverviewMarkup(today, displayEntries = entries) {
+  const priorityOrder = {high: 0, normal: 1, low: 2};
+  const rangeStart = shiftCalendarDate(new Date(today + 'T12:00:00'), 'day', -14);
+  const rangeEnd = shiftCalendarDate(new Date(today + 'T12:00:00'), 'day', 21);
+  const tasks = taskOccurrences(displayEntries, dateKey(rangeStart), dateKey(rangeEnd))
+    .filter(occurrence => !occurrence.completed)
+    .slice()
+    .sort((first, second) => first.date.localeCompare(second.date) ||
+      (priorityOrder[first.entry.priority] ?? 1) - (priorityOrder[second.entry.priority] ?? 1) ||
+      String(first.entry.title).localeCompare(String(second.entry.title), 'de'))
+    .slice(0, 6);
+  const dueLabel = date => date < today ? 'Überfällig' : date === today ? 'Heute' :
+    new Date(date + 'T12:00:00').toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: 'short'});
+  const priorityLabel = {high: 'Hoch', normal: 'Normal', low: 'Niedrig'};
+  const content = tasks.length
+    ? tasks.map(occurrence => {
+      const task = occurrence.entry;
+      return '<article class="home-task-item priority-' + h(task.priority || 'normal') + '">' +
+      '<button type="button" data-task-toggle="' + h(task.id) + '" data-task-date="' + h(occurrence.date) + '" aria-pressed="false" aria-label="' +
+      h(task.title + ' als erledigt markieren') + '"><span aria-hidden="true">○</span></button><div><strong>' +
+      h(task.title) + '</strong><small>' + h(dueLabel(occurrence.date)) + ' · ' +
+      h(householdMemberNames[task.ownerId] || 'Familie') + '</small></div><span class="task-priority">' +
+      h(priorityLabel[task.priority] || priorityLabel.normal) + '</span></article>';
+    }).join('')
+    : '<div class="home-task-empty"><strong>Keine offenen Aufgaben</strong><span>Aufgaben erscheinen hier, sobald du sie im Termineditor anlegst.</span></div>';
+  return '<section class="home-tasks"><div class="home-section-heading"><div><span class="home-kicker">Gemeinsam erledigen</span><h2>Aufgaben</h2></div>' +
+    '<button type="button" data-task-new="true" class="home-text-button">＋ Aufgabe <span>›</span></button></div>' +
+    '<div class="home-task-list">' + content + '</div></section>';
 }
 
 function shiftRosterMarkup(today) {
@@ -325,6 +366,8 @@ function shiftRosterMarkup(today) {
   const roster = shiftRosters.find(item => item.month === monthKey) ||
     shiftRosters.find(item => item.month > monthKey);
   const allRosterEntries = shiftRosters.flatMap(item => item.entries);
+  const monthShiftEntries = [...entries, ...importedRosterCalendarEntries()];
+  const shiftSummary = summarizeShiftMonth(monthShiftEntries, monthKey, shiftMembers);
   const input = '<input id="roster-files" class="visually-hidden" type="file" accept="image/*" multiple aria-label="Dienstplanfotos auswählen">';
   const upload = '<button id="roster-upload" type="button" class="primary">Dienstplanfoto hochladen</button>';
   const privacy = '<p class="roster-privacy">Das Foto wird auf diesem Gerät ausgewertet und nicht gespeichert. Die bestätigten Dienstzeiten bleiben lokal. Die OCR-Komponente wird bei Bedarf aus dem Internet geladen.</p>';
@@ -352,10 +395,31 @@ function shiftRosterMarkup(today) {
       (roster ? 'Kein eigener Dienst im Plan gefunden.' : 'Noch kein Dienstplan importiert.') +
       '</strong><span>Lade ein oder mehrere Fotos des Monatsplans hoch. Du kannst die Erkennung prüfen und korrigieren, bevor etwas gespeichert wird.</span></div>';
 
+  const summary = '<section class="shift-month-summary" aria-label="Monatsübersicht Dienste"><div class="roster-heading"><div><p class="roster-kicker">Monatsübersicht · ' +
+    h(monthLabel(monthKey)) + '</p><h3>Stunden und Dienste</h3></div></div><div class="shift-summary-grid">' +
+    shiftSummary.map(item => '<article class="shift-summary-card"><strong>' + h(item.name) + '</strong><span>' +
+      shiftSummaryLabel(item) + ' · ' + formatHours(item.hours) + '</span>' + (item.notCountedHours
+        ? '<small>+' + formatHours(item.notCountedHours) + ' OZ nicht angerechnet</small>'
+        : '') + '</article>').join('') + '</div></section>';
+
   return '<section class="panel shift-roster"><div class="roster-heading"><div><p class="roster-kicker">Teamübersicht' +
     (roster ? ' · ' + h(monthLabel(roster.month)) : '') + '</p><h2>Mit im Dienst</h2></div>' + upload + input + '</div>' +
-    tile + (roster ? '<button id="roster-replace" type="button" class="roster-text-button">Diesen Monat neu importieren</button>' : '') + privacy +
+    summary + tile + (roster ? '<button id="roster-replace" type="button" class="roster-text-button">Diesen Monat neu importieren</button>' : '') + privacy +
     (rosterImportError ? '<p class="roster-error" role="alert">' + h(rosterImportError) + '</p>' : '') + '</section>';
+}
+
+function formatHours(hours) {
+  if (!hours) return '0:00 h';
+  const totalMinutes = Math.round(hours * 60);
+  return `${Math.floor(totalMinutes / 60)}:${String(totalMinutes % 60).padStart(2, '0')} h`;
+}
+
+function shiftSummaryLabel(item) {
+  const labels = [];
+  if (item.countedShifts) labels.push(`${item.countedShifts} ${item.countedShifts === 1 ? 'Dienst' : 'Dienste'} angerechnet`);
+  if (item.statusShifts) labels.push(`${item.statusShifts} ${item.statusShifts === 1 ? 'Status' : 'Statuswerte'}`);
+  if (item.notCountedShifts) labels.push(`${item.notCountedShifts} OZ`);
+  return labels.join(' · ') || 'Keine Dienste';
 }
 
 function rosterReviewMarkup(importData, fileInput, privacy) {
@@ -452,12 +516,18 @@ function custodyMarkup() {
     '<p>Start- und Endtag frei wählen; standardmäßig Freitag bis Sonntag. Danach wird der Rhythmus alle 14 Tage für 12 Monate eingetragen. Einzelne Wochenenden kannst du anschließend im Kalender verschieben.</p>' +
     '<form id="custody-form"><label>Erster Tag<input name="anchor" type="date" required></label><label>Letzter Tag <span class="field-hint">(optional · standardmäßig +2 Tage)</span><input name="endAnchor" type="date"></label>' +
     '<label>Bezeichnung<input name="title" value="Kinder bei Papa" required></label>' +
-    '<button class="primary wide">Rhythmus eintragen</button></form></section>';
+    '<button class="primary wide">Rhythmus eintragen</button></form></section>' +
+    '<section class="panel data-tools-card"><h2>Daten sichern und austauschen</h2>' +
+    '<p>Exportiere deinen aktuellen Plan als JSON-Sicherung oder als ICS-Datei für andere Kalender. ICS-Termine können wieder importiert werden; der Import wird vor dem Speichern bestätigt.</p>' +
+    '<div class="data-tools-actions"><button type="button" id="export-json">JSON sichern</button><button type="button" id="export-ics">ICS exportieren</button><button type="button" id="import-ics">ICS importieren</button></div>' +
+    '<input id="ics-import-file" class="visually-hidden" type="file" accept=".ics,text/calendar" aria-label="ICS-Datei auswählen">' +
+    (dataTransferStatus ? '<p class="data-transfer-status" role="status">' + h(dataTransferStatus) + '</p>' : '') +
+    '</section>';
 }
 
 const shiftAbbreviations = {
   'Frühdienst': 'F', 'Spätdienst': 'S', 'Zwischendienst': 'Z',
-  'Nachtdienst': 'N', 'SG-Tag': 'SG', 'Urlaub': 'U', 'Fortbildung': 'FB',
+  'Nachtdienst': 'N', 'SG-Tag': 'SG', 'Urlaub': 'U', 'Fortbildung': 'FB', 'Krank': 'K',
 };
 function shiftShortLabel(title) { return shiftAbbreviations[title] || title; }
 
@@ -526,6 +596,13 @@ function bindControls() {
   app.querySelector('#home-add-event')?.addEventListener('click', () => {
     openDayDialog(dateKey(new Date()));
   });
+  app.querySelector('[data-task-new]')?.addEventListener('click', () => {
+    openDayDialog(dateKey(new Date()));
+    const kind = app.querySelector('#day-dialog-form [name="eventKind"]');
+    if (kind) kind.value = 'task';
+    const options = app.querySelector('[data-task-options]');
+    if (options) options.hidden = false;
+  });
   app.querySelector('#quick-event')?.addEventListener('click', () => {
     openDayDialog(dateKey(focusedDate));
   });
@@ -571,13 +648,25 @@ function bindControls() {
   });
   app.querySelector('#shift-capture')?.addEventListener('click', startShiftCapture);
   app.querySelectorAll('[data-owner]').forEach(button => {
-    button.onclick = () => { shiftOwnerId = button.dataset.owner; render(); };
+    button.onclick = () => { shiftOwnerId = button.dataset.owner; shiftConflict = null; render(); };
   });
   app.querySelectorAll('[data-shift]').forEach(button => {
     button.onclick = () => handleShiftChoice(button.dataset.shift);
   });
+  app.querySelector('[data-shift-confirm="cancel"]')?.addEventListener('click', () => {
+    shiftConflict = null;
+    render();
+  });
+  app.querySelector('[data-shift-confirm="save"]')?.addEventListener('click', () => {
+    const choice = shiftConflict?.choice;
+    if (choice) handleShiftChoice(choice, {skipCollision: true});
+  });
 
   app.querySelector('#day-dialog-form')?.addEventListener('submit', handleDayDialogSubmit);
+  app.querySelector('#day-dialog-form [name="eventKind"]')?.addEventListener('change', event => {
+    const options = app.querySelector('[data-task-options]');
+    if (options) options.hidden = event.currentTarget.value !== 'task';
+  });
   app.querySelector('#day-dialog-cancel')?.addEventListener('click', () => {
     dayDialogDate = null;
     dayDialogEventId = null;
@@ -613,12 +702,25 @@ function bindControls() {
     };
   });
 
+  app.querySelectorAll('[data-task-toggle]').forEach(button => {
+    button.addEventListener('click', () => {
+      const item = entries.find(entry => entry.id === button.dataset.taskToggle && entry.eventKind === 'task');
+      if (!item) return;
+      void updateEntry(toggleTaskOccurrence(item, button.dataset.taskDate));
+    });
+  });
+
   document.querySelector('#custody-form')?.addEventListener('submit', handleCustodySubmit);
+  document.querySelector('#export-json')?.addEventListener('click', exportJsonData);
+  document.querySelector('#export-ics')?.addEventListener('click', exportIcsData);
+  document.querySelector('#import-ics')?.addEventListener('click', () => document.querySelector('#ics-import-file')?.click());
+  document.querySelector('#ics-import-file')?.addEventListener('change', handleIcsImport);
   app.querySelector('#shift-edit-form')?.addEventListener('submit', handleShiftEditSubmit);
   app.querySelector('#shift-edit-cancel')?.addEventListener('click', () => { shiftDialogEventId = null; render(); });
   app.querySelector('#capture-date')?.addEventListener('change', event => {
     if (event.target.value) {
       shiftCaptureDate = event.target.value;
+      shiftConflict = null;
       focusedDate = new Date(shiftCaptureDate + 'T12:00:00');
       month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
       render();
@@ -830,6 +932,73 @@ async function handleCustodySubmit(event) {
   render();
 }
 
+function exportJsonData() {
+  downloadFile('famschicht-sicherung.json', JSON.stringify({
+    format: 'famschicht-json',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    events,
+  }, null, 2), 'application/json');
+  dataTransferStatus = 'JSON-Sicherung wurde heruntergeladen.';
+  render();
+}
+
+function exportIcsData() {
+  const exportEntries = [...entries, ...importedRosterCalendarEntries()];
+  downloadFile('famschicht.ics', eventsToIcs(exportEntries), 'text/calendar;charset=utf-8');
+  dataTransferStatus = `${exportEntries.length} Einträge wurden als ICS exportiert.`;
+  render();
+}
+
+async function handleIcsImport(event) {
+  const file = event.currentTarget.files?.[0];
+  event.currentTarget.value = '';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    dataTransferStatus = 'Die ICS-Datei ist zu groß (maximal 5 MB).';
+    render();
+    return;
+  }
+  try {
+    const parsed = parseIcs(await file.text());
+    const imported = parsed
+      .filter(item => item.title && item.date)
+      .filter(item => !entries.some(existing => sameCalendarEvent(existing, item)))
+      .map(item => ({...item, id: crypto.randomUUID(), source: 'ics-import'}));
+    if (!imported.length) {
+      dataTransferStatus = parsed.length
+        ? 'Keine neuen ICS-Termine gefunden.'
+        : 'Die ICS-Datei enthält keine lesbaren Termine.';
+      render();
+      return;
+    }
+    if (!confirm(imported.length + ' Termine aus der ICS-Datei importieren?')) return;
+    if (cloud) await saveOwnerEvents(supabase, imported, cloud.householdId, cloud.userId);
+    if (!cloud) save([...entries, ...imported]);
+    entries.push(...imported);
+    dataTransferStatus = `${imported.length} Termine wurden importiert.`;
+    render();
+  } catch (error) {
+    dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
+    render();
+  }
+}
+
+function sameCalendarEvent(first, second) {
+  return first.type === second.type && first.title === second.title && first.date === second.date &&
+    (first.endDate || '') === (second.endDate || '') && (first.start || '') === (second.start || '') &&
+    (first.end || '') === (second.end || '') && (first.eventKind || 'event') === (second.eventKind || 'event');
+}
+
+function downloadFile(name, content, type) {
+  const url = URL.createObjectURL(new Blob([content], {type}));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
 function openDayDialog(date, eventId = null) {
   dayDialogDate = date;
   dayDialogEventId = eventId;
@@ -844,6 +1013,9 @@ function dayDialogMarkup() {
   const label = new Date(selectedDate + 'T12:00:00').toLocaleDateString(
     'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
   );
+  const taskCompleted = existing?.eventKind === 'task' && isTaskCompletedOnDate(existing, selectedDate);
+  const taskCompletionLabel = existing?.recurrence && existing.recurrence !== 'none'
+    ? 'Erledigt (dieses Vorkommen)' : 'Erledigt';
   return '<div class="dialog-backdrop"><section class="day-dialog panel">' +
     '<h2>' + (existing ? 'Termin bearbeiten' : 'Termin hinzufügen') + '</h2>' +
     '<p class="note">' + label + '</p><form id="day-dialog-form">' +
@@ -860,6 +1032,10 @@ function dayDialogMarkup() {
       .map(([value, label]) => '<option value="' + value + '"' +
         ((existing?.eventKind || 'event') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
     '</select></label>' +
+    '<div class="task-options wide" data-task-options' + (existing?.eventKind === 'task' ? '' : ' hidden') + '><label>Priorität<select name="priority">' +
+    [['low', 'Niedrig'], ['normal', 'Normal'], ['high', 'Hoch']].map(([value, label]) =>
+      '<option value="' + value + '"' + ((existing?.priority || 'normal') === value ? ' selected' : '') + '>' + label + '</option>').join('') +
+    '</select></label><label class="task-checkbox"><input name="completed" type="checkbox"' + (taskCompleted ? ' checked' : '') + '> ' + h(taskCompletionLabel) + '</label></div>' +
     (!existing ? '<label>Beginn<input name="start" type="time"></label><label>Ende<input name="end" type="time"></label>' : '') +
     '<label class="wide">Wiederholung<select name="recurrence">' +
     [['none', 'Keine'], ['daily', 'Täglich'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich'], ['yearly', 'Jährlich']]
@@ -902,6 +1078,18 @@ function handleDayDialogSubmit(event) {
     item.endDate = undefined;
     item.recurrence = 'yearly';
   }
+  if (item.eventKind === 'task') {
+    item.priority = String(data.get('priority') || 'normal');
+    const completed = data.get('completed') === 'on';
+    const completedItem = setTaskOccurrenceCompleted(item, date, completed);
+    item.completed = completedItem.completed;
+    if (completedItem.completedDates) item.completedDates = completedItem.completedDates;
+    else delete item.completedDates;
+  } else {
+    delete item.priority;
+    delete item.completed;
+    delete item.completedDates;
+  }
   if (!item.title || !item.date) return;
   dayDialogDate = null;
   dayDialogEventId = null;
@@ -921,6 +1109,16 @@ function startShiftCapture() {
 function shiftCaptureMarkup() {
   const current = new Date(shiftCaptureDate + 'T12:00:00');
   const label = current.toLocaleDateString('de-DE', {weekday: 'long', day: '2-digit', month: '2-digit'});
+  const conflictMarkup = shiftConflict
+    ? '<div class="shift-conflict" role="alert"><strong>Überschneidung mit Familienplan</strong><p>Der ' +
+      h(shiftConflict.choice) + ' kollidiert mit:</p><ul>' + shiftConflict.conflicts.map(conflict =>
+        '<li><strong>' + h(conflict.entry.title) + '</strong> · ' +
+        h(new Date(conflict.date + 'T12:00:00').toLocaleDateString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit'})) +
+        ' · ' + h(eventTimeLabel(conflict.entry)) + '</li>').join('') +
+      '</ul><div class="dialog-actions"><button type="button" data-shift-confirm="cancel">Auswahl ändern</button>' +
+      '<button type="button" class="primary" data-shift-confirm="save">Trotzdem speichern</button></div></div>'
+    : '';
+  const choiceDisabled = shiftSavePending || Boolean(shiftConflict);
   return '<section class="panel shift-capture"><h2>Schnellerfassung · ' + label + '</h2>' +
     '<label>Starttag wählen<input id="capture-date" type="date" value="' + h(shiftCaptureDate) + '"></label>' +
     '<p class="note">Ein Tipp speichert den Dienst und springt automatisch zum nächsten Tag. Am Monatsende wird die Eingabe beendet.</p>' +
@@ -928,28 +1126,45 @@ function shiftCaptureMarkup() {
     shiftMembers.map(member => '<button data-owner="' + h(member.id) + '" class="' +
       (shiftOwnerId === member.id ? 'selected' : '') + '">' + h(member.name) + '</button>').join('') +
     '</div>' +
+    conflictMarkup +
     '<div class="shift-buttons">' +
-    SHIFT_NAMES.map(name => '<button type="button" data-shift="' + h(name) + '"' + (shiftSavePending ? ' disabled' : '') + '>' + name + '</button>').join('') +
-    '<button type="button" data-shift="skip"' + (shiftSavePending ? ' disabled' : '') + '>Frei</button>' +
+    SHIFT_NAMES.map(name => '<button type="button" data-shift="' + h(name) + '"' + (choiceDisabled ? ' disabled' : '') + '>' + name + '</button>').join('') +
+    '<button type="button" data-shift="skip"' + (choiceDisabled ? ' disabled' : '') + '>Frei</button>' +
     '<button type="button" data-shift="close">Beenden</button></div></section>';
 }
 
 let shiftSavePending = false;
 
-function handleShiftChoice(choice) {
+function handleShiftChoice(choice, {skipCollision = false} = {}) {
   if (choice === 'close') {
     shiftCaptureDate = null;
+    shiftConflict = null;
     render();
     return;
   }
   if (choice === 'skip') {
+    shiftConflict = null;
     advanceShiftCapture();
     return;
   }
   if (shiftSavePending) return;
+  const [start, end] = shiftTimes(choice);
+  if (!skipCollision) {
+    const conflicts = findShiftConflicts({
+      type: 'shift',
+      date: shiftCaptureDate,
+      start,
+      end,
+    }, entries);
+    if (conflicts.length) {
+      shiftConflict = {choice, conflicts};
+      render();
+      return;
+    }
+  }
+  shiftConflict = null;
   shiftSavePending = true;
   render();
-  const [start, end] = shiftTimes(choice);
   const shiftOwner = shiftMembers.find(member => member.id === shiftOwnerId);
   if (!shiftOwner) {
     shiftSavePending = false;
@@ -970,6 +1185,7 @@ function handleShiftChoice(choice) {
     advanceShiftCapture();
   }, () => {
     shiftSavePending = false;
+    shiftConflict = null;
     render();
   });
 }

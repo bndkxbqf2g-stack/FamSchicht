@@ -1,0 +1,19 @@
+{
+  "name": "FamSchicht – Familienplaner",
+  "short_name": "FamSchicht",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f2",
+  "theme_color": "#315f52",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

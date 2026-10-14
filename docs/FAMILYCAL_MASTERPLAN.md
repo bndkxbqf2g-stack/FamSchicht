@@ -52,21 +52,21 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [x] Martin-/Steffi-Zuordnung
 - [x] Schnellaufnahme mit automatischem Tagesfortschritt
 - [ ] Schichtserie aus Dienstplan schneller erfassen
-- [ ] Monatsübersicht Schichten je Person
+- [x] Monatsübersicht Schichten je Person
 - [ ] Soll-/Ist-Stunden optional
-- [ ] freie Tage / Urlaub / Fortbildung / Krank
-- [ ] Kollisionshinweise mit Familien- oder Kinderterminen
+- [x] freie Tage / Urlaub / Fortbildung / Krank
+- [x] Kollisionshinweise mit Familien- oder Kinderterminen
 - [ ] Schichtfilter und kompakte Legende
 - [ ] wiederverwendbare Schichtvorlagen
 
 ### Phase 4 – Aufgaben und Routinen
-- [ ] gemeinsame Aufgabenliste
-- [ ] Zuweisung an Person
-- [ ] Fälligkeit
-- [ ] Priorität
-- [ ] wiederkehrende Aufgaben
-- [ ] Erledigt-Status
-- [ ] Heute-/Wochen-Dashboard
+- [x] gemeinsame Aufgabenliste
+- [x] Zuweisung an Person
+- [x] Fälligkeit
+- [x] Priorität
+- [x] wiederkehrende Aufgaben mit eigenem Erledigt-Status je Vorkommen
+- [x] Erledigt-Status
+- [x] Heute-/Wochen-Dashboard mit offenen Aufgaben und Vorkommensdatum
 - [ ] optional Punkte-/Belohnungssystem für Kinder
 - [ ] Haushaltsroutinen
 
@@ -78,20 +78,20 @@ Das Projekt gilt erst als abgeschlossen, wenn die Kernphasen 1–5 umgesetzt, ge
 - [ ] Konflikt-/Duplikatlogik
 - [ ] anschließend optionaler Zwei-Wege-Sync
 - [ ] Feiertage/Bundesland
-- [ ] ICS Import/Export
+- [x] ICS Import/Export
 - [ ] Sync-Status und Fehleranzeige
 Hinweis: produktiver OAuth-Sync benötigt Provider-Konfiguration/Credentials außerhalb des Repositorys.
 
 ### Phase 6 – Produktreife
-- [ ] PWA installierbar
+- [x] PWA installierbar
 - [ ] iPhone Home-Screen optimiert
 - [ ] Wall-/Tablet-Modus
-- [ ] Offline/Retry-Konzept
+- [x] Offline/Retry-Konzept
 - [ ] Echtzeit-Sync zwischen Haushaltsgeräten
 - [ ] Benachrichtigungen
 - [ ] Accessibility
 - [ ] Ladezeit/Performance
-- [ ] Datenexport
+- [x] Datenexport
 - [ ] Account-/Haushaltslöschung
 - [ ] Security-/RLS-Audit
 - [ ] Schema-Migrationstest

@@ -8,6 +8,10 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Monats-, Wochen-, Tages- und Heute-Ansicht.
 - Familien- und Schichttermine inklusive Wiederholungen und mehrtägigen Ereignissen.
 - Schicht-Schnellerfassung für Frühdienst, Spätdienst, Zwischendienst, Nachtdienst, SG-Tag, Urlaub und Fortbildung.
+- Monatsübersicht der Dienste je Person, getrennte OZ-Stunden und Konflikthinweise bei Familien-/Kinderterminen; zusätzlich ist `Krank` als ganztägiger Status erfassbar.
+- Gemeinsame Aufgaben mit Zuweisung, Fälligkeit, Priorität und Erledigt-Status direkt in der Übersicht; wiederkehrende Aufgaben werden je Vorkommen geführt.
+- JSON-Sicherung sowie ICS-Import und -Export für den lokalen Kalenderaustausch.
+- Installierbare PWA-Shell mit network-first Offline-/Retry-Fallback.
 - Dienstplanfotos können lokal per OCR gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.
 - Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen Mitglieder-IDs.
 - Personenfilter und Schichtauswahl werden aus diesem Modell erzeugt.
@@ -18,7 +22,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 
 ## Noch nicht freigegeben
 
-- Kein Mehrbenutzer-Einladungsfluss für Partner/coparent.
+- Der Einladungsfluss für Partner/coparent ist technisch vorbereitet, aber noch nicht für Mehrbenutzer-RLS freigegeben.
 - Keine Erweiterung der Live-RLS auf mehrere Haushaltsmitglieder.
 - Keine Realtime-Synchronisierung zwischen getrennten Konten.
 - Keine Nutzung echter sensibler Familiendaten, bevor Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.

@@ -39,6 +39,31 @@ test('recurring family event keeps recurrence through database round trip', () =
   assert.equal(fromDatabaseEvent(row).recurrence, 'weekly');
 });
 
+test('task assignment, priority and completion survive database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'task-1', type: 'family', title: 'Ranzen packen', date: '2026-09-25',
+    eventKind: 'task', ownerId: 'anna', priority: 'high', completed: true,
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata, {
+    eventKind: 'task', ownerId: 'anna', priority: 'high', completed: true,
+  });
+  const restored = fromDatabaseEvent(row);
+  assert.equal(restored.eventKind, 'task');
+  assert.equal(restored.ownerId, 'anna');
+  assert.equal(restored.priority, 'high');
+  assert.equal(restored.completed, true);
+});
+
+test('recurring task completion dates survive database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'task-repeat', type: 'family', title: 'Müll rausstellen', date: '2026-09-25',
+    recurrence: 'weekly', eventKind: 'task', completed: false,
+    completedDates: ['2026-10-02', '2026-09-25', '2026-10-02', 'invalid'],
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata.completedDates, ['2026-09-25', '2026-10-02']);
+  assert.deepEqual(fromDatabaseEvent(row).completedDates, ['2026-09-25', '2026-10-02']);
+});
+
 test('all-day family event remains on the same calendar date after round trip', () => {
   const row=toDatabaseEvent({id:'all-day',type:'family',title:'Ferien',date:'2026-09-24'},'h1','u1');
   const restored=fromDatabaseEvent(row);
@@ -144,13 +169,14 @@ test('overnight shift keeps next-day end through database round trip', () => {
 });
 
 test('supported shifts keep full labels and configured UKW times', () => {
-  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Zwischendienst','Nachtdienst','SG-Tag','Urlaub','Fortbildung']);
+  assert.deepEqual(SHIFT_NAMES, ['Frühdienst','Spätdienst','Zwischendienst','Nachtdienst','SG-Tag','Urlaub','Fortbildung','Krank']);
   assert.deepEqual(shiftTimes('Frühdienst'), ['06:00','14:12']);
   assert.deepEqual(shiftTimes('Spätdienst'), ['13:30','21:42']);
   assert.deepEqual(shiftTimes('Zwischendienst'), ['11:48', '20:00']);
   assert.deepEqual(shiftTimes('SG-Tag'), ['', '']);
   assert.deepEqual(shiftTimes('Urlaub'), ['', '']);
   assert.deepEqual(shiftTimes('Fortbildung'), ['', '']);
+  assert.deepEqual(shiftTimes('Krank'), ['', '']);
   assert.deepEqual(shiftTimes('Nachtdienst'), ['21:15','06:30']);
 });
 

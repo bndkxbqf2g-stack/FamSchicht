@@ -20,6 +20,10 @@ npm run build
 - Authentifizierungsfehler, Magic-Link-Rückkehr und sichere Owner-only Datenflüsse; keine produktiven Konten in Tests.
 - iPhone/PWA-Verhalten bei Home-Screen-Login und Kalenderbedienung.
 - Dienstplanimport: erkannte Codezeiten, häufige OCR-Verwechslungen (`FL/FI` → `F1`, `SI` → `S1`, `NS` → `N5`, `ZI` → `Z1`, aber `SL` bleibt Leitungsdienst), alternative OCR-Durchläufe, Nachtdienst-Überlappung über Mitternacht, Wunschfrei/Urlaub/Freizeitausgleich/SG-Ausschlüsse, lokale Speicherung, eindeutige Besitzerzuordnung und Duplikatvermeidung.
+- Dienstplanung: Monatsstunden pro stabiler Besitzer-ID, OZ-Stunden getrennt, ganztägige Statuswerte sowie Konflikthinweise für zeitliche Überschneidungen mit ganztägigen, mehrtägigen und über Mitternacht laufenden Familienterminen.
+- ICS-Domänenvertrag: Export/Import von ganztägigen, mehrtägigen, wiederkehrenden und über Mitternacht laufenden Einträgen sowie Escaping und erledigte Aufgaben.
+- Aufgaben-Domänenvertrag: wiederkehrende Vorkommen, unabhängige `completedDates`, Legacy-Einzelaufgaben und Persistenz-/ICS-Roundtrip.
+- PWA-Vertrag: Manifest, Standalone-Startkonfiguration, Icon und network-first Service-Worker-Fallback.
 
 Die derzeitige Testsuite nutzt Node `node:test` für Domänenlogik und Serviceverträge. Es gibt keinen Browser-Automation-, Screenshot- oder Golden-Test-Runner in der aktuellen Abhängigkeit. Deshalb werden keine fragilen Bilddateien oder zusätzlichen UI-Test-Abhängigkeiten allein für diese Standardisierungsänderung eingeführt. Wenn ein konkreter UI-Fehler geändert wird, ergänze zuerst einen reproduzierbaren Regressionstest im vorhandenen Node-Teststil; bei Änderungen an Layout/Touch-Verhalten muss zusätzlich ein Browser-/iPhone-Viewport sichtbar geprüft und das Ergebnis im PR dokumentiert werden. Screenshots nur mit synthetischen Daten erstellen.
 

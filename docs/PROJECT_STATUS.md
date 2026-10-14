@@ -1,5 +1,33 @@
 # PROJECT STATUS
 
+## Update 14.10.2026 – Live-Projektstatus
+- Die autoritative Supabase-Management-API meldet das Projekt aktuell als `INACTIVE`.
+- Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
+- Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
+
+## Update 14.10.2026 – Wiederkehrende Aufgaben
+- Wiederkehrende Aufgaben werden im Übersichts-Dashboard als einzelne Vorkommen für Heute, überfällige Tage und die nächsten Wochen angezeigt.
+- Das Erledigen eines Vorkommens speichert nur dessen Datum in `completedDates`; künftige Vorkommen bleiben offen. Einzelaufgaben behalten den bisherigen booleschen `completed`-Vertrag.
+- Der Vorkommensstatus wird über lokale Persistenz, den bestehenden Supabase-`metadata`-Roundtrip und einen FamSchicht-ICS-Erweiterungsschlüssel erhalten; Schema, RLS und Edge Function bleiben unverändert.
+- Lokale Regressionstests: 130 bestanden; Produktions-Build erfolgreich. Die Aufgabenliste und Monatsansicht wurden mit synthetischen Daten im 390×844-Viewport sichtbar geprüft.
+
+## Update 14.10.2026 – Dienstplanung lokal vervollständigt
+- Die Dienste-Ansicht zeigt eine Monatsübersicht pro schichtberechtigter Person mit angerechneten Stunden und separat sichtbaren OZ-Stunden.
+- Die Schnellerfassung erkennt Überschneidungen mit Familien-/Kinderterminen, einschließlich ganztägiger, mehrtägiger und über Mitternacht laufender Einträge. Der Nutzer kann den Dienst nach dem Hinweis trotzdem speichern.
+- `Krank` ist neben `Frei`, `Urlaub` und `Fortbildung` als ganztägiger Status erfassbar. Die Änderung bleibt im bestehenden owner-only Datenfluss und benötigt keine Migration.
+- Lokale Regressionstests: 123 bestanden; Produktions-Build erfolgreich. Die Dienste- und Aufgabeninteraktion wurde im lokalen 390×844-Viewport geprüft; die echte iPhone-Home-Screen-Installation bleibt offen.
+
+## Update 14.10.2026 – Aufgaben im Familien-Dashboard
+- Aufgaben werden als eigener Termintyp mit Personenzuweisung, Fälligkeit, Priorität und Erledigt-Status geführt.
+- Offene Aufgaben erscheinen im Übersichts-Dashboard und können dort ohne erneutes Öffnen des Editors als erledigt markiert werden.
+- Aufgabenfelder werden über die bestehende Kalender-Persistenz roundtrip-sicher in `metadata` gespeichert; RLS und Schema bleiben unverändert.
+- Haushaltsroutinen sowie ein optionales Punkte-/Belohnungsmodul sind weiterhin offen.
+
+## Update 14.10.2026 – Lokaler Daten-/ICS-Austausch
+- Einstellungen bieten JSON-Sicherung, ICS-Export und einen bestätigungspflichtigen ICS-Import mit Duplikatprüfung.
+- Ganztägige, mehrtägige, wiederkehrende und über Mitternacht laufende Termine werden im ICS-Domänenvertrag abgebildet; `Europe/Berlin` bleibt als lokale Kalenderzeitzone erhalten.
+- Lokale Regressionstests: 121 bestanden; Produktions-Build erfolgreich. OAuth-Synchronisierung mit Google/Outlook sowie echte iPhone-/PWA-Installationsprüfung bleiben externe/offene Schritte.
+
 ## Update 29.09.2026 – Mobile Kalenderbedienung
 - Dienste werden im Bereich „Dienste“ schnell erfasst und bestehende Schichten per Tipp mit Datum, Zeit, Diensttyp und Person bearbeitet.
 - Bestehende Familien- und Schichttermine zeigen zuerst Datum und Uhrzeit; seltene Felder liegen unter „Weitere Optionen“.
@@ -37,11 +65,19 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Kindertermine, 
 Die Live-Rechte bleiben bewusst owner-only. Mehrbenutzerrechte werden erst nach serverseitigem Einladungs-/Annahmepfad und erfolgreicher Zugriffsmatrix mit getrennten Konten erweitert. Keine service_role-/Secret-Schlüssel im Browser oder Repository.
 
 ## Bekannte Lücken
-- Die Einladungs-UI ist jetzt im separaten Einstellungen-Bereich integriert; Erzeugung und atomare Annahme laufen über den serverseitigen Edge-/RPC-Pfad. Widerruf ist als Dienst vorhanden, aber noch nicht in der UI angeboten.
+- Die Einladungs-UI ist im separaten Einstellungen-Bereich integriert; Erzeugung, Kopieren und Widerruf des zuletzt erzeugten Links sowie die atomare Annahme laufen über den serverseitigen Edge-/RPC-Pfad.
 - Mehrbenutzer-RLS für `partner`/`coparent` ist noch nicht aktiviert.
 - Eine Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten fehlt noch.
 - Realtime-Synchronisierung zwischen mehreren Konten fehlt.
 - Ein separates statisches JS-Lint-Gate existiert noch nicht; CI führt Tests, Build, Deployment und Published-App-Verifikation aus.
+- Soll-/Ist-Stunden, Schichtserien und wiederverwendbare Schichtvorlagen sind noch nicht umgesetzt.
+- Haushaltsroutinen sowie ein separates Routinen-/Belohnungsmodul sind noch nicht umgesetzt.
+- Google-/Outlook-OAuth und bidirektionale externe Synchronisation sind noch nicht umgesetzt; ICS bleibt der lokale, dateibasierte Austauschweg.
+
+## Update 14.10.2026 – PWA-Shell und Offline-Fallback
+- Ein Web-App-Manifest, installierbares Standalone-Display und ein network-first Service Worker mit App-Shell-Fallback sind im Repository vorhanden.
+- Die lokale Status-/Retry-Oberfläche bleibt bei einem nicht verfügbaren Netzwerk erhalten; die echte iPhone-Home-Screen-Installation wurde in dieser Sitzung nicht ausgeführt.
+- Lokale Regressionstests: 123 bestanden; Produktions-Build enthält Manifest, Service Worker und Icon.
 
 ## Nächster Schritt
 Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Danach die Zugriffsmatrix ausführen und erst anschließend Mehrbenutzer-RLS aktivieren. Live-RLS bleibt bis zu deren Erfolg owner-only.

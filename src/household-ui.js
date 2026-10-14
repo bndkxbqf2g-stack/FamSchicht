@@ -1,6 +1,10 @@
 import {supabase} from './auth.js';
-import {createHouseholdInvitation} from './invitation-service.js';
+import {
+  createHouseholdInvitation,
+  revokeHouseholdInvitation,
+} from './invitation-service.js';
 import {buildInvitationLink} from './invitation-link.js';
+import {invitationRevocationOutcome} from './invitation-ui.js';
 import {escapeHtml} from './security.js';
 
 const root = document.querySelector('#household');
@@ -116,7 +120,8 @@ function bindInvitationForm(householdId) {
       resultBox.className = 'invitation-result';
       resultBox.innerHTML = '<label class="wide">Persönlicher Einladungslink<input class="invitation-link" readonly value="' +
         escapeHtml(link.href) + '"></label><button type="button" class="copy-invitation">Link kopieren</button>' +
-        (result.expiresAt ? '<span class="note">Gültig bis ' + escapeHtml(new Date(result.expiresAt).toLocaleDateString('de-DE')) + '.</span>' : '');
+        (result.expiresAt ? '<span class="note">Gültig bis ' + escapeHtml(new Date(result.expiresAt).toLocaleDateString('de-DE')) + '.</span>' : '') +
+        (result.invitationId ? '<button type="button" class="revoke-invitation">Einladung widerrufen</button>' : '');
       form.append(resultBox);
       resultBox.querySelector('.copy-invitation').onclick = async () => {
         try {
@@ -126,6 +131,25 @@ function bindInvitationForm(householdId) {
           resultBox.querySelector('.copy-invitation').textContent = 'Bitte Link manuell kopieren';
         }
       };
+      resultBox.querySelector('.revoke-invitation')?.addEventListener('click', async event => {
+        const revokeButton = event.currentTarget;
+        revokeButton.disabled = true;
+        messageEl.textContent = 'Einladung wird widerrufen …';
+        try {
+          const revokeResult = await revokeHouseholdInvitation(supabase, result.invitationId);
+          const outcome = invitationRevocationOutcome(revokeResult);
+          if (!outcome.revoked) {
+            messageEl.textContent = outcome.message;
+            revokeButton.disabled = false;
+            return;
+          }
+          resultBox.remove();
+          messageEl.textContent = outcome.message;
+        } catch (error) {
+          messageEl.textContent = error.message || 'Einladung konnte nicht widerrufen werden.';
+          revokeButton.disabled = false;
+        }
+      });
       form.reset();
     } catch (error) {
       messageEl.textContent = error.message || 'Einladung konnte nicht erstellt werden.';

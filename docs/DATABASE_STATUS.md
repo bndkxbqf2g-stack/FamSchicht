@@ -1,5 +1,12 @@
 # Datenbankstatus (25.09.2026)
 
+## Live-Prüfung 14.10.2026
+
+- Die Supabase-Management-API meldet das Projekt `FamSchicht` als `INACTIVE`.
+- Read-only-Abfragen auf Migrationen und Tabellen liefen wegen eines Verbindungs-Timeouts nicht durch; deshalb wurde keine Zugriffsmatrix gestartet.
+- Security- und Performance-Advisors meldeten bei der Prüfung keine Lints.
+- Die Edge Function `household-invitations` ist aktiv, verwendet `withSupabase({ auth: 'user' })` und bleibt bis zur Matrix-Prüfung ohne Mehrbenutzer-RLS-Freigabe.
+
 ## Tatsächlich installierter Stand
 
 Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist ACTIVE_HEALTHY.
