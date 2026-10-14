@@ -64,6 +64,22 @@ test('recurring task completion dates survive database round trip', () => {
   assert.deepEqual(fromDatabaseEvent(row).completedDates, ['2026-09-25', '2026-10-02']);
 });
 
+test('household routine completion metadata survives database round trip', () => {
+  const row = toDatabaseEvent({
+    id: 'routine-1', type: 'family', title: 'Küche aufräumen', date: '2026-09-25',
+    recurrence: 'weekly', eventKind: 'routine', ownerId: 'martin', priority: 'normal',
+    completed: false, completedDates: ['2026-10-02'],
+  }, 'h1', 'u1');
+  assert.deepEqual(row.metadata, {
+    recurrence: 'weekly', eventKind: 'routine', ownerId: 'martin', priority: 'normal',
+    completed: false, completedDates: ['2026-10-02'],
+  });
+  const restored = fromDatabaseEvent(row);
+  assert.equal(restored.eventKind, 'routine');
+  assert.equal(restored.priority, 'normal');
+  assert.deepEqual(restored.completedDates, ['2026-10-02']);
+});
+
 test('all-day family event remains on the same calendar date after round trip', () => {
   const row=toDatabaseEvent({id:'all-day',type:'family',title:'Ferien',date:'2026-09-24'},'h1','u1');
   const restored=fromDatabaseEvent(row);
