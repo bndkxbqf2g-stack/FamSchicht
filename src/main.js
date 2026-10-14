@@ -2461,9 +2461,11 @@ async function updateEntry(item) {
     restoreDialogFocus();
   } catch (err) {
     syncState = 'error';
-    if (item.type === 'shift') shiftDialogEventId = item.id;
-    render();
+    const reopenShift = item.type === 'shift';
+    if (reopenShift) shiftDialogEventId = item.id;
     showAppNotice(userError(err, 'Änderung konnte nicht gespeichert werden.'));
+    if (reopenShift) focusAfterRender('#shift-edit-form [name="date"]');
+    else restoreDialogFocus();
   }
 }
 
@@ -2479,6 +2481,7 @@ async function saveEntry(item, afterSave, afterError) {
     syncState = 'error';
     afterError?.();
     showAppNotice(userError(err, 'Speichern fehlgeschlagen.'));
+    restoreDialogFocus();
   }
 }
 
