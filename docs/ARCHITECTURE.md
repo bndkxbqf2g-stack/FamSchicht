@@ -18,6 +18,7 @@ Vite-basierte JavaScript-Web-App.
 - src/shift-roster-*.js: Dienstplan-OCR, lokale Speicherung, Schichtlogik und Kalenderprojektion.
 - src/shift-hours.js: optionale lokale Monats-Sollstunden und Ist-/Soll-Differenzen.
 - src/task-planning.js: wiederkehrende Aufgaben- und Haushaltsroutinen mit Completion je Vorkommen.
+- src/event-move.js: pure Datumsverschiebung für Einzel-, Mehrtages-, Wiederholungs-, Nacht- und Umgangseinträge.
 - src/sync-status.js: erlaubte Synchronisationszustände sowie nutzerfreundliche Statuslabels und CSS-Klassen.
 
 ## Backend
@@ -39,6 +40,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Owner-Mitgliederverwaltung: Einstellungen -> `ensureOwnerHouseholdMembers`/`saveOwnerHouseholdMembers` -> `household_members`; neue Personen erhalten eine stabile ID, bestehende `ownerId`-Referenzen werden beim Bearbeiten nicht geändert.
 - `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.
 - Die Oberfläche meldet Sync-Zustände getrennt vom fachlichen `cloud`-Scope; ein Fehlerstatus bedeutet nicht, dass lokale Daten als serverseitig synchronisiert ausgegeben werden.
+- Terminverschiebung: Kalenderkarte -> `event-move.js` -> unverändertes Ereignis mit verschobenem Datumsbereich -> bestehender `updateEntry`-Pfad -> lokaler Speicher oder owner-scoped Supabase-Update. `id`, `ownerId`, Uhrzeiten und Nachtdienst bleiben erhalten; `completedDates` folgen dem Anker, einzelne `custody`-Einträge behalten ihren Serienanker.
 
 ## Zielarchitektur
 UI -> klar abgegrenzte Kalender-/Haushaltsservices -> Supabase.

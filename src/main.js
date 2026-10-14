@@ -63,6 +63,7 @@ import {
   toggleTaskOccurrence,
 } from './task-planning.js';
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
+import {moveCalendarEntry} from './event-move.js';
 import './styles.css';
 
 if ('serviceWorker' in navigator) {
@@ -100,6 +101,7 @@ let shiftCaptureDate = null;
 let dayDialogDate = null;
 let dayDialogEventId = null;
 let shiftDialogEventId = null;
+let moveDialog = null;
 let householdMembers = [...bootstrapHouseholdMembers];
 let shiftMembers = shiftEligibleMembers(householdMembers);
 let householdMemberNames = memberNamesById(householdMembers);
@@ -114,6 +116,8 @@ let shiftConflict = null;
 let shiftSeriesStatus = '';
 let shiftTargetStatus = '';
 let dataTransferStatus = '';
+let suppressMoveClickId = null;
+let suppressMoveClickUntil = 0;
 
 function applyHouseholdMembers(members) {
   householdMembers = members?.length
@@ -254,6 +258,7 @@ function render() {
       '<button data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
+    '<p class="calendar-hint" id="calendar-hint">Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.</p>' +
     '<div class="calendar ' + calendarMode + '-view">' +
     (calendarMode === 'day' ? '' : calendarMode === 'month'
       ? weekdayLabels.map(d => '<b>' + d + '</b>').join('')
@@ -275,9 +280,10 @@ function render() {
                 (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span></button>';
             const removeMarkup = imported ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>';
+            const moveMarkup = imported ? '' : '<button type="button" class="entry-move" data-move-open="' + h(e.id) + '" data-move-date="' + h(day) + '" aria-label="' + h(e.title) + ' verschieben">↕</button>';
             return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + (isTaskCompletedOnDate(e, day) ? ' completed' : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
-            (imported ? '' : ' role="group" aria-label="Eintrag: ' + h(e.title) + '"') + '>' +
-            editMarkup + removeMarkup + '</div>';
+            (imported ? '' : ' role="group" data-move-id="' + h(e.id) + '" data-move-date="' + h(day) + '" draggable="true" aria-label="Eintrag: ' + h(e.title) + '. Ziehen zum Verschieben."') + '>' +
+            editMarkup + moveMarkup + removeMarkup + '</div>';
           })
           .join('') +
         '</div>'
@@ -311,6 +317,7 @@ function render() {
     body +
     (dayDialogDate ? dayDialogMarkup() : '') +
     (shiftDialogEventId ? shiftDialogMarkup() : '') +
+    (moveDialog ? moveDialogMarkup() : '') +
     '</section></div>';
 
   document.body.classList.toggle('settings-open', view === 'settings');
@@ -345,6 +352,10 @@ document.addEventListener('keydown', event => {
     dayDialogDate = null;
     dayDialogEventId = null;
     render();
+    return;
+  }
+  if (moveDialog) {
+    closeMoveDialog();
     return;
   }
   if (shiftDialogEventId) {
@@ -671,6 +682,118 @@ function custodyMarkup() {
     '</section>';
 }
 
+function moveEntryToDate(id, sourceDate, targetDate) {
+  const item = entries.find(entry => entry.id === id);
+  if (!item || !targetDate || item.source === 'shift-roster-import' || sourceDate === targetDate) return;
+  try {
+    const moved = moveCalendarEntry(item, sourceDate, targetDate);
+    suppressMoveClickId = id;
+    suppressMoveClickUntil = Date.now() + 500;
+    void updateEntry(moved);
+  } catch (error) {
+    alert(error.message || 'Der Eintrag konnte nicht verschoben werden.');
+  }
+}
+
+function bindMoveControls() {
+  const clearTargets = () => {
+    app.querySelectorAll('.day.move-target').forEach(day => day.classList.remove('move-target'));
+  };
+  const dayAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest?.('[data-day]');
+  const showTarget = day => {
+    clearTargets();
+    if (day) day.classList.add('move-target');
+  };
+
+  app.querySelectorAll('[data-day]').forEach(day => {
+    day.addEventListener('dragover', event => {
+      const types = [...(event.dataTransfer?.types || [])];
+      if (!types.includes('text/famschicht-entry')) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      showTarget(day);
+    });
+    day.addEventListener('dragleave', event => {
+      if (!event.relatedTarget || !day.contains(event.relatedTarget)) day.classList.remove('move-target');
+    });
+    day.addEventListener('drop', event => {
+      const payload = event.dataTransfer?.getData('text/famschicht-entry');
+      if (!payload) return;
+      event.preventDefault();
+      clearTargets();
+      try {
+        const move = JSON.parse(payload);
+        moveEntryToDate(move.id, move.sourceDate, day.dataset.day);
+      } catch (error) {
+        alert(error.message || 'Der Eintrag konnte nicht verschoben werden.');
+      }
+    });
+  });
+
+  app.querySelectorAll('[data-move-id]').forEach(entry => {
+    const movePayload = () => JSON.stringify({
+      id: entry.dataset.moveId,
+      sourceDate: entry.dataset.moveDate,
+    });
+    entry.addEventListener('dragstart', event => {
+      if (!event.dataTransfer) return;
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/famschicht-entry', movePayload());
+      entry.classList.add('moving');
+      suppressMoveClickId = entry.dataset.moveId;
+      suppressMoveClickUntil = Date.now() + 500;
+    });
+    entry.addEventListener('dragend', () => {
+      entry.classList.remove('moving');
+      clearTargets();
+    });
+
+    let pointerState = null;
+    entry.addEventListener('pointerdown', event => {
+      if (event.pointerType === 'mouse' || event.button > 0 || event.target.closest('[data-remove]')) return;
+      pointerState = {
+        id: entry.dataset.moveId,
+        sourceDate: entry.dataset.moveDate,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+        targetDate: null,
+      };
+      entry.setPointerCapture?.(event.pointerId);
+    });
+    entry.addEventListener('pointermove', event => {
+      if (!pointerState || pointerState.pointerId !== event.pointerId) return;
+      const distance = Math.hypot(event.clientX - pointerState.startX, event.clientY - pointerState.startY);
+      if (!pointerState.moved && distance < 8) return;
+      if (!pointerState.moved) {
+        pointerState.moved = true;
+        entry.classList.add('moving');
+        suppressMoveClickId = pointerState.id;
+        suppressMoveClickUntil = Date.now() + 500;
+      }
+      event.preventDefault();
+      const day = dayAtPoint(event.clientX, event.clientY);
+      pointerState.targetDate = day?.dataset.day || null;
+      showTarget(day);
+    });
+    const finishPointerMove = event => {
+      if (!pointerState || pointerState.pointerId !== event.pointerId) return;
+      const current = pointerState;
+      pointerState = null;
+      entry.classList.remove('moving');
+      clearTargets();
+      entry.releasePointerCapture?.(event.pointerId);
+      if (!current.moved) return;
+      event.preventDefault();
+      const targetDate = current.targetDate || dayAtPoint(event.clientX, event.clientY)?.dataset.day;
+      moveEntryToDate(current.id, current.sourceDate, targetDate);
+    };
+    entry.addEventListener('pointerup', finishPointerMove);
+    entry.addEventListener('pointercancel', finishPointerMove);
+  });
+}
+
 const shiftAbbreviations = {
   'Frühdienst': 'F', 'Spätdienst': 'S', 'Zwischendienst': 'Z',
   'Nachtdienst': 'N', 'SG-Tag': 'SG', 'Urlaub': 'U', 'Fortbildung': 'FB', 'Krank': 'K',
@@ -794,7 +917,7 @@ function bindControls() {
   });
   app.querySelectorAll('[data-day]').forEach(day => {
     day.onclick = event => {
-      if (event.target.closest('[data-remove], [data-edit]')) return;
+      if (event.target.closest('[data-remove], [data-edit], [data-move-open]')) return;
       focusedDate = new Date(day.dataset.day + 'T12:00:00');
       month = new Date(focusedDate.getFullYear(), focusedDate.getMonth(), 1, 12);
       render();
@@ -825,6 +948,12 @@ function bindControls() {
     dayDialogDate = null;
     dayDialogEventId = null;
     render();
+  });
+  app.querySelector('#move-dialog-form')?.addEventListener('submit', handleMoveDialogSubmit);
+  app.querySelector('#move-dialog-cancel')?.addEventListener('click', closeMoveDialog);
+
+  app.querySelectorAll('[data-move-open]').forEach(button => {
+    button.onclick = () => openMoveDialog(button.dataset.moveOpen, button.dataset.moveDate);
   });
 
   app.querySelectorAll('[data-edit]').forEach(element => {
@@ -1265,6 +1394,40 @@ function openDayDialog(date, eventId = null) {
   dayDialogDate = date;
   dayDialogEventId = eventId;
   render();
+}
+
+function openMoveDialog(id, sourceDate) {
+  if (!entries.some(entry => entry.id === id) || !sourceDate) return;
+  moveDialog = {id, sourceDate};
+  render();
+  document.querySelector('#move-dialog-form [name="targetDate"]')?.focus();
+}
+
+function closeMoveDialog() {
+  moveDialog = null;
+  render();
+}
+
+function moveDialogMarkup() {
+  const item = entries.find(entry => entry.id === moveDialog?.id);
+  if (!item) return '';
+  const sourceDate = moveDialog.sourceDate;
+  const label = new Date(sourceDate + 'T12:00:00').toLocaleDateString(
+    'de-DE', {weekday: 'long', day: '2-digit', month: 'long'},
+  );
+  return '<div class="dialog-backdrop"><section class="day-dialog panel move-dialog" role="dialog" aria-modal="true" aria-labelledby="move-dialog-title">' +
+    '<h2 id="move-dialog-title">Termin verschieben</h2><p class="note">' + h(item.title) + ' · aktuell ' + h(label) + '</p>' +
+    '<form id="move-dialog-form"><label>Neuer Tag<input name="targetDate" type="date" required value="' + h(sourceDate) + '"></label>' +
+    '<div class="wide dialog-actions"><button type="button" id="move-dialog-cancel">Abbrechen</button><button class="primary">Verschieben</button></div></form></section></div>';
+}
+
+function handleMoveDialogSubmit(event) {
+  event.preventDefault();
+  const targetDate = String(new FormData(event.currentTarget).get('targetDate') || '');
+  const current = moveDialog;
+  moveDialog = null;
+  if (current) moveEntryToDate(current.id, current.sourceDate, targetDate);
+  else render();
 }
 
 function dayDialogMarkup() {

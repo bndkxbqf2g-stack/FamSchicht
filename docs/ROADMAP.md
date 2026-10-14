@@ -8,7 +8,7 @@ Stand: 14.10.2026
 3. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
 4. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
 5. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
-6. UI/UX weiter ausbauen; Drag/Move nur bei zuverlässigem Touch- und Desktop-Verhalten.
+6. UI/UX weiter ausbauen; Terminverschiebung ist für Desktop/Touch mit zugänglichem Fallback umgesetzt.
 
 ## Qualitäts-Gates
 Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature-Reihenfolge.
@@ -55,3 +55,4 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Lokaler JSON-/ICS-Export und bestätigter ICS-Import mit Duplikatprüfung.
 - Installierbare PWA-Shell mit gecachtem App-Shell-Fallback für Offline-/Retry-Grundverhalten.
 - Sichtbarer Sync-Status und Fehleranzeige für lokalen, laufenden, erfolgreichen und offline/fehlerhaften Zustand.
+- Terminverschiebung per Desktop-Drag/Touch-Pointer mit zugänglichem Zieldatum-Fallback; Mehrtages-, Nacht-, Wiederholungs- und Umgangssemantik bleibt erhalten.

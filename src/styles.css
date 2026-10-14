@@ -1069,7 +1069,7 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   min-width:0;
   min-height:0;
   margin:0;
-  padding:0 18px 0 0;
+  padding:0 42px 0 0;
   border:0;
   border-radius:0;
   background:transparent;
@@ -1091,6 +1091,19 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   color:inherit;
   float:none;
 }
+.entry .entry-move{
+  position:absolute;
+  top:2px;
+  right:24px;
+  min-height:24px;
+  margin:0;
+  padding:0 2px;
+  border:0;
+  background:transparent;
+  color:inherit;
+  float:none;
+}
+.calendar.month-view .entry .entry-move{display:inline-block;margin-left:0}
 .calendar.month-view .entry .entry-edit{display:block;margin-left:0}
 .today-item-edit{
   display:grid;
@@ -1112,7 +1125,12 @@ body.settings-open #account-shell{background:var(--home-canvas)}
 }
 .today-item-copy{min-width:0}
 .today-item-remove{border:0;background:transparent;color:#8a918e;font-size:18px}
+.entry[data-move-id]{cursor:grab;touch-action:none}
+.entry[data-move-id].moving{opacity:.48;cursor:grabbing;outline:2px dashed var(--accent,#176b58);outline-offset:2px}
+.day.move-target{background:#e8f4ee;box-shadow:inset 0 0 0 3px var(--accent,#176b58)}
+.calendar-hint{margin:8px 2px 12px;color:var(--muted,#65756d);font-size:12px;line-height:1.4}
 @media(max-width:700px){
   .today-item-edit{grid-template-columns:76px minmax(0,1fr);gap:14px}
   .calendar.month-view .entry .entry-edit{display:block}
+  .calendar.month-view .entry .entry-move{display:inline-block}
 }

@@ -5,6 +5,12 @@
 - Read-only-Abfragen auf Migrationen und Tabellen liefen in einen Verbindungstimeout; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist deshalb noch nicht ausgeführt.
 - Security- und Performance-Advisors melden keine Lints. Die Edge Function `household-invitations` ist aktiv und die lokale/deployte Fassung stimmt überein.
 
+## Update 14.10.2026 – Terminverschiebung
+- Kalendertermine können per Desktop-Drag-and-Drop oder Touch-Pointer auf einen anderen Tag verschoben werden.
+- Ein beschrifteter Verschieben-Dialog bietet denselben Vorgang als Tastatur-/Touch-Fallback; die Verschiebung erhält die stabile ID, `ownerId`, Uhrzeiten, Nachtdienstlogik und den vollständigen Mehrtagesbereich. Wiederkehrende Erledigungsdaten werden mit dem Anker verschoben; einzelne Umgangswochenenden behalten ihren Serienanker.
+- Regressionstests decken Einzel-, Mehrtages-, Nacht-, wiederkehrende und Umgangsverschiebungen ab. Sichtprüfung mit synthetischem Termin: 14. → 16. Oktober, neuer Fokus auf dem Zieltag; 390×844 ohne horizontalen Überlauf.
+- Lokale Regressionstests: 155 bestanden; Produktions-Build erfolgreich.
+
 ## Update 14.10.2026 – Synchronisationsstatus und Bedienbarkeit
 - Die Kalenderoberfläche unterscheidet jetzt sichtbar zwischen lokalem Modus, laufender Synchronisierung, erfolgreicher Owner-Synchronisierung, Offline-Zustand und einem fehlgeschlagenen Cloud-Versuch mit lokalem Fallback.
 - Bei wiederhergestellter Netzwerkverbindung wird die Owner-Verbindung erneut geprüft; Speicherfehler setzen den Status auf einen sichtbaren Fehler statt still auf einen veralteten Erfolgszustand.

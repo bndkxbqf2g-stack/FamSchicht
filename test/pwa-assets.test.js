@@ -37,6 +37,18 @@ test('calendar cards keep edit and delete as separate interactive controls', () 
   assert.doesNotMatch(source, /data-edit="' \+ h\(entry\.id\) \+ '" role="button"/);
 });
 
+test('calendar exposes touch and desktop move semantics', () => {
+  const source = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  assert.match(source, /data-move-id/);
+  assert.match(source, /draggable="true"/);
+  assert.match(source, /text\/famschicht-entry/);
+  assert.match(source, /pointerdown/);
+  assert.match(source, /calendar-hint/);
+  assert.match(source, /data-move-open/);
+  assert.match(source, /move-dialog-form/);
+  assert.match(source, /moveCalendarEntry/);
+});
+
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
   assert.match(source, /famschicht-shell-v1/);
