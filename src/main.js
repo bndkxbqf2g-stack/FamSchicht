@@ -132,6 +132,7 @@ let dayDialogDate = null;
 let dayDialogEventId = null;
 let shiftDialogEventId = null;
 let moveDialog = null;
+let deleteDialog = null;
 let householdMembers = [...bootstrapHouseholdMembers];
 let shiftMembers = shiftEligibleMembers(householdMembers);
 let householdMemberNames = memberNamesById(householdMembers);
@@ -247,6 +248,8 @@ function rememberDialogFocus(element) {
     id: element.id || '',
     editId: element.dataset?.edit || '',
     moveOpenId: element.dataset?.moveOpen || '',
+    removeId: element.dataset?.remove || '',
+    removeDate: element.dataset?.removeDate || element.closest?.('[data-day]')?.dataset?.day || '',
     taskNew: element.hasAttribute?.('data-task-new') || false,
   };
 }
@@ -261,6 +264,16 @@ function resolveDialogFocus(target) {
   if (target.moveOpenId) {
     return [...document.querySelectorAll('[data-move-open]')]
       .find(element => element.dataset.moveOpen === target.moveOpenId) || null;
+  }
+  if (target.removeId) {
+    return [...document.querySelectorAll('[data-remove]')]
+      .find(element => element.dataset.remove === target.removeId) ||
+      [...document.querySelectorAll('[data-edit]')]
+        .find(element => element.dataset.edit === target.removeId) ||
+      (target.removeDate
+        ? [...document.querySelectorAll('[data-day-select]')]
+          .find(element => element.dataset.daySelect === target.removeDate)
+        : null) || document.querySelector('#app');
   }
   if (target.taskNew) return document.querySelector('[data-task-new]');
   return null;
@@ -427,7 +440,7 @@ function render() {
               : '<button type="button" class="entry-edit" data-edit="' + h(e.id) + '" aria-label="' + h(e.title) + ' bearbeiten">' +
                 (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span></button>';
-            const removeMarkup = readOnly ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" aria-label="Eintrag löschen">×</button>';
+            const removeMarkup = readOnly ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" data-remove-date="' + h(day) + '" aria-label="' + h(e.title + ' löschen') + '">×</button>';
             const moveMarkup = readOnly ? '' : '<button type="button" class="entry-move" data-move-open="' + h(e.id) + '" data-move-date="' + h(day) + '" aria-label="' + h(e.title) + ' verschieben">↕</button>';
             return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + (isTaskCompletedOnDate(e, day) ? ' completed' : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (readOnly ? '' : ' role="group" data-move-id="' + h(e.id) + '" data-move-date="' + h(day) + '" draggable="true" aria-label="Eintrag: ' + h(e.title) + '. Ziehen zum Verschieben."') + '>' +
@@ -451,11 +464,11 @@ function render() {
   const displayAction = isWallMode(displayMode)
     ? '<button class="wall-exit" id="exit-wall-mode" type="button">Wandmodus beenden</button>'
     : '';
-  const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog);
+  const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog || deleteDialog);
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.5</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.6</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -471,6 +484,7 @@ function render() {
     (dayDialogDate ? dayDialogMarkup() : '') +
     (shiftDialogEventId ? shiftDialogMarkup() : '') +
     (moveDialog ? moveDialogMarkup() : '') +
+    (deleteDialog ? deleteDialogMarkup() : '') +
     '</div>';
 
   document.body.classList.toggle('settings-open', view === 'settings');
@@ -536,6 +550,10 @@ document.addEventListener('keydown', event => {
     closeMoveDialog();
     return;
   }
+  if (deleteDialog) {
+    closeDeleteDialog();
+    return;
+  }
   if (shiftDialogEventId) {
     closeShiftDialog();
   }
@@ -590,7 +608,7 @@ function todayOverviewMarkup(today, displayEntries = entries) {
         return '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + (isTaskCompletedOnDate(entry, today) ? ' completed' : '') + '"' +
           (readOnly ? '' : ' role="group" aria-label="Eintrag: ' + h(entry.title) + '"') + '>' +
           (readOnly ? content : '<button type="button" class="today-item-edit" data-edit="' + h(entry.id) + '" aria-label="' + h(entry.title) + ' bearbeiten">' + content + '</button>') +
-          (readOnly ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" aria-label="Eintrag löschen">×</button>') + '</article>';
+          (readOnly ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" data-remove-date="' + h(today) + '" aria-label="' + h(entry.title + ' löschen') + '">×</button>') + '</article>';
       }).join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
@@ -1254,6 +1272,8 @@ function bindControls() {
   });
   app.querySelector('#move-dialog-form')?.addEventListener('submit', handleMoveDialogSubmit);
   app.querySelector('#move-dialog-cancel')?.addEventListener('click', closeMoveDialog);
+  app.querySelector('#delete-dialog-form')?.addEventListener('submit', handleDeleteDialogSubmit);
+  app.querySelector('#delete-dialog-cancel')?.addEventListener('click', closeDeleteDialog);
 
   app.querySelectorAll('[data-move-open]').forEach(button => {
     button.onclick = () => openMoveDialog(button.dataset.moveOpen, button.dataset.moveDate, button);
@@ -1280,20 +1300,7 @@ function bindControls() {
   });
 
   app.querySelectorAll('[data-remove]').forEach(button => {
-    button.onclick = async () => {
-      if (!confirm('Eintrag löschen?')) return;
-      const id = button.dataset.remove;
-      try {
-        if (cloud) await deleteOwnerEvent(supabase, id, cloud.householdId);
-        entries = entries.filter(entry => entry.id !== id);
-        if (!cloud) saveLocalEntries(entries);
-        render();
-      } catch (err) {
-        syncState = 'error';
-        render();
-        showAppNotice(userError(err, 'Löschen fehlgeschlagen.'));
-      }
-    };
+    button.onclick = () => openDeleteDialog(button.dataset.remove, button);
   });
 
   app.querySelectorAll('[data-task-toggle]').forEach(button => {
@@ -1881,6 +1888,57 @@ function openMoveDialog(id, sourceDate, trigger = document.activeElement) {
 function closeMoveDialog() {
   if (!moveDialog) return;
   closeDialogAndRestoreFocus(() => { moveDialog = null; });
+}
+
+function openDeleteDialog(id, trigger = document.activeElement) {
+  const item = entries.find(entry => entry.id === id);
+  if (!item || isReadOnlyCalendarEntry(item)) return;
+  dialogReturnFocus = rememberDialogFocus(trigger);
+  deleteDialog = {id, busy: false};
+  render();
+  document.querySelector('#delete-dialog-cancel')?.focus();
+}
+
+function closeDeleteDialog() {
+  if (!deleteDialog || deleteDialog.busy) return;
+  closeDialogAndRestoreFocus(() => { deleteDialog = null; });
+}
+
+function deleteDialogMarkup() {
+  const item = entries.find(entry => entry.id === deleteDialog?.id);
+  if (!item) return '';
+  const busy = Boolean(deleteDialog.busy);
+  return '<div class="dialog-backdrop"><section class="day-dialog panel" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-description" tabindex="-1">' +
+    '<h2 id="delete-dialog-title">Eintrag löschen?</h2>' +
+    '<p id="delete-dialog-description">„' + h(item.title) + '“ wird aus deinem Kalender entfernt. Dieser Schritt kann nicht rückgängig gemacht werden.</p>' +
+    '<form id="delete-dialog-form"><div class="wide dialog-actions">' +
+    '<button type="button" id="delete-dialog-cancel"' + (busy ? ' disabled' : '') + '>Abbrechen</button>' +
+    '<button class="primary" id="delete-dialog-confirm"' + (busy ? ' disabled' : '') + '>' +
+    (busy ? 'Wird gelöscht …' : 'Eintrag löschen') + '</button></div></form></section></div>';
+}
+
+async function handleDeleteDialogSubmit(event) {
+  event.preventDefault();
+  const current = deleteDialog;
+  const item = entries.find(entry => entry.id === current?.id);
+  if (!current || current.busy || !item) return;
+  const nextEntries = entries.filter(entry => entry.id !== item.id);
+  deleteDialog = {...current, busy: true};
+  render();
+  try {
+    if (cloud) await deleteOwnerEvent(supabase, item.id, cloud.householdId);
+    else saveLocalEntries(nextEntries);
+    entries = nextEntries;
+    deleteDialog = null;
+    render();
+    restoreDialogFocus();
+  } catch (error) {
+    deleteDialog = null;
+    if (cloud) syncState = 'error';
+    render();
+    showAppNotice(userError(error, 'Löschen fehlgeschlagen.'));
+    restoreDialogFocus();
+  }
 }
 
 function closeShiftDialog() {
