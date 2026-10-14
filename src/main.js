@@ -1905,7 +1905,7 @@ async function handleJsonImport(event) {
     });
     return;
   } catch (error) {
-    dataTransferStatus = error.message || 'Die JSON-Sicherung konnte nicht importiert werden.';
+    dataTransferStatus = userError(error, 'Die JSON-Sicherung konnte nicht importiert werden.');
     render();
     focusAfterRender('#import-json');
   }
@@ -1972,7 +1972,7 @@ async function handleIcsImport(event) {
     });
     return;
   } catch (error) {
-    dataTransferStatus = error.message || 'Die ICS-Datei konnte nicht importiert werden.';
+    dataTransferStatus = userError(error, 'Die ICS-Datei konnte nicht importiert werden.');
     render();
     focusAfterRender('#import-ics');
   }
@@ -1985,7 +1985,7 @@ function handleHolidaySettingsSubmit(event) {
     holidayRegion = saveHolidayRegion(formData.get('region'));
     holidayStatus = `Feiertage für ${holidayRegionLabel(holidayRegion)} sind aktiviert.`;
   } catch (error) {
-    holidayStatus = error.message || 'Die Feiertagsauswahl konnte nicht gespeichert werden.';
+    holidayStatus = userError(error, 'Die Feiertagsauswahl konnte nicht gespeichert werden.');
   }
   render();
   focusAfterRender('#holiday-settings-form button[type="submit"]');
@@ -2001,7 +2001,7 @@ function handleDisplaySettingsSubmit(event) {
       : 'Standardansicht ist aktiv.';
     if (isWallMode(displayMode)) view = 'all';
   } catch (error) {
-    displayStatus = error.message || 'Die Darstellung konnte nicht gespeichert werden.';
+    displayStatus = userError(error, 'Die Darstellung konnte nicht gespeichert werden.');
   }
   const focusSelector = isWallMode(displayMode) && view === 'all'
     ? '#exit-wall-mode'
