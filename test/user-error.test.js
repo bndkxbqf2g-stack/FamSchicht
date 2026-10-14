@@ -17,6 +17,8 @@ test('hides technical transport and database details behind the fallback', () =>
     'row-level security policy rejected the request',
     'duplicate key value violates unique constraint calendar_events_pkey',
     'column owner_id does not exist (status code 500)',
+    'unsupported display mode',
+    'reward points must be between 1 and 10000',
   ]) {
     assert.equal(userError(new Error(message), 'Änderung konnte nicht gespeichert werden.'),
       'Änderung konnte nicht gespeichert werden.');
