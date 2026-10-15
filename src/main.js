@@ -2402,6 +2402,7 @@ function handleShiftChoice(choice, {skipCollision = false, preserveFocus = true}
   }
   if (choice === 'skip') {
     shiftConflict = null;
+    if (!preserveFocus) document.activeElement?.blur?.();
     advanceShiftCapture({scrollPosition: readScrollPosition(), preserveFocus});
     return;
   }
@@ -2423,6 +2424,7 @@ function handleShiftChoice(choice, {skipCollision = false, preserveFocus = true}
   }
   shiftConflict = null;
   const shiftCaptureScroll = readScrollPosition();
+  if (!preserveFocus) document.activeElement?.blur?.();
   shiftSavePending = true;
   render();
   restoreScrollPosition(shiftCaptureScroll);
