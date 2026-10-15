@@ -85,3 +85,47 @@ test('uses a readable PDF text layer without starting the OCR worker', async () 
     else globalThis['pdfjs-dist/build/pdf'] = previousPdfjsNamespace;
   }
 });
+
+test('retries a PDF on the main thread when the PDF.js worker is unavailable', async () => {
+  const previousPdfjs = globalThis.pdfjsLib;
+  const previousPdfjsNamespace = globalThis['pdfjs-dist/build/pdf'];
+  const attempts = [];
+  const page = {
+    getViewport: ({scale}) => ({width:1280 * scale, height:960 * scale, transform:[scale, 0, 0, scale, 0, 0]}),
+    getTextContent: async () => ({items:[
+      {str:'Dienstplan November 2026', transform:[1, 0, 0, 10, 400, 50], width:140, height:10},
+      {str:'Ada', transform:[1, 0, 0, 10, 80, 165], width:30, height:10},
+      {str:'Beispiel', transform:[1, 0, 0, 10, 132, 165], width:60, height:10},
+      {str:'F1', transform:[1, 0, 0, 10, 256, 165], width:18, height:10},
+    ]}),
+  };
+  globalThis['pdfjs-dist/build/pdf'] = {
+    Util: {transform: (_viewportTransform, itemTransform) => itemTransform},
+    GlobalWorkerOptions: {},
+    getDocument: options => {
+      attempts.push(options);
+      if (!options.disableWorker) return {promise: Promise.reject(new Error('worker unavailable'))};
+      return {promise: Promise.resolve({
+        numPages:1,
+        getPage: async () => page,
+        destroy: async () => {},
+      })};
+    },
+  };
+  try {
+    const result = await recognizeRosterImages([{
+      name:'synthetic-roster.pdf',
+      type:'application/pdf',
+      size:1024,
+      arrayBuffer: async () => new ArrayBuffer(16),
+    }]);
+    assert.equal(result.length, 1);
+    assert.equal(attempts.length, 2);
+    assert.equal(attempts[1].disableWorker, true);
+  } finally {
+    if (previousPdfjs === undefined) delete globalThis.pdfjsLib;
+    else globalThis.pdfjsLib = previousPdfjs;
+    if (previousPdfjsNamespace === undefined) delete globalThis['pdfjs-dist/build/pdf'];
+    else globalThis['pdfjs-dist/build/pdf'] = previousPdfjsNamespace;
+  }
+});
