@@ -56,6 +56,7 @@ test('validates the roster preview before local persistence', () => {
 test('maps recognized codes to the nearest employee row and calendar day', () => {
   const words = [
     word('Name', 80, 120),
+    word('ZI', 1052, 100),
     word('Ada', 80, 160), word('Beispiel', 132, 160),
     word('F1', 256, 160), word('OZ', 256, 165),
     word('Lina', 80, 220), word('Muster', 130, 220),

@@ -75,7 +75,7 @@ export function extractRosterPage({words, width, height, period}) {
 
   const [year, month] = period.split('-').map(Number);
   const dayCount = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const nameWords = words.filter(word => /[A-ZÄÖÜa-zäöüß]/u.test(wordText(word)) && word.bbox &&
+  const nameWords = words.filter(word => /\p{L}/u.test(wordText(word)) && word.bbox &&
     centerX(word) < width * 0.19 && centerY(word) > height * 0.12 && centerY(word) < height * 0.86);
   const rows = groupNameWords(nameWords, height)
     .filter(row => row.name.length >= 4 && normalizeRosterName(row.name) !== 'name')
@@ -89,6 +89,7 @@ export function extractRosterPage({words, width, height, period}) {
     const text = wordText(word);
     return text && word.bbox &&
       centerX(word) >= width * 0.17 && centerX(word) <= width * 0.85 &&
+      centerY(word) >= height * 0.13 &&
       (parseRosterCell(text) || parseRosterOcrCell(text) || /^OZ$/i.test(text));
   });
   const cells = new Map();
