@@ -16,7 +16,8 @@ Vite-basierte JavaScript-Web-App.
 - src/household-ui.js: Haushalts-Setup, owner-only Mitgliederverwaltung und Einladungs-UI.
 - src/household-members.js: fachliche Haushaltsmitglieder mit stabiler ID, Farbe und Initialen.
 - src/household-member-service.js: owner-scoped Persistenz der fachlichen Haushaltsmitglieder.
-- src/shift-roster-*.js: Dienstplan-OCR, lokale Speicherung, Schichtlogik und Kalenderprojektion.
+- src/shift-roster-*.js: Dienstplan-PDF-/OCR-Import, lokale Speicherung, Schichtlogik und Kalenderprojektion.
+- src/shift-roster-pdf.js: PDF.js-Lazyload, Textlagen-Extraktion und Rendering bildbasierter Seiten als OCR-Fallback.
 - Dienstplan-OCR wird über `import('./shift-roster-ocr.js')` erst beim Start eines Imports geladen; der normale Kalenderstart bleibt vom OCR-Code getrennt.
 - src/shift-hours.js: optionale lokale Monats-Sollstunden und Ist-/Soll-Differenzen.
 - src/task-planning.js: wiederkehrende Aufgaben- und Haushaltsroutinen mit Completion je Vorkommen.
@@ -43,7 +44,7 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Offline/Fallback: lokale Kalendereinträge + Bootstrap-Mitglieder -> Kalender-UI.
 - Supabase-Konfiguration: `.env.local` oder GitHub-Pages-Variablen -> `runtime-config.js` -> echter Supabase-Client; fehlen die Variablen, bleibt der Auth-/Transportadapter ohne Netzwerkzugriff im lokalen Modus.
 - Optionale Sollstunden: Monatsziele pro schichtberechtigter Person -> lokaler Gerätespeicher -> Dienstplanübersicht; diese Werte werden nicht als Kalenderereignisse oder Supabase-Daten synchronisiert.
-- Importierte Dienstpläne: Foto -> OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos werden nach der OCR nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
+- Importierte Dienstpläne: Foto/PDF -> PDF-Textebene zuerst, sonst OCR im Browser -> editierbare Vorschau -> bestätigte Schichtzeilen in `localStorage` -> Teamkachel und lokale Projektion der eindeutig zugeordneten eigenen Dienste in die Kalenderansicht. Fotos und PDFs werden nach der Verarbeitung nicht gespeichert; es gibt dafür keinen Supabase-Schreibpfad.
 - Externe Kalender: ICS-Datei -> optionale Zuordnung zu einer Kalenderperson -> read-only Quellenvertrag -> stabile externe UID/Fingerprint-Prüfung -> neue Termine oder explizit ausgewiesene Duplikate/Konflikte. Importierte Termine tragen die Quellenmetadaten im bestehenden `metadata`-Roundtrip und bleiben in der Oberfläche nicht bearbeitbar.
 - Datensicherung: JSON-Datei -> Format-/Datums-/Uhrzeitvalidierung -> ID-/Inhalts-Duplikat- und Konfliktentscheidung -> bestätigter lokaler oder owner-scoped Speicherpfad.
 - Feiertage: lokales Bundesland -> `holidays.js` -> deterministische bundesweite/regional ergänzte read-only Termine. Die berechneten Feiertage werden nicht als eigene Supabase-Zeilen gespeichert und können nicht bearbeitet, gelöscht oder verschoben werden.

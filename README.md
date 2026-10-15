@@ -22,7 +22,7 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Lokale Punktewerte für Aufgaben/Routinen und Belohnungsziele mit Fortschritt je Kalenderperson; diese Daten bleiben bewusst auf dem Gerät.
 - Tastaturfreundlicher Einstellungen-Dialog mit Skip-Link, Dialogsemantik, Escape-Schließen und grundlegender ARIA-Navigation.
 - Termine lassen sich im Kalender per Maus/Touch auf einen anderen Tag ziehen; ein zugänglicher Verschieben-Dialog dient als zuverlässiger Fallback und verschiebt auch mehrtägige, wiederkehrende und nächtliche Einträge korrekt.
-- Dienstplanfotos können lokal per OCR gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.
+- Dienstplanfotos und PDFs können lokal gelesen, vor dem Speichern überprüft und ausschließlich auf diesem Gerät abgelegt werden. PDFs werden zuerst über ihre Textebene verarbeitet; bildbasierte Seiten fallen auf OCR zurück. Die eigene Zeile wird mit eindeutiger Haushaltszuordnung in den Kalender projiziert; „Dienste“ zeigt überlappende Kolleginnen und Kollegen mit Vornamen.
 - Zentrales Haushaltsmitglieder-Domänenmodell mit stabilen Mitglieder-IDs.
 - Personenfilter, Schichtauswahl und die Mitgliederlegende mit individuellen Farben/Initialen werden aus diesem Modell erzeugt.
 - Angemeldete Owner können Kalenderpersonen in den Einstellungen anlegen und Name, Typ, Farbe sowie Schichtberechtigung ändern; die stabilen IDs bleiben dabei erhalten.

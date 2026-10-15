@@ -10,6 +10,13 @@ test('maps image decoding failures to an actionable retry message', () => {
   );
 });
 
+test('maps PDF decoding failures to an actionable retry message', () => {
+  assert.equal(
+    rosterImportErrorMessage(new Error('Die PDF-Datei konnte nicht gelesen werden.')),
+    'Die PDF-Datei konnte nicht gelesen werden. Bitte eine gut lesbare PDF mit vollständigem Dienstplan auswählen und es erneut versuchen.',
+  );
+});
+
 test('maps OCR loading failures without exposing provider details', () => {
   assert.equal(
     rosterImportErrorMessage(new Error('OCR konnte nicht geladen werden. Bitte Internetverbindung prüfen und erneut versuchen.')),
@@ -18,21 +25,21 @@ test('maps OCR loading failures without exposing provider details', () => {
 });
 
 test('keeps the safe domain message for an unreadable roster', () => {
-  const message = 'Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto wählen.';
+  const message = 'Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto oder eine gut lesbare PDF wählen.';
   assert.equal(rosterImportErrorMessage(new Error(message)), message);
 });
 
 test('falls back to a safe retry message for unknown OCR errors', () => {
   assert.equal(
     rosterImportErrorMessage(new Error('provider internals: worker 7 failed')),
-    'Der Dienstplan konnte nicht gelesen werden. Bitte ein gut beleuchtetes JPEG- oder PNG-Foto auswählen und es erneut versuchen.',
+    'Der Dienstplan konnte nicht gelesen werden. Bitte ein gut beleuchtetes JPEG- oder PNG-Foto oder eine gut lesbare PDF auswählen und es erneut versuchen.',
   );
 });
 
 test('rejects unsupported roster files before loading the OCR worker', async () => {
   await assert.rejects(
     () => recognizeRosterImages([{name:'plan.svg', type:'image/svg+xml', size:1024}]),
-    /JPEG- oder PNG/,
+    /JPEG-, PNG- oder PDF/,
   );
 });
 

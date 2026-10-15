@@ -6,7 +6,7 @@ const MONTH_NAMES = {
 };
 const MAX_ROSTER_FILES = 4;
 const MAX_ROSTER_BYTES = 35 * 1024 * 1024;
-export const ROSTER_FILE_VALIDATION_ERROR = 'Bitte höchstens vier JPEG- oder PNG-Bilddateien mit zusammen maximal 35 MB auswählen.';
+export const ROSTER_FILE_VALIDATION_ERROR = 'Bitte höchstens vier JPEG-, PNG- oder PDF-Dateien mit zusammen maximal 35 MB auswählen.';
 
 export function validateRosterFiles(files) {
   const selected = [...(files || [])];
@@ -14,9 +14,9 @@ export function validateRosterFiles(files) {
     const type = String(file?.type || '').toLowerCase();
     const name = String(file?.name || '').toLowerCase();
     const hasExtension = /\.[a-z0-9]+$/.test(name);
-    const supportedExtension = /\.(?:jpe?g|png)$/.test(name);
+    const supportedExtension = /\.(?:jpe?g|png|pdf)$/.test(name);
     if (hasExtension && !supportedExtension) return true;
-    return !['image/jpeg', 'image/jpg', 'image/png'].includes(type) &&
+    return !['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'].includes(type) &&
       !(type === '' && supportedExtension);
   });
   const totalBytes = selected.reduce((total, file) => total + Math.max(0, Number(file?.size) || 0), 0);

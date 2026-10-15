@@ -28,9 +28,11 @@ test('extracts month and year independently when one OCR header pass is noisy', 
   assert.equal(parseRosterYear('Jahr 2026'), 2026);
 });
 
-test('accepts JPEG and PNG roster files but rejects unsupported image formats', () => {
+test('accepts JPEG, PNG, and PDF roster files but rejects unsupported formats', () => {
   assert.equal(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:1024}]), '');
   assert.equal(validateRosterFiles([{name:'plan.png', type:'', size:1024}]), '');
+  assert.equal(validateRosterFiles([{name:'plan.pdf', type:'application/pdf', size:1024}]), '');
+  assert.equal(validateRosterFiles([{name:'plan.pdf', type:'', size:1024}]), '');
   assert.equal(validateRosterFiles([{name:'plan.svg', type:'image/svg+xml', size:1024}]), ROSTER_FILE_VALIDATION_ERROR);
   assert.equal(validateRosterFiles([{name:'plan.jpg', type:'image/jpeg', size:36 * 1024 * 1024}]), ROSTER_FILE_VALIDATION_ERROR);
   assert.equal(validateRosterFiles(Array.from({length:5}, (_, index) => ({

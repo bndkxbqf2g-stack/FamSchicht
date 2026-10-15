@@ -1,5 +1,10 @@
 # PROJECT STATUS
 
+## Update 15.10.2026 – PDF-Dienstplanimport
+- Der Dienstplan-Upload akzeptiert jetzt bis zu vier JPEG-/PNG-Fotos oder PDFs mit zusammen maximal 35 MB. Die Vorschau und manuelle Bestätigung bleiben unverändert verpflichtend.
+- PDFs werden mehrseitig und mit erhaltenen Seitenumbrüchen verarbeitet: Die Textebene wird zuerst sicher auf Schichtzeilen geprüft; nur nicht zuordenbare Seiten werden im Browser gerendert und per deutscher OCR nachbearbeitet.
+- PDF- und OCR-Dateien werden nach der Verarbeitung verworfen. Bestätigte Zeilen bleiben ausschließlich lokal; unbekannte oder mehrdeutige Werte werden nicht geschätzt.
+
 ## Update 15.10.2026 – Kompakte horizontale Monatskarten
 - Die mobile Monatsansicht zeigt Dienst- und Kalendereinträge jetzt kompakt einzeilig mit kleinerer Schrift; die frühere Zeichen-für-Zeichen-Umbruchdarstellung ist entfernt.
 - Vollständige Titel bleiben ohne Kürzel oder Ellipsis erhalten und können bei engen Tagesfeldern horizontal gelesen werden; mehrere Einträge bleiben im Tagesfeld vertikal scrollbar.

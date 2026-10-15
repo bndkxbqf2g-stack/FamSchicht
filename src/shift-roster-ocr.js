@@ -1,4 +1,10 @@
-import {validateRosterFiles} from './shift-roster-import.js';
+import {parseRosterPeriod, validateRosterFiles} from './shift-roster-import.js';
+import {
+  isPdfRosterFile,
+  isUsablePdfTextPage,
+  loadPdfRosterPages,
+  renderPdfRosterPage,
+} from './shift-roster-pdf.js';
 
 const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';
 const OCR_OUTPUT = {blocks:true};
@@ -6,19 +12,57 @@ const OCR_OUTPUT = {blocks:true};
 let tesseractPromise;
 
 export async function recognizeRosterImages(files, onProgress = () => {}) {
-  if (!files?.length) throw new Error('Bitte wähle mindestens ein Planfoto aus.');
+  if (!files?.length) throw new Error('Bitte wähle mindestens ein Dienstplanfoto oder eine PDF aus.');
   const validationError = validateRosterFiles(files);
   if (validationError) throw new Error(validationError);
-  const tesseract = await loadTesseract();
-  const worker = await tesseract.createWorker('deu', 1, {
-    logger: message => onProgress(message),
-  });
+  const pdfDocuments = [];
+  let worker = null;
   const pages = [];
 
   try {
-    for (let index = 0; index < files.length; index += 1) {
-      onProgress({status:'recognizing', page:index + 1, pages:files.length, progress:0});
-      const image = await loadImage(files[index]);
+    const tasks = [];
+    for (const file of files) {
+      if (!isPdfRosterFile(file)) {
+        tasks.push({kind:'image', file});
+        continue;
+      }
+      const pdf = await loadPdfRosterPages(file, onProgress);
+      pdfDocuments.push(pdf);
+      tasks.push(...pdf.pages);
+    }
+
+    const pdfPeriod = parseRosterPeriod(tasks
+      .filter(task => task.kind === 'pdf')
+      .map(task => task.textPage?.text || '')
+      .join(' '));
+
+    for (let index = 0; index < tasks.length; index += 1) {
+      const task = tasks[index];
+      const pageNumber = index + 1;
+      const totalPages = tasks.length;
+      if (task.kind === 'pdf' && isUsablePdfTextPage(task, pdfPeriod)) {
+        pages.push(task.textPage);
+        onProgress({status:'page-complete', page:pageNumber, pages:totalPages, progress:1, label:'PDF-Seite'});
+        continue;
+      }
+
+      if (!worker) {
+        const tesseract = await loadTesseract();
+        worker = await tesseract.createWorker('deu', 1, {
+          logger: message => onProgress(message),
+        });
+      }
+      const label = task.kind === 'pdf' ? 'PDF-Seite' : 'Foto';
+      onProgress({status:'recognizing', page:pageNumber, pages:totalPages, progress:0, label});
+      const image = task.kind === 'pdf'
+        ? await renderPdfRosterPage(task, message => onProgress({
+          ...message,
+          page:pageNumber,
+          pages:totalPages,
+          progress:0,
+          label,
+        }))
+        : await loadImage(task.file);
       try {
         const {data} = await worker.recognize(image.source, {}, OCR_OUTPUT);
         const words = wordsFromOcr(data);
@@ -30,7 +74,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
           let gridCanvas;
           try {
             for (const pageMode of ['11', '6']) {
-              onProgress({status:'enhancing', page:index + 1, pages:files.length, progress:0});
+              onProgress({status:'enhancing', page:pageNumber, pages:totalPages, progress:0, label});
               await worker.setParameters({tessedit_pageseg_mode:pageMode});
               const result = await worker.recognize(enhanced.canvas, {}, OCR_OUTPUT);
               const alternativeWords = wordsFromOcr(result.data);
@@ -86,18 +130,22 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
         pages.push({
           width:image.width,
           height:image.height,
-          text:data.text || '',
+          text:[task.textPage?.text, data.text || ''].filter(Boolean).join(' ').trim(),
           words,
           alternatives,
         });
       } finally {
         image.dispose();
       }
-      onProgress({status:'page-complete', page:index + 1, pages:files.length, progress:1});
+      onProgress({status:'page-complete', page:pageNumber, pages:totalPages, progress:1, label});
     }
     return pages;
   } finally {
-    await worker.terminate();
+    try {
+      if (worker) await worker.terminate();
+    } finally {
+      await Promise.all(pdfDocuments.map(pdf => Promise.resolve(pdf.dispose()).catch(() => {})));
+    }
   }
 }
 
