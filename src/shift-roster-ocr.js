@@ -3,6 +3,7 @@ import {
   isPdfRosterFile,
   isUsablePdfTextPage,
   loadPdfRosterPages,
+  needsRosterRotation,
   renderPdfRosterPage,
 } from './shift-roster-pdf.js';
 
@@ -192,16 +193,37 @@ async function loadImage(file) {
       image.onerror = () => reject(new Error('Das Foto konnte nicht gelesen werden.'));
       if (image.complete && image.naturalWidth) resolve();
     });
+    const rotatedSource = needsRosterRotation(image.naturalWidth, image.naturalHeight)
+      ? rotateImageCounterClockwise(image)
+      : null;
     return {
-      source:image,
-      width:image.naturalWidth,
-      height:image.naturalHeight,
-      dispose:() => URL.revokeObjectURL(url),
+      source:rotatedSource || image,
+      width:rotatedSource?.width || image.naturalWidth,
+      height:rotatedSource?.height || image.naturalHeight,
+      dispose:() => {
+        if (rotatedSource) disposeCanvas(rotatedSource);
+        URL.revokeObjectURL(url);
+      },
     };
   } catch (error) {
     URL.revokeObjectURL(url);
     throw error;
   }
+}
+
+function rotateImageCounterClockwise(source) {
+  const canvas = document.createElement('canvas');
+  canvas.width = source.naturalHeight;
+  canvas.height = source.naturalWidth;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    disposeCanvas(canvas);
+    throw new Error('Das Foto konnte für die Texterkennung nicht ausgerichtet werden.');
+  }
+  context.translate(0, canvas.height);
+  context.rotate(-Math.PI / 2);
+  context.drawImage(source, 0, 0);
+  return canvas;
 }
 
 function makeEnhancedCanvas(source, width, height, region = {}) {

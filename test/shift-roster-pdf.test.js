@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {isPdfRosterFile, isUsablePdfTextPage} from '../src/shift-roster-pdf.js';
+import {isPdfRosterFile, isUsablePdfTextPage, needsRosterRotation} from '../src/shift-roster-pdf.js';
 import {recognizeRosterImages} from '../src/shift-roster-ocr.js';
 
 function word(text, x, y) {
@@ -12,6 +12,12 @@ test('recognizes PDF roster files by MIME type or extension', () => {
   assert.equal(isPdfRosterFile({name:'plan', type:'application/pdf'}), true);
   assert.equal(isPdfRosterFile({name:'plan.pdf', type:''}), true);
   assert.equal(isPdfRosterFile({name:'plan.png', type:'image/png'}), false);
+});
+
+test('detects the sideways scan orientation used by portrait PDF pages', () => {
+  assert.equal(needsRosterRotation(2073, 2925), true);
+  assert.equal(needsRosterRotation(2925, 2073), false);
+  assert.equal(needsRosterRotation(0, 1000), false);
 });
 
 test('accepts a PDF text page when it maps safely to roster entries', () => {

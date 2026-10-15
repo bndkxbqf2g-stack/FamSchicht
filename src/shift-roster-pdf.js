@@ -19,6 +19,10 @@ export function isPdfRosterFile(file) {
   return type === 'application/pdf' || /\.pdf$/.test(name);
 }
 
+export function needsRosterRotation(width, height) {
+  return Number(width) > 0 && Number(height) > 0 && Number(width) < Number(height);
+}
+
 export async function loadPdfRosterPages(file, onProgress = () => {}) {
   const pdfjs = await loadPdfJs();
   const data = await readFileBytes(file);
@@ -70,6 +74,16 @@ export async function renderPdfRosterPage(task, onProgress = () => {}) {
   onProgress({status: 'rendering-pdf', label: 'PDF-Seite'});
   try {
     await task.page.render({canvasContext: context, viewport}).promise;
+    if (needsRosterRotation(baseViewport.width, baseViewport.height)) {
+      const rotatedCanvas = rotateCanvasCounterClockwise(canvas);
+      disposeCanvas(canvas);
+      return {
+        source: rotatedCanvas,
+        width: rotatedCanvas.width,
+        height: rotatedCanvas.height,
+        dispose: () => disposeCanvas(rotatedCanvas),
+      };
+    }
     return {
       source: canvas,
       width: canvas.width,
@@ -200,6 +214,21 @@ function loadScript(src) {
     };
     document.head.append(script);
   });
+}
+
+function rotateCanvasCounterClockwise(source) {
+  const canvas = document.createElement('canvas');
+  canvas.width = source.height;
+  canvas.height = source.width;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    disposeCanvas(canvas);
+    throw new Error('Die PDF-Seite konnte für die Texterkennung nicht ausgerichtet werden.');
+  }
+  context.translate(0, canvas.height);
+  context.rotate(-Math.PI / 2);
+  context.drawImage(source, 0, 0);
+  return canvas;
 }
 
 function disposeCanvas(canvas) {
