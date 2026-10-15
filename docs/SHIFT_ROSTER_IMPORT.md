@@ -22,10 +22,12 @@ Ein fotografierter Monatsdienstplan kann auf dem Gerät des Nutzers gelesen werd
 
 ## Ablauf und Datenschutz
 
-1. Bis zu vier Bilder (zusammen höchstens 35 MB) werden im Browser mit deutscher OCR verarbeitet.
+1. Bis zu vier JPEG-/PNG-Fotos oder PDFs (zusammen höchstens 35 MB) werden im Browser verarbeitet.
+   Bei PDFs wird die vorhandene Textebene zuerst gelesen. Nur Seiten, auf denen sich daraus keine Schichtdaten sicher zuordnen lassen, werden im Browser gerendert und mit deutscher OCR ausgewertet.
+   Seitenumbrüche bleiben erhalten; mehrseitige Pläne werden vollständig verarbeitet. Unsichere oder unbekannte Werte bleiben in der Vorschau prüfpflichtig und werden nicht geschätzt.
 2. Monat, eigene Person in FamSchicht, eigene Zeile, erkannte Namen, Datum, Kürzel und OZ-Markierungen können vor dem Speichern kontrolliert und bearbeitet werden. „Stefanie“ wird bei einem eindeutigen Haushaltsmitglied „Steffi“ vorausgewählt; die Zuordnung bleibt änderbar.
 3. Nutzerbestätigung ist erforderlich. Ein Import ersetzt nach zusätzlicher Bestätigung einen bereits lokal gespeicherten Plan desselben Monats.
-4. Das Foto wird nicht gespeichert. Bestätigte Zeilen liegen in `localStorage` dieses Browsers/Geräts; sie werden weder mit Supabase synchronisiert noch zwischen Geräten geteilt.
+4. Foto und PDF werden nicht gespeichert. Bestätigte Zeilen liegen in `localStorage` dieses Browsers/Geräts; sie werden weder mit Supabase synchronisiert noch zwischen Geräten geteilt.
 5. OCR kann Tabellenzellen verwechseln. Deshalb ist die manuelle Vorschau Teil des verpflichtenden Ablaufs.
 
 ## Anzeige
@@ -38,7 +40,7 @@ Ein fotografierter Monatsdienstplan kann auf dem Gerät des Nutzers gelesen werd
 
 ## Qualitätsregeln
 
-- OCR-Ergebnisse nie ungeprüft persistieren.
+- OCR- und PDF-Text-Ergebnisse nie ungeprüft persistieren.
 - Keine echten Dienstplanfotos, Personennamen oder Mitarbeiterdaten in Fixtures, Screenshots oder Logs.
 - Änderungen an den Dienstzeiten müssen `src/dates.js`, die Importlogik und ihre Regressionstests gemeinsam berücksichtigen.
 - Prüfen: synthetische OCR-Parserfälle, Speicher-Roundtrip, Nachtüberschneidung, eindeutige Kalenderzuordnung und responsive Darstellung auf iPhone-Breite.

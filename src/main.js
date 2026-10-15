@@ -795,9 +795,9 @@ function shiftRosterMarkup(today) {
   const allRosterEntries = shiftRosters.flatMap(item => item.entries);
   const monthShiftEntries = [...entries, ...importedRosterCalendarEntries()];
   const shiftSummary = summarizeShiftMonth(monthShiftEntries, monthKey, shiftMembers);
-  const input = '<input id="roster-files" class="visually-hidden" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple aria-label="Dienstplanfotos auswählen">';
-  const upload = '<button id="roster-upload" type="button" class="primary">Dienstplanfoto hochladen</button>';
-  const privacy = '<p class="roster-privacy">Das Foto wird auf diesem Gerät ausgewertet und nicht gespeichert. Die bestätigten Dienstzeiten bleiben lokal. Die OCR-Komponente wird bei Bedarf aus dem Internet geladen.</p>';
+  const input = '<input id="roster-files" class="visually-hidden" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" multiple aria-label="Dienstplanfotos oder PDF auswählen">';
+  const upload = '<button id="roster-upload" type="button" class="primary">Dienstplanfoto oder PDF hochladen</button>';
+  const privacy = '<p class="roster-privacy">Foto oder PDF werden auf diesem Gerät ausgewertet und nicht gespeichert. PDF-Texte werden zuerst gelesen; bildbasierte Seiten nutzen bei Bedarf die OCR-Komponente. Die bestätigten Dienstzeiten bleiben lokal.</p>';
 
   if (rosterImportBusy) {
     return '<section class="panel shift-roster"><h2>Dienstplan wird gelesen …</h2>' +
@@ -820,7 +820,7 @@ function shiftRosterMarkup(today) {
       '</div>'
     : '<div class="roster-empty"><strong>' +
       (roster ? 'Kein eigener Dienst im Plan gefunden.' : 'Noch kein Dienstplan importiert.') +
-      '</strong><span>Lade ein oder mehrere Fotos des Monatsplans hoch. Du kannst die Erkennung prüfen und korrigieren, bevor etwas gespeichert wird.</span></div>';
+      '</strong><span>Lade ein oder mehrere Fotos oder PDFs des Monatsplans hoch. Du kannst die Erkennung prüfen und korrigieren, bevor etwas gespeichert wird.</span></div>';
 
   const summary = '<section class="shift-month-summary" aria-label="Monatsübersicht Dienste"><div class="roster-heading"><div><p class="roster-kicker">Monatsübersicht · ' +
     h(monthLabel(monthKey)) + '</p><h3>Stunden und Dienste</h3></div></div><div class="shift-summary-grid">' +
@@ -916,7 +916,7 @@ function rosterReviewMarkup(importData, fileInput, privacy) {
       ((importData.selfMemberId || suggestedRosterMemberId(importData.selfName, shiftMembers)) === member.id ? ' selected' : '') + '>' + h(member.name) + '</option>').join('') +
     '</select></label><label>Deine Zeile im Plan<input name="selfName" list="roster-name-options" required value="' + h(importData.selfName || '') + '" placeholder="Name wie im Dienstplan"><datalist id="roster-name-options">' +
     names.map(name => '<option value="' + h(name) + '"></option>').join('') + '</datalist></label></div>' +
-    '<p class="roster-review-note">Die Erkennung kann einzelne Dienste oder Personen übersehen. Vergleiche die Vorschau vollständig mit dem Foto und ergänze fehlende Dienste. Prüfe besonders Datum, Kürzel und „nicht angerechnet“. Fotos werden nach der Erkennung verworfen.</p>' +
+    '<p class="roster-review-note">Die Erkennung kann einzelne Dienste oder Personen übersehen. Vergleiche die Vorschau vollständig mit Foto oder PDF und ergänze fehlende Dienste. Prüfe besonders Datum, Kürzel und „nicht angerechnet“. Fotos und PDF-Dateien werden nach der Erkennung verworfen.</p>' +
     '<div class="roster-add-row"><label>Person<input id="roster-new-name" type="text" placeholder="Name im Plan"></label>' +
     '<label>Datum<input id="roster-new-date" type="date" value="' + h(importData.month + '-01') + '"></label>' +
     '<label>Dienst<select id="roster-new-code">' + ['F1','S1','N5','Nx','Z1'].map(code =>
@@ -1503,7 +1503,7 @@ async function handleRosterFilesChange(event) {
 
   rosterImport = null;
   rosterImportBusy = true;
-  rosterImportError = 'OCR wird auf diesem Gerät gestartet …';
+  rosterImportError = 'Dienstplan wird auf diesem Gerät gelesen …';
   render();
   focusAfterRender('#roster-progress');
   try {
@@ -1518,7 +1518,7 @@ async function handleRosterFilesChange(event) {
     const entriesByPage = pages.map(page => extractBestRosterPage(page, period));
     const entries = mergeRosterPages(entriesByPage);
     if (!entries.length) {
-      throw new Error('Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto wählen.');
+      throw new Error('Ich konnte keine Schichtkürzel sicher erkennen. Bitte ein gerades, gut beleuchtetes Foto oder eine gut lesbare PDF wählen.');
     }
   rosterImport = {month:period, selfName:'', selfMemberId:'', entries};
     rosterImportError = '';
@@ -1546,10 +1546,14 @@ function updateRosterOcrProgress(message) {
   const status = app.querySelector('#roster-progress');
   const progress = app.querySelector('.roster-progress');
   if (!status || !message) return;
-  if (message.status === 'recognizing') {
-    status.textContent = `Foto ${message.page} von ${message.pages} wird ausgewertet …`;
+  if (message.status === 'reading-pdf') {
+    status.textContent = `PDF-Seite ${message.page} von ${message.pages} wird gelesen …`;
+  } else if (message.status === 'rendering-pdf') {
+    status.textContent = `PDF-Seite ${message.page} von ${message.pages} wird für die Texterkennung vorbereitet …`;
+  } else if (message.status === 'recognizing') {
+    status.textContent = `${message.label || 'Seite'} ${message.page} von ${message.pages} wird ausgewertet …`;
   } else if (message.status === 'enhancing') {
-    status.textContent = `Foto ${message.page} von ${message.pages}: Schriftbild wird verbessert …`;
+    status.textContent = `${message.label || 'Seite'} ${message.page} von ${message.pages}: Schriftbild wird verbessert …`;
   } else if (message.status === 'loading language traineddata') {
     status.textContent = 'Deutsche Texterkennung wird geladen …';
   }

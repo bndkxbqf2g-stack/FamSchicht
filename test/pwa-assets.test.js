@@ -382,12 +382,16 @@ test('modal dialogs keep Tab focus inside the active dialog', () => {
   assert.match(main, /name="date" type="date" required autofocus/);
 });
 
-test('roster upload advertises and enforces the supported image boundary', () => {
+test('roster upload advertises and enforces the supported image and PDF boundary', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const ocr = fs.readFileSync(path.join(root, 'src', 'shift-roster-ocr.js'), 'utf8');
-  assert.match(main, /accept="\.jpg,\.jpeg,\.png,image\/jpeg,image\/png"/);
+  const pdf = fs.readFileSync(path.join(root, 'src', 'shift-roster-pdf.js'), 'utf8');
+  assert.match(main, /accept="\.jpg,\.jpeg,\.png,\.pdf,image\/jpeg,image\/png,application\/pdf"/);
   assert.match(main, /validateRosterFiles/);
   assert.match(ocr, /validateRosterFiles\(files\)/);
+  assert.match(ocr, /isUsablePdfTextPage/);
+  assert.match(pdf, /reading-pdf/);
+  assert.match(pdf, /rendering-pdf/);
 });
 
 test('roster preview and storage share the date and service validation contract', () => {
