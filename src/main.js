@@ -293,11 +293,11 @@ function restoreDialogFocus() {
   window.setTimeout(focusTarget, 0);
 }
 
-function focusAfterRender(selector) {
+function focusAfterRender(selector, {preventScroll = false} = {}) {
   window.setTimeout(() => {
     const element = document.querySelector(selector);
     element?.closest('details')?.setAttribute('open', '');
-    element?.focus();
+    element?.focus(preventScroll ? {preventScroll: true} : undefined);
   }, 0);
 }
 
@@ -2424,19 +2424,23 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     owner: shiftOwner.name,
   }, () => {
     shiftSavePending = false;
-    advanceShiftCapture();
+    return advanceShiftCapture({renderNow: false});
   }, () => {
     shiftSavePending = false;
     shiftConflict = null;
-    render();
+    return '#capture-date';
   });
 }
 
-function advanceShiftCapture() {
+function advanceShiftCapture({renderNow = true} = {}) {
   const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
   shiftCaptureDate = nextDate;
-  render();
-  focusAfterRender(shiftCaptureDate ? '[data-shift]' : '#shift-capture');
+  const focusSelector = shiftCaptureDate ? '[data-shift]' : '#shift-capture';
+  if (renderNow) {
+    render();
+    focusAfterRender(focusSelector, {preventScroll: true});
+  }
+  return focusSelector;
 }
 
 async function updateEntry(item) {
@@ -2470,14 +2474,22 @@ async function saveEntry(item, afterSave, afterError) {
     if (cloud) await saveOwnerEvent(supabase, item, cloud.householdId, cloud.userId);
     entries.push(item);
     if (!cloud) saveLocalEntries(entries);
-    afterSave?.();
+    const afterSaveFocus = afterSave?.();
     render();
-    restoreDialogFocus();
+    if (afterSaveFocus) {
+      focusAfterRender(afterSaveFocus, {preventScroll: true});
+    } else {
+      restoreDialogFocus();
+    }
   } catch (err) {
     syncState = 'error';
-    afterError?.();
+    const afterErrorFocus = afterError?.();
     showAppNotice(userError(err, 'Speichern fehlgeschlagen.'));
-    restoreDialogFocus();
+    if (afterErrorFocus) {
+      focusAfterRender(afterErrorFocus, {preventScroll: true});
+    } else {
+      restoreDialogFocus();
+    }
   }
 }
 
