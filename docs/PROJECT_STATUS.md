@@ -1,5 +1,10 @@
 # PROJECT STATUS
 
+## Update 15.10.2026 – Kompakte horizontale Monatskarten
+- Die mobile Monatsansicht zeigt Dienst- und Kalendereinträge jetzt kompakt einzeilig mit kleinerer Schrift; die frühere Zeichen-für-Zeichen-Umbruchdarstellung ist entfernt.
+- Vollständige Titel bleiben ohne Kürzel oder Ellipsis erhalten und können bei engen Tagesfeldern horizontal gelesen werden; mehrere Einträge bleiben im Tagesfeld vertikal scrollbar.
+- Die horizontale Titelbewegung wird bei Touch-Eingabe nicht als Verschieben des Kalendereintrags fehlinterpretiert; Desktop- und Tastaturbedienung bleiben unverändert.
+
 ## Update 15.10.2026 – Scrollstabile Dienstplan-Schnellerfassung
 - Touch-/Maus-Taps auf den Dienstplan-Schnellschaltflächen lösen den automatischen Tagessprung weiterhin aus, behalten aber die aktuelle Scrollposition; der getippte Button wird vor dem DOM-Rerender aus dem Browserfokus genommen.
 - Tastaturaktivierung behält den Fokuskontext nach dem Rendern; damit bleiben schnelle mobile Eingaben und die vorhandene Tastaturbedienung getrennt abgesichert.

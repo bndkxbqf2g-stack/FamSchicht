@@ -198,6 +198,17 @@ test('calendar days expose semantic keyboard targets', () => {
   assert.match(styles, /\.day-select:focus-visible/);
 });
 
+test('mobile month entries stay compact and keep full labels horizontally reachable', () => {
+  const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
+  const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+  const compactStyles = styles.slice(styles.lastIndexOf('/* Compact horizontal mobile month entries keep full labels readable. */'));
+  assert.match(compactStyles, /\.calendar\.month-view \.entry\{[\s\S]+font-size:9px;[\s\S]+white-space:nowrap !important;[\s\S]+overflow-x:auto !important/);
+  assert.match(compactStyles, /\.calendar\.month-view \.entry \.entry-edit\{[\s\S]+padding:0 !important;[\s\S]+white-space:nowrap !important/);
+  assert.match(compactStyles, /\.calendar\.month-view \.entry-label\{[\s\S]+overflow:visible !important;[\s\S]+white-space:nowrap !important/);
+  assert.match(main, /entry\.matches\('\.calendar\.month-view \.entry'\)/);
+  assert.match(main, /entry\.scrollWidth > entry\.clientWidth/);
+});
+
 test('calendar day targets provide roving keyboard navigation', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"/);
