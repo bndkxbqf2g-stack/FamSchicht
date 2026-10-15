@@ -236,6 +236,11 @@ test('shift capture rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /shiftConflict = \{choice, conflicts\};\s+render\(\);\s+focusAfterRender\('\[data-shift-confirm="save"\]'\)/);
   assert.match(main, /function advanceShiftCapture\(\{renderNow = true\} = \{\}\)[\s\S]+focusAfterRender\(focusSelector, \{preventScroll: true\}\)/);
   assert.match(main, /return advanceShiftCapture\(\{renderNow: false\}\)/);
+  assert.match(main, /function readScrollPosition\(\)[\s\S]+return \{x: window\.scrollX, y: window\.scrollY\}/);
+  assert.match(main, /function restoreScrollPosition\(position\)[\s\S]+window\.scrollTo\(position\.x, position\.y\)/);
+  assert.match(main, /const shiftCaptureScroll = readScrollPosition\(\);\s+shiftSavePending = true;\s+render\(\);\s+restoreScrollPosition\(shiftCaptureScroll\)/);
+  assert.match(main, /return \{\s+focusSelector: advanceShiftCapture\(\{renderNow: false\}\),\s+scrollPosition: shiftCaptureScroll,/);
+  assert.match(main, /const afterSaveResult = afterSave\?\.\(\);[\s\S]+restoreScrollPosition\(afterSaveResult\?\.scrollPosition\)/);
   assert.match(main, /const afterSaveFocus = afterSave\?\.\(\);[\s\S]+if \(afterSaveFocus\) \{[\s\S]+focusAfterRender\(afterSaveFocus, \{preventScroll: true\}\)/);
   assert.match(main, /function focusAfterRender\(selector, \{preventScroll = false\} = \{\}\)[\s\S]+focus\(preventScroll \? \{preventScroll: true\} : undefined\)/);
 });
