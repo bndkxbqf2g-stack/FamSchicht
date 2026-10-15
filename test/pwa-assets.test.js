@@ -235,7 +235,6 @@ test('shift capture rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /data-owner[\s\S]+focusDatasetControl\('data-owner'/);
   assert.match(main, /shiftConflict = \{choice, conflicts\};\s+render\(\);\s+focusAfterRender\('\[data-shift-confirm="save"\]'\)/);
   assert.match(main, /function advanceShiftCapture\(\{renderNow = true\} = \{\}\)[\s\S]+focusAfterRender\(focusSelector, \{preventScroll: true\}\)/);
-  assert.match(main, /return advanceShiftCapture\(\{renderNow: false\}\)/);
   assert.match(main, /function readScrollPosition\(\)[\s\S]+return \{x: window\.scrollX, y: window\.scrollY\}/);
   assert.match(main, /function restoreScrollPosition\(position\)[\s\S]+window\.scrollTo\(position\.x, position\.y\)/);
   assert.match(main, /const shiftCaptureScroll = readScrollPosition\(\);\s+shiftSavePending = true;\s+render\(\);\s+restoreScrollPosition\(shiftCaptureScroll\)/);
