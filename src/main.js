@@ -2447,8 +2447,9 @@ function handleShiftChoice(choice, {skipCollision = false, preserveFocus = true}
     owner: shiftOwner.name,
   }, () => {
     shiftSavePending = false;
+    const focusSelector = advanceShiftCapture({renderNow: false});
     return {
-      focusSelector: preserveFocus ? advanceShiftCapture({renderNow: false}) : null,
+      focusSelector: preserveFocus ? focusSelector : null,
       skipFocus: !preserveFocus,
       scrollPosition: shiftCaptureScroll,
     };

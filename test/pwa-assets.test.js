@@ -240,7 +240,7 @@ test('shift capture rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /function readScrollPosition\(\)[\s\S]+return \{x: window\.scrollX, y: window\.scrollY\}/);
   assert.match(main, /function restoreScrollPosition\(position\)[\s\S]+const restore = \(\) => window\.scrollTo\(position\.x, position\.y\);[\s\S]+requestAnimationFrame\?\.\(restore\)/);
   assert.match(main, /const shiftCaptureScroll = readScrollPosition\(\);\s+shiftSavePending = true;\s+render\(\);\s+restoreScrollPosition\(shiftCaptureScroll\)/);
-  assert.match(main, /return \{\s+focusSelector: preserveFocus \? advanceShiftCapture\(\{renderNow: false\}\) : null,\s+skipFocus: !preserveFocus,\s+scrollPosition: shiftCaptureScroll,/);
+  assert.match(main, /const focusSelector = advanceShiftCapture\(\{renderNow: false\}\);\s+return \{\s+focusSelector: preserveFocus \? focusSelector : null,\s+skipFocus: !preserveFocus,\s+scrollPosition: shiftCaptureScroll,/);
   assert.match(main, /const afterSaveResult = afterSave\?\.\(\);[\s\S]+restoreScrollPosition\(afterSaveResult\?\.scrollPosition\)/);
   assert.match(main, /if \(afterSaveResult\?\.skipFocus\) return;/);
   assert.match(main, /const afterSaveFocus = typeof afterSaveResult === 'string'[\s\S]+focusAfterRender\(afterSaveFocus, \{[\s\S]+scrollPosition: afterSaveResult\?\.scrollPosition \|\| null,[\s\S]+\}\)/);
