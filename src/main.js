@@ -299,7 +299,9 @@ function readScrollPosition() {
 
 function restoreScrollPosition(position) {
   if (!position) return;
-  window.scrollTo(position.x, position.y);
+  const restore = () => window.scrollTo(position.x, position.y);
+  restore();
+  window.requestAnimationFrame?.(restore);
 }
 
 function focusAfterRender(selector, {preventScroll = false} = {}) {
