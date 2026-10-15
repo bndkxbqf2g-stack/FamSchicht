@@ -1,5 +1,10 @@
 # PROJECT STATUS
 
+## Update 15.10.2026 – Scrollstabile Dienstplan-Schnellerfassung
+- Touch-/Maus-Taps auf den Dienstplan-Schnellschaltflächen lösen den automatischen Tagessprung weiterhin aus, behalten aber die aktuelle Scrollposition; der getippte Button wird vor dem DOM-Rerender aus dem Browserfokus genommen.
+- Tastaturaktivierung behält den Fokuskontext nach dem Rendern; damit bleiben schnelle mobile Eingaben und die vorhandene Tastaturbedienung getrennt abgesichert.
+- Live-Prüfung im veröffentlichten Browserstand: zwei aufeinanderfolgende synthetische Schnellbuchungen behielten `window.scrollY` unverändert bei und wechselten jeweils auf den Folgetag. Regressionstests: 225 bestanden; Syntaxprüfung, Produktions-Build, Asset-Budget und GitHub-Actions-Deploy erfolgreich.
+
 ## Update 14.10.2026 – Neutrale Startup-Recovery
 - Der Startup-/Unhandled-Rejection-Fallback zeigt keine rohen Modul-, Pfad- oder Providerdetails mehr, sondern eine neutrale Reload-Anweisung; technische Informationen bleiben ausschließlich in der Diagnosekonsole.
 - Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.17`.
@@ -19,7 +24,7 @@
 - Die ausgelieferten Module, die sichtbare App-Version und die Paketmetadaten stehen auf `v0.3.15`; Regressionstests: 220 bestanden.
 - Der Service-Worker verwendet passend zum Cache-Bust den Shell-Cache `famschicht-shell-v0.3.15`, damit ein neues Release auch den Offline-App-Shell-Stand invalidiert.
 - `Home` und `End` werden auch an Wochenrändern als Kalendernavigation abgefangen, damit ein erreichter Rand nicht den Browser-Scroll über die App übernimmt.
-- Dienstplan-Schnellerfassung, Personenauswahl, Konfliktbestätigung, Monatsende und owner-only Haushalts-/Einladungsaktionen geben den Fokus nach dem Rendern an den nächsten sinnvollen Kontext zurück.
+- Die Tastaturbedienung der Dienstplan-Schnellerfassung, Personenauswahl, Konfliktbestätigung, Monatsende und owner-only Haushalts-/Einladungsaktionen gibt den Fokus nach dem Rendern an den nächsten sinnvollen Kontext zurück.
 - Schichtvorlagen, Sollstunden, Dienstplan-OCR, JSON-/ICS-Transfer, Feiertage, Darstellung und Belohnungen behalten nach Status-Rerendern ihren Tastaturkontext; laufende OCR meldet den Fortschritt zusätzlich als programmatisch fokussierbaren Status.
 - Fehlerpfade in Schichtvorlagen, Sollstunden, Dienstplanprüfung, Umgangsrhythmus und Termindialogen öffnen nach der Meldung das betroffene Korrekturfeld; Fokusziele in Disclosure-Bereichen öffnen deren Bereich vorher.
 - Beim Öffnen der Dienste-Ansicht bleibt der Einstiegsfokus auf dem sichtbaren Starttag-Feld der Schnellerfassung.
