@@ -217,7 +217,7 @@ test('calendar rerenders preserve a meaningful keyboard context', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /id="view-title" tabindex="-1"/);
   assert.match(main, /const fallback = \(\) => view === 'settings'[\s\S]+document\.querySelector\('#view-title'\) \|\| document\.querySelector\('#app'\)/);
-  assert.match(main, /function focusAfterRender\(selector\)/);
+  assert.match(main, /function focusAfterRender\(selector, \{preventScroll = false\} = \{\}\)/);
   assert.match(main, /function focusDatasetControl\(attribute, value\)/);
   assert.match(main, /element\?\.closest\('details'\)\?\.setAttribute\('open', ''\)/);
   assert.match(main, /function focusViewHeading\(\)/);
@@ -252,7 +252,7 @@ test('settings and import rerenders preserve a meaningful keyboard context', () 
   assert.match(main, /function handleDisplaySettingsSubmit[\s\S]+const focusSelector = isWallMode\(displayMode\) && view === 'all'[\s\S]+focusAfterRender\(focusSelector\)/);
   assert.match(main, /function handleRewardSubmit[\s\S]+focusAfterRender\('#reward-form \[name="title"\]'\)/);
   assert.match(main, /id="roster-progress" role="status" tabindex="-1"/);
-  assert.match(main, /function focusAfterRender\(selector\)[\s\S]+element\?\.closest\('details'\)\?\.setAttribute\('open', ''\)/);
+  assert.match(main, /function focusAfterRender\(selector, \{preventScroll = false\} = \{\}\)[\s\S]+element\?\.closest\('details'\)\?\.setAttribute\('open', ''\)/);
   assert.match(main, /focusDatasetControl\('data-shift-target', input\.dataset\.shiftTarget\)/);
   assert.match(main, /function handleCustodySubmit[\s\S]+focusAfterRender\('#custody-submit'\)/);
   assert.match(main, /function handleDayDialogSubmit[\s\S]+focusAfterRender\('#day-dialog-form \[name="endDate"\]'\)/);
