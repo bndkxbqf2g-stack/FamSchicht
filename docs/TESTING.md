@@ -27,7 +27,7 @@ npm run build
 - Dienstplanimport-Recovery: verständliche Bild-/OCR-Fehler, keine Provider-Interna in der UI und erneute Auswahl derselben Datei nach einem fehlgeschlagenen Lauf.
 - Dienstplan-Dateigrenzen: ausschließlich JPEG/PNG/PDF, maximal vier Dateien und maximal 35 MB; nicht unterstützte Formate werden vor dem PDF-/OCR-Start abgewiesen.
 - Die OCR-Domäne wiederholt diese Dateiprüfung unabhängig von der UI, sodass ein direkter Worker-Aufruf keine nicht unterstützten Dateien laden kann.
-- Dienstplan-PDFs: Textebene zuerst, Rendering/OCR als Fallback für bildbasierte oder nicht sicher zuordenbare Seiten, echte Seitenumbrüche und vollständige mehrseitige Verarbeitung; unbekannte Werte bleiben prüfpflichtig.
+- Dienstplan-PDFs: Textebene zuerst, automatische Ausrichtung seitlicher Scans, Rendering/OCR als Fallback für bildbasierte oder nicht sicher zuordenbare Seiten, echte Seitenumbrüche und vollständige mehrseitige Verarbeitung; unbekannte Werte bleiben prüfpflichtig.
 - Die Importvorschau und der Speicherdienst prüfen gemeinsam Monat, echten Kalendertag, Namen und ein anrechenbares Dienstkürzel; ungültige Februar-Tage und `O`/andere Statuswerte werden nicht projiziert.
 - Dienstplanung: Monatsstunden pro stabiler Besitzer-ID, OZ-Stunden getrennt, ganztägige Statuswerte sowie Konflikthinweise für zeitliche Überschneidungen mit ganztägigen, mehrtägigen und über Mitternacht laufenden Familienterminen.
 - Schichtserien und Vorlagen: Wochentagsexpansion mit stabiler `ownerId`, Duplikatvermeidung, Nachtdienst-/Statuswerte, lokale Vorlagenvalidierung und sicherer Speicher-Roundtrip.

@@ -3,6 +3,7 @@
 ## Update 15.10.2026 – PDF-Dienstplanimport
 - Der Dienstplan-Upload akzeptiert jetzt bis zu vier JPEG-/PNG-Fotos oder PDFs mit zusammen maximal 35 MB. Die Vorschau und manuelle Bestätigung bleiben unverändert verpflichtend.
 - PDFs werden mehrseitig und mit erhaltenen Seitenumbrüchen verarbeitet: Die Textebene wird zuerst sicher auf Schichtzeilen geprüft; nur nicht zuordenbare Seiten werden im Browser gerendert und per deutscher OCR nachbearbeitet.
+- Seitlich gescannte PDF- oder Bildseiten werden vor der OCR automatisch in die erwartete Querformat-Ausrichtung gedreht; damit werden Rasterzeilen nicht mehr überwiegend vertikal gelesen.
 - PDF- und OCR-Dateien werden nach der Verarbeitung verworfen. Bestätigte Zeilen bleiben ausschließlich lokal; unbekannte oder mehrdeutige Werte werden nicht geschätzt.
 
 ## Update 15.10.2026 – Kompakte horizontale Monatskarten
