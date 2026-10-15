@@ -1364,15 +1364,17 @@ function bindControls() {
     };
   });
   app.querySelectorAll('[data-shift]').forEach(button => {
-    button.onclick = () => handleShiftChoice(button.dataset.shift);
+    button.onclick = event => handleShiftChoice(button.dataset.shift, {
+      preserveFocus: event.detail === 0,
+    });
   });
   app.querySelector('[data-shift-confirm="cancel"]')?.addEventListener('click', () => {
     shiftConflict = null;
     render();
   });
-  app.querySelector('[data-shift-confirm="save"]')?.addEventListener('click', () => {
+  app.querySelector('[data-shift-confirm="save"]')?.addEventListener('click', event => {
     const choice = shiftConflict?.choice;
-    if (choice) handleShiftChoice(choice, {skipCollision: true});
+    if (choice) handleShiftChoice(choice, {skipCollision: true, preserveFocus: event.detail === 0});
   });
 
   app.querySelector('#day-dialog-form')?.addEventListener('submit', handleDayDialogSubmit);
@@ -2390,7 +2392,7 @@ function shiftCaptureMarkup() {
 
 let shiftSavePending = false;
 
-function handleShiftChoice(choice, {skipCollision = false} = {}) {
+function handleShiftChoice(choice, {skipCollision = false, preserveFocus = true} = {}) {
   if (choice === 'close') {
     shiftCaptureDate = null;
     shiftConflict = null;
@@ -2400,7 +2402,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
   }
   if (choice === 'skip') {
     shiftConflict = null;
-    advanceShiftCapture({scrollPosition: readScrollPosition()});
+    advanceShiftCapture({scrollPosition: readScrollPosition(), preserveFocus});
     return;
   }
   if (shiftSavePending) return;
@@ -2429,7 +2431,9 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     shiftSavePending = false;
     render();
     restoreScrollPosition(shiftCaptureScroll);
-    focusAfterRender('[data-owner]', {preventScroll: true, scrollPosition: shiftCaptureScroll});
+    if (preserveFocus) {
+      focusAfterRender('[data-owner]', {preventScroll: true, scrollPosition: shiftCaptureScroll});
+    }
     return;
   }
   void saveEntry({
@@ -2444,26 +2448,30 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
   }, () => {
     shiftSavePending = false;
     return {
-      focusSelector: advanceShiftCapture({renderNow: false}),
+      focusSelector: preserveFocus ? advanceShiftCapture({renderNow: false}) : null,
+      skipFocus: !preserveFocus,
       scrollPosition: shiftCaptureScroll,
     };
   }, () => {
     shiftSavePending = false;
     shiftConflict = null;
     return {
-      focusSelector: '#capture-date',
+      focusSelector: preserveFocus ? '#capture-date' : null,
+      skipFocus: !preserveFocus,
       scrollPosition: shiftCaptureScroll,
     };
   });
 }
 
-function advanceShiftCapture({renderNow = true, scrollPosition = null} = {}) {
+function advanceShiftCapture({renderNow = true, scrollPosition = null, preserveFocus = true} = {}) {
   const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
   shiftCaptureDate = nextDate;
   const focusSelector = shiftCaptureDate ? '[data-shift]' : '#shift-capture';
   if (renderNow) {
     render();
-    focusAfterRender(focusSelector, {preventScroll: true, scrollPosition});
+    if (preserveFocus) {
+      focusAfterRender(focusSelector, {preventScroll: true, scrollPosition});
+    }
   }
   return focusSelector;
 }
@@ -2502,6 +2510,7 @@ async function saveEntry(item, afterSave, afterError) {
     const afterSaveResult = afterSave?.();
     render();
     restoreScrollPosition(afterSaveResult?.scrollPosition);
+    if (afterSaveResult?.skipFocus) return;
     const afterSaveFocus = typeof afterSaveResult === 'string'
       ? afterSaveResult
       : afterSaveResult?.focusSelector;
@@ -2518,6 +2527,7 @@ async function saveEntry(item, afterSave, afterError) {
     const afterErrorResult = afterError?.();
     showAppNotice(userError(err, 'Speichern fehlgeschlagen.'));
     restoreScrollPosition(afterErrorResult?.scrollPosition);
+    if (afterErrorResult?.skipFocus) return;
     const afterErrorFocus = typeof afterErrorResult === 'string'
       ? afterErrorResult
       : afterErrorResult?.focusSelector;
