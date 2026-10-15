@@ -301,16 +301,19 @@ function restoreScrollPosition(position) {
   if (!position) return;
   const restore = () => window.scrollTo(position.x, position.y);
   restore();
-  window.requestAnimationFrame?.(restore);
+  window.requestAnimationFrame?.(() => {
+    restore();
+    window.requestAnimationFrame?.(restore);
+  });
 }
 
-function focusAfterRender(selector, {preventScroll = false} = {}) {
+function focusAfterRender(selector, {preventScroll = false, scrollPosition = null} = {}) {
   window.setTimeout(() => {
     const element = document.querySelector(selector);
     element?.closest('details')?.setAttribute('open', '');
-    const scrollPosition = preventScroll ? readScrollPosition() : null;
+    const preservedScroll = scrollPosition || (preventScroll ? readScrollPosition() : null);
     element?.focus(preventScroll ? {preventScroll: true} : undefined);
-    restoreScrollPosition(scrollPosition);
+    restoreScrollPosition(preservedScroll);
   }, 0);
 }
 
@@ -2397,7 +2400,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
   }
   if (choice === 'skip') {
     shiftConflict = null;
-    advanceShiftCapture();
+    advanceShiftCapture({scrollPosition: readScrollPosition()});
     return;
   }
   if (shiftSavePending) return;
@@ -2426,7 +2429,7 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     shiftSavePending = false;
     render();
     restoreScrollPosition(shiftCaptureScroll);
-    focusAfterRender('[data-owner]', {preventScroll: true});
+    focusAfterRender('[data-owner]', {preventScroll: true, scrollPosition: shiftCaptureScroll});
     return;
   }
   void saveEntry({
@@ -2454,13 +2457,13 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
   });
 }
 
-function advanceShiftCapture({renderNow = true} = {}) {
+function advanceShiftCapture({renderNow = true, scrollPosition = null} = {}) {
   const nextDate = nextShiftCaptureDate(shiftCaptureDate, month);
   shiftCaptureDate = nextDate;
   const focusSelector = shiftCaptureDate ? '[data-shift]' : '#shift-capture';
   if (renderNow) {
     render();
-    focusAfterRender(focusSelector, {preventScroll: true});
+    focusAfterRender(focusSelector, {preventScroll: true, scrollPosition});
   }
   return focusSelector;
 }
@@ -2503,7 +2506,10 @@ async function saveEntry(item, afterSave, afterError) {
       ? afterSaveResult
       : afterSaveResult?.focusSelector;
     if (afterSaveFocus) {
-      focusAfterRender(afterSaveFocus, {preventScroll: true});
+      focusAfterRender(afterSaveFocus, {
+        preventScroll: true,
+        scrollPosition: afterSaveResult?.scrollPosition || null,
+      });
     } else {
       restoreDialogFocus();
     }
@@ -2516,7 +2522,10 @@ async function saveEntry(item, afterSave, afterError) {
       ? afterErrorResult
       : afterErrorResult?.focusSelector;
     if (afterErrorFocus) {
-      focusAfterRender(afterErrorFocus, {preventScroll: true});
+      focusAfterRender(afterErrorFocus, {
+        preventScroll: true,
+        scrollPosition: afterErrorResult?.scrollPosition || null,
+      });
     } else {
       restoreDialogFocus();
     }
