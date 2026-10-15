@@ -293,11 +293,22 @@ function restoreDialogFocus() {
   window.setTimeout(focusTarget, 0);
 }
 
+function readScrollPosition() {
+  return {x: window.scrollX, y: window.scrollY};
+}
+
+function restoreScrollPosition(position) {
+  if (!position) return;
+  window.scrollTo(position.x, position.y);
+}
+
 function focusAfterRender(selector, {preventScroll = false} = {}) {
   window.setTimeout(() => {
     const element = document.querySelector(selector);
     element?.closest('details')?.setAttribute('open', '');
+    const scrollPosition = preventScroll ? readScrollPosition() : null;
     element?.focus(preventScroll ? {preventScroll: true} : undefined);
+    restoreScrollPosition(scrollPosition);
   }, 0);
 }
 
@@ -2404,13 +2415,16 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     }
   }
   shiftConflict = null;
+  const shiftCaptureScroll = readScrollPosition();
   shiftSavePending = true;
   render();
+  restoreScrollPosition(shiftCaptureScroll);
   const shiftOwner = shiftMembers.find(member => member.id === shiftOwnerId);
   if (!shiftOwner) {
     shiftSavePending = false;
     render();
-    focusAfterRender('[data-owner]');
+    restoreScrollPosition(shiftCaptureScroll);
+    focusAfterRender('[data-owner]', {preventScroll: true});
     return;
   }
   void saveEntry({
@@ -2424,11 +2438,17 @@ function handleShiftChoice(choice, {skipCollision = false} = {}) {
     owner: shiftOwner.name,
   }, () => {
     shiftSavePending = false;
-    return advanceShiftCapture({renderNow: false});
+    return {
+      focusSelector: advanceShiftCapture({renderNow: false}),
+      scrollPosition: shiftCaptureScroll,
+    };
   }, () => {
     shiftSavePending = false;
     shiftConflict = null;
-    return '#capture-date';
+    return {
+      focusSelector: '#capture-date',
+      scrollPosition: shiftCaptureScroll,
+    };
   });
 }
 
@@ -2474,8 +2494,12 @@ async function saveEntry(item, afterSave, afterError) {
     if (cloud) await saveOwnerEvent(supabase, item, cloud.householdId, cloud.userId);
     entries.push(item);
     if (!cloud) saveLocalEntries(entries);
-    const afterSaveFocus = afterSave?.();
+    const afterSaveResult = afterSave?.();
     render();
+    restoreScrollPosition(afterSaveResult?.scrollPosition);
+    const afterSaveFocus = typeof afterSaveResult === 'string'
+      ? afterSaveResult
+      : afterSaveResult?.focusSelector;
     if (afterSaveFocus) {
       focusAfterRender(afterSaveFocus, {preventScroll: true});
     } else {
@@ -2483,8 +2507,12 @@ async function saveEntry(item, afterSave, afterError) {
     }
   } catch (err) {
     syncState = 'error';
-    const afterErrorFocus = afterError?.();
+    const afterErrorResult = afterError?.();
     showAppNotice(userError(err, 'Speichern fehlgeschlagen.'));
+    restoreScrollPosition(afterErrorResult?.scrollPosition);
+    const afterErrorFocus = typeof afterErrorResult === 'string'
+      ? afterErrorResult
+      : afterErrorResult?.focusSelector;
     if (afterErrorFocus) {
       focusAfterRender(afterErrorFocus, {preventScroll: true});
     } else {
