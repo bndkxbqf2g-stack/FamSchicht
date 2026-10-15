@@ -46,6 +46,7 @@ test('keeps a PDF page review-required when text cannot map a shift', () => {
 
 test('uses a readable PDF text layer without starting the OCR worker', async () => {
   const previousPdfjs = globalThis.pdfjsLib;
+  const previousPdfjsNamespace = globalThis['pdfjs-dist/build/pdf'];
   const progress = [];
   const page = {
     getViewport: ({scale}) => ({width:1280 * scale, height:960 * scale, transform:[scale, 0, 0, scale, 0, 0]}),
@@ -57,7 +58,7 @@ test('uses a readable PDF text layer without starting the OCR worker', async () 
     ]}),
     render: async () => { throw new Error('OCR fallback should not render a readable text page.'); },
   };
-  globalThis.pdfjsLib = {
+  globalThis['pdfjs-dist/build/pdf'] = {
     Util: {transform: (_viewportTransform, itemTransform) => itemTransform},
     GlobalWorkerOptions: {},
     getDocument: () => ({promise: Promise.resolve({
@@ -80,5 +81,7 @@ test('uses a readable PDF text layer without starting the OCR worker', async () 
   } finally {
     if (previousPdfjs === undefined) delete globalThis.pdfjsLib;
     else globalThis.pdfjsLib = previousPdfjs;
+    if (previousPdfjsNamespace === undefined) delete globalThis['pdfjs-dist/build/pdf'];
+    else globalThis['pdfjs-dist/build/pdf'] = previousPdfjsNamespace;
   }
 });
