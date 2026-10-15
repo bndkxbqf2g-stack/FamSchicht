@@ -35,7 +35,7 @@ export async function loadPdfRosterPages(file, onProgress = () => {}) {
   const data = await readFileBytes(file);
   let pdfDocument;
   try {
-    pdfDocument = await pdfjs.getDocument({data}).promise;
+    pdfDocument = await openPdfDocument(pdfjs, data);
     const pages = [];
     for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
       onProgress({
@@ -56,6 +56,18 @@ export async function loadPdfRosterPages(file, onProgress = () => {}) {
   } catch (error) {
     if (pdfDocument) await pdfDocument.destroy().catch(() => {});
     throw new Error('Die PDF-Datei konnte nicht gelesen werden.');
+  }
+}
+
+async function openPdfDocument(pdfjs, data) {
+  try {
+    return await pdfjs.getDocument({data}).promise;
+  } catch (workerError) {
+    try {
+      return await pdfjs.getDocument({data, disableWorker:true}).promise;
+    } catch (fallbackError) {
+      throw workerError;
+    }
   }
 }
 
