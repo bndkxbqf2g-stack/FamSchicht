@@ -1146,8 +1146,17 @@ function bindMoveControls() {
     });
     entry.addEventListener('pointermove', event => {
       if (!pointerState || pointerState.pointerId !== event.pointerId) return;
-      const distance = Math.hypot(event.clientX - pointerState.startX, event.clientY - pointerState.startY);
+      const deltaX = event.clientX - pointerState.startX;
+      const deltaY = event.clientY - pointerState.startY;
+      const distance = Math.hypot(deltaX, deltaY);
       if (!pointerState.moved && distance < 8) return;
+      if (!pointerState.moved && event.pointerType !== 'mouse' &&
+        entry.matches('.calendar.month-view .entry') &&
+        Math.abs(deltaX) > Math.abs(deltaY) && entry.scrollWidth > entry.clientWidth) {
+        pointerState = null;
+        entry.releasePointerCapture?.(event.pointerId);
+        return;
+      }
       if (!pointerState.moved) {
         pointerState.moved = true;
         entry.classList.add('moving');
