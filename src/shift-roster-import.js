@@ -75,25 +75,29 @@ export function extractRosterPage({words, width, height, period}) {
 
   const [year, month] = period.split('-').map(Number);
   const dayCount = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const nameWords = words.filter(word => wordText(word) && word.bbox &&
+  const nameWords = words.filter(word => /[A-ZÄÖÜa-zäöüß]/u.test(wordText(word)) && word.bbox &&
     centerX(word) < width * 0.19 && centerY(word) > height * 0.12 && centerY(word) < height * 0.86);
   const rows = groupNameWords(nameWords, height)
     .filter(row => row.name.length >= 4 && normalizeRosterName(row.name) !== 'name')
     .sort((a, b) => a.y - b.y);
-  if (!rows.length) return [];
+  const rosterRows = inferRosterRows(rows, height);
+  if (!rosterRows.length) return [];
 
   const firstColumnCenter = width * 0.2;
   const lastColumnCenter = width * 0.822;
-  const recognizedWords = words.filter(word => wordText(word) && word.bbox &&
-    centerX(word) >= width * 0.17 && centerX(word) <= width * 0.85 &&
-    (parseRosterCell(wordText(word)) || /^OZ$/i.test(wordText(word))));
+  const recognizedWords = words.filter(word => {
+    const text = wordText(word);
+    return text && word.bbox &&
+      centerX(word) >= width * 0.17 && centerX(word) <= width * 0.85 &&
+      (parseRosterCell(text) || parseRosterOcrCell(text) || /^OZ$/i.test(text));
+  });
   const cells = new Map();
 
   for (const word of recognizedWords) {
     const y = centerY(word);
     let nearestIndex = -1;
     let nearestDistance = Infinity;
-    rows.forEach((row, index) => {
+    rosterRows.forEach((row, index) => {
       const distance = Math.abs(y - row.y);
       if (distance < nearestDistance) {
         nearestIndex = index;
@@ -107,7 +111,7 @@ export function extractRosterPage({words, width, height, period}) {
     if (column < 0 || column >= dayCount) continue;
     const key = `${nearestIndex}:${column}`;
     const values = cells.get(key) || [];
-    values.push(wordText(word));
+    values.push(normalizeRosterOcrToken(wordText(word)) || wordText(word));
     cells.set(key, values);
   }
 
@@ -118,7 +122,7 @@ export function extractRosterPage({words, width, height, period}) {
     if (!parsed?.start || !parsed?.end) continue;
     const date = `${period}-${String(column + 1).padStart(2, '0')}`;
     entries.push({
-      name: rows[rowIndex].name,
+      name: rosterRows[rowIndex].name,
       date,
       code: parsed.code,
       title: parsed.title,
@@ -136,6 +140,13 @@ export function extractBestRosterPage(page, period) {
     .filter(Array.isArray)
     .map(words => extractRosterPage({...page, words, period}));
   return candidates.reduce((best, entries) => entries.length > best.length ? entries : best, []);
+}
+
+export function parseRosterOcrCell(value) {
+  const direct = parseRosterCell(value);
+  if (direct) return direct;
+  const normalized = normalizeRosterOcrToken(value);
+  return normalized && normalized !== 'OZ' ? parseRosterCell(normalized) : null;
 }
 
 export function mergeRosterPages(pages) {
@@ -166,6 +177,81 @@ function groupNameWords(words, height) {
     y: line.y,
     name: line.words.sort((a, b) => centerX(a) - centerX(b)).map(wordText).join(' ').trim(),
   }));
+}
+
+function inferRosterRows(rows, height) {
+  if (rows.length < 2) return rows;
+  const gaps = rows.slice(1)
+    .map((row, index) => row.y - rows[index].y)
+    .filter(gap => gap > height * 0.02 && gap < height * 0.2);
+  if (!gaps.length) return rows;
+
+  const spacing = median(gaps);
+  if (!Number.isFinite(spacing) || spacing <= 0) return rows;
+
+  const expanded = [];
+  rows.forEach((row, index) => {
+    if (index === 0) {
+      expanded.push(row);
+      return;
+    }
+    const previous = rows[index - 1];
+    const gap = row.y - previous.y;
+    const multiples = Math.round(gap / spacing);
+    const canFillGap = multiples >= 2 && multiples <= 4 &&
+      Math.abs(gap - multiples * spacing) <= spacing * 0.28;
+    if (canFillGap) {
+      for (let missing = 1; missing < multiples; missing += 1) {
+        expanded.push({
+          y: previous.y + spacing * missing,
+          name: `Unbekannte Zeile ${expanded.length + 1}`,
+        });
+      }
+    }
+    expanded.push(row);
+  });
+  return expanded;
+}
+
+function normalizeRosterOcrToken(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  const compact = raw
+    .normalize('NFKD')
+    .toUpperCase()
+    .replace(/\u0131/g, 'I')
+    .replace(/\$/g, '5')
+    .replace(/[^A-Z0-9]/g, '');
+  if (!compact) return null;
+
+  const hasNotCounted = compact.includes('OZ');
+  const withoutMarker = compact.replace(/OZ/g, '');
+  const code = resolveRosterOcrCode(withoutMarker);
+  if (!code) return hasNotCounted ? 'OZ' : null;
+  return `${hasNotCounted ? 'OZ ' : ''}${code}`;
+}
+
+function resolveRosterOcrCode(value) {
+  const variants = [
+    ['FRI', 'F1'], ['IS1', 'S1'], ['NIX', 'Nx'], ['N1X', 'Nx'],
+    ['F1', 'F1'], ['FI', 'F1'], ['FL', 'F1'], ['FR', 'F1'], ['RI', 'F1'], ['IR', 'F1'], ['R1', 'F1'],
+    ['S1', 'S1'], ['SI', 'S1'], ['SL', 'S1'], ['51', 'S1'], ['IS', 'S1'],
+    ['N5', 'N5'], ['NS', 'N5'], ['NX', 'Nx'], ['NR', 'Nx'], ['N7', 'Nx'],
+    ['Z1', 'Z1'], ['ZI', 'Z1'], ['ZL', 'Z1'], ['ZR', 'Z1'],
+  ];
+  for (const [variant, code] of variants) {
+    if (value === variant) return code;
+    if (value.length > variant.length && value.length % variant.length === 0 &&
+        value === variant.repeat(value.length / variant.length)) return code;
+  }
+  if (value.startsWith('I')) return resolveRosterOcrCode(value.slice(1));
+  return null;
+}
+
+function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
 function wordText(word) {

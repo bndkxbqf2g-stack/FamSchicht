@@ -1,4 +1,4 @@
-import {parseRosterPeriod, validateRosterFiles} from './shift-roster-import.js';
+import {parseRosterOcrCell, parseRosterPeriod, validateRosterFiles} from './shift-roster-import.js';
 import {
   isPdfRosterFile,
   isUsablePdfTextPage,
@@ -68,7 +68,7 @@ export async function recognizeRosterImages(files, onProgress = () => {}) {
         const {data} = await worker.recognize(image.source, {}, OCR_OUTPUT);
         const words = wordsFromOcr(data);
         const alternatives = [];
-        if (countServiceCodeWords(words) < 18) {
+        if (countServiceCodeWords(words, image.width, image.height) < 18) {
           const enhanced = makeEnhancedCanvas(image.source, image.width, image.height);
           let headerCanvas;
           let nameCanvas;
@@ -157,8 +157,14 @@ function wordsFromOcr(data) {
       (paragraph.lines || []).flatMap(line => line.words || [])));
 }
 
-function countServiceCodeWords(words) {
-  return (words || []).filter(word => /^(?:F1|FL|FI|S1|SI|N5|NS|NX|Z1|ZI)$/i.test(String(word?.text || '').trim())).length;
+function countServiceCodeWords(words, width, height) {
+  return (words || []).filter(word => {
+    const x = word?.bbox ? (word.bbox.x0 + word.bbox.x1) / 2 : NaN;
+    const y = word?.bbox ? (word.bbox.y0 + word.bbox.y1) / 2 : NaN;
+    return Number.isFinite(x) && Number.isFinite(y) &&
+      x >= width * 0.17 && x <= width * 0.85 && y >= height * 0.13 &&
+      parseRosterOcrCell(String(word?.text || ''))?.start;
+  }).length;
 }
 
 function loadTesseract() {
