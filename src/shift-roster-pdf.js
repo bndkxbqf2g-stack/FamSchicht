@@ -13,6 +13,13 @@ const PDF_JS_SOURCES = [
 
 let pdfJsPromise;
 
+function getPdfJsGlobal() {
+  return [
+    globalThis.pdfjsLib,
+    globalThis['pdfjs-dist/build/pdf'],
+  ].find(candidate => typeof candidate?.getDocument === 'function');
+}
+
 export function isPdfRosterFile(file) {
   const type = String(file?.type || '').toLowerCase();
   const name = String(file?.name || '').toLowerCase();
@@ -167,18 +174,20 @@ async function readFileBytes(file) {
 }
 
 function loadPdfJs() {
-  if (globalThis.pdfjsLib?.getDocument) return Promise.resolve(globalThis.pdfjsLib);
+  const existingPdfJs = getPdfJsGlobal();
+  if (existingPdfJs) return Promise.resolve(existingPdfJs);
   if (pdfJsPromise) return pdfJsPromise;
 
   pdfJsPromise = (async () => {
     for (const source of PDF_JS_SOURCES) {
       try {
         await loadScript(source.script);
-        if (!globalThis.pdfjsLib?.getDocument) throw new Error('PDF-Komponente konnte nicht gestartet werden.');
-        if (globalThis.pdfjsLib.GlobalWorkerOptions) {
-          globalThis.pdfjsLib.GlobalWorkerOptions.workerSrc = source.worker;
+        const pdfjs = getPdfJsGlobal();
+        if (!pdfjs) throw new Error('PDF-Komponente konnte nicht gestartet werden.');
+        if (pdfjs.GlobalWorkerOptions) {
+          pdfjs.GlobalWorkerOptions.workerSrc = source.worker;
         }
-        return globalThis.pdfjsLib;
+        return pdfjs;
       } catch (error) {
         // Try the second CDN before surfacing a safe, provider-neutral message.
       }
@@ -196,7 +205,7 @@ function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[data-famschicht-pdfjs="${src}"]`);
     if (existing) {
-      if (globalThis.pdfjsLib?.getDocument) {
+      if (getPdfJsGlobal()) {
         resolve();
         return;
       }
