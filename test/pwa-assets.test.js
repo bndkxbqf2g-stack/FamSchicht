@@ -240,7 +240,7 @@ test('shift capture rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /const shiftCaptureScroll = readScrollPosition\(\);\s+shiftSavePending = true;\s+render\(\);\s+restoreScrollPosition\(shiftCaptureScroll\)/);
   assert.match(main, /return \{\s+focusSelector: advanceShiftCapture\(\{renderNow: false\}\),\s+scrollPosition: shiftCaptureScroll,/);
   assert.match(main, /const afterSaveResult = afterSave\?\.\(\);[\s\S]+restoreScrollPosition\(afterSaveResult\?\.scrollPosition\)/);
-  assert.match(main, /const afterSaveFocus = afterSave\?\.\(\);[\s\S]+if \(afterSaveFocus\) \{[\s\S]+focusAfterRender\(afterSaveFocus, \{preventScroll: true\}\)/);
+  assert.match(main, /const afterSaveFocus = typeof afterSaveResult === 'string'[\s\S]+focusAfterRender\(afterSaveFocus, \{preventScroll: true\}\)/);
   assert.match(main, /function focusAfterRender\(selector, \{preventScroll = false\} = \{\}\)[\s\S]+focus\(preventScroll \? \{preventScroll: true\} : undefined\)/);
 });
 
