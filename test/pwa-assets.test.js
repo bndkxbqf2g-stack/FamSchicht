@@ -234,7 +234,10 @@ test('shift capture rerenders preserve a meaningful keyboard context', () => {
   assert.match(main, /function startShiftCapture\(\)[\s\S]+render\(\);\s+focusAfterRender\('#capture-date'\)/);
   assert.match(main, /data-owner[\s\S]+focusDatasetControl\('data-owner'/);
   assert.match(main, /shiftConflict = \{choice, conflicts\};\s+render\(\);\s+focusAfterRender\('\[data-shift-confirm="save"\]'\)/);
-  assert.match(main, /function advanceShiftCapture\(\)[\s\S]+focusAfterRender\(shiftCaptureDate \? '\[data-shift\]' : '#shift-capture'\)/);
+  assert.match(main, /function advanceShiftCapture\(\{renderNow = true\} = \{\}\)[\s\S]+focusAfterRender\(focusSelector, \{preventScroll: true\}\)/);
+  assert.match(main, /return advanceShiftCapture\(\{renderNow: false\}\)/);
+  assert.match(main, /const afterSaveFocus = afterSave\?\.\(\);[\s\S]+if \(afterSaveFocus\) \{[\s\S]+focusAfterRender\(afterSaveFocus, \{preventScroll: true\}\)/);
+  assert.match(main, /function focusAfterRender\(selector, \{preventScroll = false\} = \{\}\)[\s\S]+focus\(preventScroll \? \{preventScroll: true\} : undefined\)/);
 });
 
 test('settings and import rerenders preserve a meaningful keyboard context', () => {
