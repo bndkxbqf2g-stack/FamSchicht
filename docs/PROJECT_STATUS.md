@@ -1,5 +1,11 @@
 # PROJECT STATUS
 
+## Update 19.10.2026 – Supabase reaktiviert, Live-Sicherheitsprüfung
+- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
+- Migrationen, Tabellen, Grants, Policies und Function-Sicherheitsmerkmale wurden danach ausschließlich read-only geprüft. Die vier öffentlichen Tabellen bleiben RLS-geschützt und owner-only; die Rollenmatrix wurde noch nicht ausgeführt.
+- Der Security Advisor meldet nun konkret, dass `private.household_invitations` live kein RLS aktiviert hat. Die private Schema-/Grant-Grenze und der serverseitige `service_role`-RPC-Grenzpfad bleiben unverändert; eine RLS-Policy wird vor jeder Einladungs-Rollenmatrix explizit entschieden.
+- Es wurden keine Testkonten, produktiven Familieninformationen, Schemaänderungen oder Realtime-Schreibaktionen angelegt.
+
 ## Update 19.10.2026 – Tastatur- und Mobile-Abnahme
 - Die sechs Hauptansichten Übersicht, Kalender, Heute, Familie, Dienste und Einstellungen wurden im laufenden Browser mit synthetischen lokalen Daten per Tastatur geprüft. Ansichtswechsel setzen den Fokus in den neuen Kontext; der Kalender verwendet roving Tagesziele mit Pfeilnavigation.
 - Die Dienste-Ansicht setzt den Einstiegsfokus auf das sichtbare Startdatum `capture-date`. Der Einstellungs- und der Termin-Dialog halten Vorwärts-/Rückwärts-Tab im Dialog, isolieren den Hintergrund mit `inert`/`aria-hidden` und geben Escape den Fokus an den stabilen Auslöser zurück.
@@ -12,7 +18,7 @@
 - Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.20`.
 - Die neue Darstellung wurde für Desktop und mobile Reflow-Regeln ergänzt und im Browser bei 1280 CSS-Pixeln sowie 390×844 geprüft. Übersicht und Wandmodus blieben ohne horizontalen Überlauf; der Wandmodus zeigte weiterhin keine Änderungsziele und einen sichtbaren Rückweg.
 - PR #38 ist in `main` gemergt. Der zugehörige GitHub-Actions-Lauf `39190275960` für „CI and Deploy Pages“ ist erfolgreich; der Pages-Deploy wurde für den Main-Push ausgeführt.
-- Die externe Abschlussfreigabe bleibt die getrennte Rollenmatrix. Das Supabase-Projekt meldet am 19.10.2026 weiterhin `INACTIVE`; deshalb wurden keine Testkonten, Migrationen, Mehrbenutzer-RLS oder Realtime-Änderungen vorgenommen.
+- Die externe Abschlussfreigabe bleibt die getrennte Rollenmatrix. Der damalige Prüfstand meldete das Supabase-Projekt noch `INACTIVE`; nach der späteren Reaktivierung bleiben die Matrix, die RLS-Policy-Prüfung für private Einladungen und Realtime weiterhin offen.
 
 ## Update 15.10.2026 – PDF-Dienstplanimport
 - Der Dienstplan-Upload akzeptiert jetzt bis zu vier JPEG-/PNG-Fotos oder PDFs mit zusammen maximal 35 MB. Die Vorschau und manuelle Bestätigung bleiben unverändert verpflichtend.
@@ -338,5 +344,6 @@ Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Dan
 - Personen- und Bereichsfilter werden auch in der Heute-Ansicht angewendet.
 - Der mobile Termineditor ist ein einspaltiges, scrollbares Bottom-Sheet und bleibt oberhalb der mobilen Navigation bedienbar.
 - Der Synchronisationsstatus ist auf mobilen Geräten sichtbar.
+
 
 
