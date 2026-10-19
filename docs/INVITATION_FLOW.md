@@ -1,13 +1,13 @@
 # Sicherer Einladungs- und Beitrittsfluss
 
-Stand: 14.10.2026
+Stand: 19.10.2026
 
 ## Ziel
 `partner` und `coparent` sollen einem bestehenden Haushalt mit einem eigenen Supabase-Auth-Konto beitreten können, ohne dass der Browser frei in `memberships` schreiben darf.
 
 ## Sicherheitsgrenze
 - `memberships` erhält weiterhin keine direkten INSERT/UPDATE/DELETE-Rechte für den Browser.
-- Live-RLS für Partner/Coparent wird erst erweitert, nachdem Annahmefluss und Zugriffsmatrix mit getrennten Testkonten erfolgreich geprüft wurden.
+- Der Coparent-Kalenderzugriff ist nach der synthetischen Zugriffsmatrix live: gemeinsame Kalenderdaten und Aufgaben dürfen gelesen, angelegt und bearbeitet werden. Partnerzugriff und Realtime bleiben nicht freigegeben.
 - Ein Einladungslink ist ein Bearer-Geheimnis. Der rohe Token wird niemals in der Datenbank gespeichert oder geloggt.
 - Autorisierung beruht nicht auf `user_metadata`; maßgeblich sind der authentifizierte Benutzer und serverseitige Daten.
 - Kalender-Personen in `household_members` bleiben von Auth-Mitgliedschaften getrennt.
@@ -48,7 +48,7 @@ Ein bereits vorhandenes Membership darf nicht stillschweigend auf eine andere Ro
 ## Aktueller Umsetzungsstand
 - Serverseitige Erzeugung, atomare Annahme und Widerruf sind über die JWT-geschützte Edge Function `household-invitations` und service_role-interne RPCs umgesetzt.
 - Die Owner-UI für Erzeugung liegt im ausgelagerten Einstellungen-Bereich; der Empfänger wird nach dem Magic-Link-Login automatisch zur Annahme geführt.
-- Die Owner-UI bietet Erzeugung, Kopieren und Widerruf des zuletzt erzeugten Links an. Mehrbenutzer-RLS bleibt bis zur Zugriffsmatrix bewusst deaktiviert.
+- Die Owner-UI bietet Erzeugung, Kopieren und Widerruf des zuletzt erzeugten Links an. Für den Coparent liefert eine abgesicherte Kontextfunktion ausschließlich den eigenen Haushaltskontext; Rollen- und Verwaltungsdaten bleiben tabellen-seitig owner-only.
 
 ## Technische Richtung
 Für Erzeugung und Annahme wird eine serverseitige Supabase-Grenze verwendet, bevorzugt JWT-geschützte Edge Functions. Die Browser-App erhält keinen Service-Role-Key.
@@ -70,13 +70,16 @@ Die API gibt keine unnötigen Details darüber preis, ob ein Token existiert ode
 - Bereits verwendeter Token wird beim zweiten Versuch abgelehnt.
 - Annahme erzeugt exakt ein Membership mit der eingeladenen Rolle.
 - Bestehendes Membership wird nicht durch eine neue Einladung hoch- oder heruntergestuft.
-- Nichtmitglied kann nach Annahme ausschließlich die später ausdrücklich für seine Rolle freigegebenen Daten lesen.
+- Coparent kann gemeinsame Kalenderdaten und Aufgaben lesen, anlegen und bearbeiten.
+- Coparent sieht weder `visibility=self` noch `category=shift`/`private` und kann solche Zeilen nicht anlegen oder durch Update erzeugen.
+- Coparent kann keine Schichten löschen; Löschen bleibt owner-only.
+- Coparent kann `households`, `memberships` oder `household_members` nicht direkt lesen.
+- Partner und Fremdkonto erhalten keinen Kalenderzugriff.
 - Haushalte bleiben gegeneinander vollständig isoliert.
 
 ## Umsetzungsreihenfolge
-1. Serververtrag und Datenmodell als Migration vorbereiten, noch ohne Mehrbenutzer-RLS-Freigabe.
-2. Erzeugungs-/Annahmeoperation serverseitig implementieren.
-3. Automatisierte Datenbank-/Funktionsprüfungen ergänzen.
-4. Mit drei getrennten Testkonten Owner/Partner/Coparent plus Fremdkonto testen.
-5. Erst danach RLS für die konkret benötigten Rollen und Sichtbarkeiten erweitern.
-6. Realtime erst auf der geprüften Rechtebasis aktivieren.
+1. Serververtrag und Datenmodell als Migration vorbereiten, ohne freie Membership-Schreibrechte.
+2. Erzeugungs-/Annahmeoperation serverseitig implementieren und automatisiert prüfen.
+3. Mit getrennten synthetischen Owner-/Partner-/Coparent-/Fremdkonten testen.
+4. Den konkret freigegebenen Coparent-Kalenderumfang per RLS live schalten; die Rollen-/Admin-Tabellen bleiben owner-only.
+5. Realtime erst auf der geprüften Rechtebasis ergänzen.
