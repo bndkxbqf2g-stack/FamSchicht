@@ -345,3 +345,6 @@ Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Dan
 - Personen- und Bereichsfilter werden auch in der Heute-Ansicht angewendet.
 - Der mobile Termineditor ist ein einspaltiges, scrollbares Bottom-Sheet und bleibt oberhalb der mobilen Navigation bedienbar.
 - Der Synchronisationsstatus ist auf mobilen Geräten sichtbar.
+
+
+
