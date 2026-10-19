@@ -40,7 +40,7 @@ test('release metadata stays aligned across the app shell', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const serviceWorker = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.equal(packageJson.version, '0.3.21');
+  assert.equal(packageJson.version, '0.3.22');
   assert.match(html, new RegExp('\\?v=' + packageJson.version, 'g'));
   assert.match(main, new RegExp('Familienplaner · v' + packageJson.version));
   assert.match(serviceWorker, new RegExp('famschicht-shell-v' + packageJson.version));
@@ -198,20 +198,26 @@ test('calendar days expose semantic keyboard targets', () => {
   assert.match(styles, /\.day-select:focus-visible/);
 });
 
-test('month grid keeps appointments full-text and shift labels on one line', () => {
+test('mobile month cards show full-text entries and one-line shift names', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
   const fullTextStyles = styles.slice(styles.lastIndexOf('/* Full-text monthly calendar:'));
+  assert.match(main, /class="day-weekday" aria-hidden="true"/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.day\{[\s\S]+height:auto;[\s\S]+overflow:visible/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.entry\{[\s\S]+height:auto !important[\s\S]+white-space:normal !important[\s\S]+overflow:visible !important/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.entry-label\{[\s\S]+white-space:normal !important[\s\S]+overflow-wrap:anywhere/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.entry-time\{[\s\S]+display:block !important/);
-  assert.match(fullTextStyles, /\.calendar\.month-view \.entry\.shift \.entry-label\{[\s\S]+white-space:nowrap !important[\s\S]+overflow:hidden !important[\s\S]+overflow-wrap:normal !important[\s\S]+word-break:normal !important[\s\S]+text-overflow:ellipsis !important/);
+  assert.match(fullTextStyles, /\.calendar\.month-view\{[\s\S]+grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(fullTextStyles, /\.calendar\.month-view > \.day\.empty\{display:none\}/);
+  assert.match(fullTextStyles, /\.calendar\.month-view \.entry\.shift \.entry-label\{[\s\S]+white-space:nowrap !important[\s\S]+overflow:visible !important[\s\S]+overflow-wrap:normal !important[\s\S]+word-break:normal !important[\s\S]+text-overflow:clip !important/);
   assert.doesNotMatch(fullTextStyles, /\.calendar\.month-view \.entry\{[\s\S]+overflow-x:auto/);
+  assert.doesNotMatch(fullTextStyles, /\.calendar\.month-view \.entry\.shift \.entry-label\{[^}]*text-overflow:ellipsis/);
   assert.doesNotMatch(main, /entry\.matches\('\.calendar\.month-view \.entry'\)/);
   assert.doesNotMatch(main, /entry\.scrollWidth > entry\.clientWidth/);
+  assert.match(main, /const mobileMonthGrid = calendarMode === 'month' && window\.innerWidth <= 700/);
+  assert.match(main, /offset = mobileMonthGrid \? -2 : -7/);
+  assert.match(main, /offset = mobileMonthGrid \? 2 : 7/);
 });
-
 test('calendar day targets provide roving keyboard navigation', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"/);
@@ -418,7 +424,7 @@ test('local points and rewards stay separate from the cloud calendar path', () =
 
 test('service worker has a network-first cache fallback for the app shell', () => {
   const source = fs.readFileSync(path.join(root, 'public', 'sw.js'), 'utf8');
-  assert.match(source, /famschicht-shell-v0.3.21/);
+  assert.match(source, /famschicht-shell-v0.3.22/);
   assert.match(source, /networkFirst/);
   assert.match(source, /index\.html/);
   assert.match(source, /status: 503/);
