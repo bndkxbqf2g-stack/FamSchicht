@@ -77,6 +77,14 @@ create table if not exists private.household_invitations (
 revoke all on table private.household_invitations from public;
 revoke all on table private.household_invitations from anon;
 revoke all on table private.household_invitations from authenticated;
+alter table private.household_invitations enable row level security;
+create policy household_invitations_service_role_only
+  on private.household_invitations
+  as permissive
+  for all
+  to service_role
+  using (true)
+  with check (true);
 create index if not exists idx_household_invitations_household
   on private.household_invitations(household_id);
 create index if not exists idx_household_invitations_created_by
