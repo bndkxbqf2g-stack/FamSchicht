@@ -86,13 +86,16 @@ test('coparent calendar access is shared but excludes private, self, and shift d
     assert.match(source, /create or replace function public\.is_household_coparent/);
     assert.match(source, /m\.role\s*=\s*'coparent'/);
     assert.match(source, /create or replace function public\.get_my_household_context/);
-    assert.match(source, /create policy event_coparent_read/);
-    assert.match(source, /create policy event_coparent_insert/);
-    assert.match(source, /create policy event_coparent_update/);
     assert.match(source, /visibility <> 'self'/);
     assert.match(source, /category not in \('shift', ?'private'\)/);
   }
 
+  for (const policy of ['read', 'insert', 'update']) {
+    assert.match(migration, new RegExp('create policy event_coparent_' + policy));
+  }
+  assert.match(schema, /create policy events_read/);
+  assert.match(schema, /create policy events_insert/);
+  assert.match(schema, /create policy events_update/);
   assert.match(migration, /create trigger trg_calendar_event_identity/);
   assert.match(migration, /new\.household_id is distinct from old\.household_id/);
   assert.match(migration, /new\.creator_id is distinct from old\.creator_id/);
