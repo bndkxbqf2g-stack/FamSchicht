@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
-Stand: 14.10.2026
+Stand: 19.10.2026
 
 ## Client
 Vite-basierte JavaScript-Web-App.
@@ -13,7 +13,7 @@ Vite-basierte JavaScript-Web-App.
 - src/auth.js: Supabase-Client und Auth.
 - src/runtime-config.js: Build-Variablen für Supabase-URL und Publishable Key mit lokalem Konfigurationsstatus.
 - src/auth-ui.js: Anmeldung/Abmeldung.
-- src/household-ui.js: Haushalts-Setup, owner-only Mitgliederverwaltung und Einladungs-UI.
+- src/household-ui.js: Haushalts-Setup, owner-only Mitgliederverwaltung/Einladungs-UI; Coparent erreicht diesen Verwaltungsbereich nicht.
 - src/household-members.js: fachliche Haushaltsmitglieder mit stabiler ID, Farbe und Initialen.
 - src/household-member-service.js: owner-scoped Persistenz der fachlichen Haushaltsmitglieder.
 - src/shift-roster-*.js: Dienstplan-PDF-/OCR-Import, lokale Speicherung, Schichtlogik und Kalenderprojektion.
@@ -50,8 +50,8 @@ Ereignissichtbarkeit im Repository-Entwurf: all, home, self.
 - Feiertage: lokales Bundesland -> `holidays.js` -> deterministische bundesweite/regional ergänzte read-only Termine. Die berechneten Feiertage werden nicht als eigene Supabase-Zeilen gespeichert und können nicht bearbeitet, gelöscht oder verschoben werden.
 - Wandmodus: lokale Darstellungspräferenz -> `display-preferences.js` -> Kalenderansicht mit ausgeblendeter Navigation, größeren Karten und deaktivierten Änderungszielen. Der Modus hat einen sichtbaren Rückweg und verändert weder Termine noch Cloud-Daten.
 - Punkte/Belohnungen: Aufgabe oder Routine mit Punktwert -> erledigter Einzel-/Vorkommensstatus -> `rewards.js` -> lokaler Fortschritt je Kalenderperson und lokal verwaltete Belohnungsziele; kein Supabase-Pfad.
-- Cloud-Owner: Auth/Haushalt -> Supabase; `household_members` liefert Personenfilter/Schichtzuordnung, `calendar_events` liefert Termine und Dienste.
-- Owner-Mitgliederverwaltung: Einstellungen -> `ensureOwnerHouseholdMembers`/`saveOwnerHouseholdMembers` -> `household_members`; neue Personen erhalten eine stabile ID, bestehende `ownerId`-Referenzen werden beim Bearbeiten nicht geändert.
+- Cloud-Kontext: Auth-Konto -> `get_my_household_context()` -> Haushalts-ID/Rolle; Owner lädt owner-scoped Kalenderpersonen, Coparent lädt nur serverseitig freigegebene gemeinsame `calendar_events`.
+- Owner-Mitgliederverwaltung: Einstellungen -> `ensureOwnerHouseholdMembers`/`saveOwnerHouseholdMembers` -> `household_members`; neue Personen erhalten eine stabile ID, bestehende `ownerId`-Referenzen werden beim Bearbeiten nicht geändert. Coparent sieht weder diese Tabelle noch Rollen-/Einladungsverwaltung.
 - `household_members` beschreibt Kalender-Personen. Authentifizierte Zugriffsrollen bleiben getrennt in `memberships`.
 - Die Oberfläche meldet Sync-Zustände getrennt vom fachlichen `cloud`-Scope; ein Fehlerstatus bedeutet nicht, dass lokale Daten als serverseitig synchronisiert ausgegeben werden.
 - Terminverschiebung: Kalenderkarte -> `event-move.js` -> unverändertes Ereignis mit verschobenem Datumsbereich -> bestehender `updateEntry`-Pfad -> lokaler Speicher oder owner-scoped Supabase-Update. `id`, `ownerId`, Uhrzeiten und Nachtdienst bleiben erhalten; `completedDates` folgen dem Anker, einzelne `custody`-Einträge behalten ihren Serienanker.
@@ -66,6 +66,7 @@ Lokaler Speicher darf später höchstens kontrollierter Cache/Migrationsquelle s
 - Datenlücken explizit behandeln.
 - RLS ist die serverseitige Sicherheitsgrenze; UI-Prüfungen ersetzen sie nicht.
 - Keine freien Membership-Schreibrechte aus dem Browser.
+- Coparent-RLS erlaubt nur gemeinsame Kalenderdaten/Aufgaben: nicht `self`, nicht `shift`/`private`; INSERT/UPDATE ja, DELETE nein. Die UI-Schranke ist nur Zusatzschutz.
 - Kalenderpersonen dürfen owner-only bearbeitet und ergänzt werden; Löschung bleibt bis zu einer sicheren Referenz-/Archivierungsstrategie deaktiviert.
 - Dienstplanfotos und importierte Teamdaten bleiben lokal auf dem Gerät; OCR-Ergebnisse müssen vor dem Speichern geprüft und bestätigt werden.
 
