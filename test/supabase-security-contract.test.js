@@ -84,7 +84,7 @@ test('coparent calendar access is shared but excludes private, self, and shift d
 
   for (const source of [migration, schema]) {
     assert.match(source, /create or replace function public\.is_household_coparent/);
-    assert.match(source, /m\.role = 'coparent'/);
+    assert.match(source, /m\.role\s*=\s*'coparent'/);
     assert.match(source, /create or replace function public\.get_my_household_context/);
     assert.match(source, /create policy event_coparent_read/);
     assert.match(source, /create policy event_coparent_insert/);
