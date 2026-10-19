@@ -54,8 +54,6 @@ Details zu OCR, Kürzeln, lokaler Speicherung und manueller Prüfung: [`docs/SHI
 **Datenschutz:** Keine Supabase-Service-Role-/Secret-Schlüssel oder unnötige sensible Familieninformationen im Repository speichern.
 
 
-## Aktueller Release 0.3.20
+## Aktueller Release 0.3.21
 
-Die helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht. Der aktuelle Release führt den Familienruhe-Look als Standard und die kontrastreiche Schichtzentrale im reversiblen Wandmodus ein. Neutrale Startup-Recovery, sichere Nutzerfehler-Fallbacks und owner-only RLS bleiben unverändert.
-
-
+Die helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht. Der aktuelle Release führt den Familienruhe-Look als Standard und die kontrastreiche Schichtzentrale im reversiblen Wandmodus und eine Monatsansicht mit vollständigem Termin-/Schichttext direkt in den Tageskarten ein. Neutrale Startup-Recovery, sichere Nutzerfehler-Fallbacks und owner-only RLS bleiben unverändert.
