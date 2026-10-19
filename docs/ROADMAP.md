@@ -12,7 +12,6 @@ Stand: 19.10.2026
 1. Den serverseitigen `service_role`-Grenzpfad sowie Erzeugung, atomare Annahme und Widerruf von Einladungen per Smoke-Test verifizieren.
 2. Zugriffsmatrix mit den vier getrennten synthetischen Owner-/Partner-/Coparent-/Fremdkonten ausführen.
 3. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
-4. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
 5. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
 6. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
 7. UI/UX weiter ausbauen; Terminverschiebung ist für Desktop/Touch mit zugänglichem Fallback umgesetzt.
