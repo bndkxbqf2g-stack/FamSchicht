@@ -1,5 +1,11 @@
 # PROJECT STATUS
 
+## Update 19.10.2026 – Tastatur- und Mobile-Abnahme
+- Die sechs Hauptansichten Übersicht, Kalender, Heute, Familie, Dienste und Einstellungen wurden im laufenden Browser mit synthetischen lokalen Daten per Tastatur geprüft. Ansichtswechsel setzen den Fokus in den neuen Kontext; der Kalender verwendet roving Tagesziele mit Pfeilnavigation.
+- Die Dienste-Ansicht setzt den Einstiegsfokus auf das sichtbare Startdatum `capture-date`. Der Einstellungs- und der Termin-Dialog halten Vorwärts-/Rückwärts-Tab im Dialog, isolieren den Hintergrund mit `inert`/`aria-hidden` und geben Escape den Fokus an den stabilen Auslöser zurück.
+- Im 390×844-Viewport blieben alle sechs Hauptansichten ohne horizontalen Überlauf; die geprüften Dialoge blieben innerhalb der verfügbaren Breite. Es wurden keine Termine gespeichert, gelöscht oder verschoben.
+- Die echte iPhone-Home-Screen-Installation bleibt als gerätegebundener manueller Schritt offen; sie ist nicht durch einen lokalen Browserlauf beweisbar.
+
 ## Update 19.10.2026 – Familienruhe und Schichtzentrale
 - Die Übersicht übernimmt den neuen Familienruhe-Look mit klarer „Nächster Dienst“-Karte und einem zweiten Fokusfeld für offene Aufgaben; die vorhandenen Aufgabenaktionen und synthetischen Datenflüsse bleiben unverändert.
 - Der reversible read-only-Wandmodus trägt jetzt sichtbar den Titel „Schichtzentrale“ und verwendet eine kontrastreiche Navy-/Mint-Darstellung mit größeren Kalenderkarten; Bearbeitung bleibt im Wandmodus deaktiviert.
