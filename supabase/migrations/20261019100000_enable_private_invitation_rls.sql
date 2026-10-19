@@ -9,4 +9,3 @@ create policy household_invitations_service_role_only
   to service_role
   using (true)
   with check (true);
-
