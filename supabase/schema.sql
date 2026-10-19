@@ -201,61 +201,61 @@ create trigger trg_calendar_event_identity before update on public.calendar_even
 for each row execute function public.prevent_calendar_event_identity_change();
 
 create policy events_read on public.calendar_events for select to authenticated
-using (public.can_read_event(household_id,creator_id,visibility));
+using (
+  exists (
+    select 1 from public.households h
+    where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+  )
+  or (
+    public.is_household_coparent(household_id)
+    and visibility <> 'self'
+    and category not in ('shift','private')
+  )
+);
 create policy events_insert on public.calendar_events for insert to authenticated
-with check (creator_id=(select auth.uid()) and public.is_household_member(household_id)
-and (visibility <> 'home' or exists(select 1 from public.memberships m where m.household_id=calendar_events.household_id and m.user_id=(select auth.uid()) and m.role in ('owner','partner'))));
-create policy events_update on public.calendar_events for update to authenticated
-using (creator_id=(select auth.uid()) and public.is_household_member(household_id))
-with check (creator_id=(select auth.uid()) and public.is_household_member(household_id)
-and (visibility <> 'home' or exists(select 1 from public.memberships m where m.household_id=calendar_events.household_id and m.user_id=(select auth.uid()) and m.role in ('owner','partner'))));
-create policy event_coparent_read on public.calendar_events for select to authenticated
-using (
-  public.is_household_coparent(household_id)
-  and visibility <> 'self'
-  and category not in ('shift','private')
-);
-create policy event_coparent_insert on public.calendar_events for insert to authenticated
 with check (
-  public.is_household_coparent(household_id)
-  and creator_id=(select auth.uid())
-  and visibility <> 'self'
-  and category not in ('shift','private')
+  (
+    creator_id=(select auth.uid())
+    and exists (
+      select 1 from public.households h
+      where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+    )
+  )
+  or (
+    public.is_household_coparent(household_id)
+    and creator_id=(select auth.uid())
+    and visibility <> 'self'
+    and category not in ('shift','private')
+  )
 );
-create policy event_coparent_update on public.calendar_events for update to authenticated
+create policy events_update on public.calendar_events for update to authenticated
 using (
-  public.is_household_coparent(household_id)
-  and visibility <> 'self'
-  and category not in ('shift','private')
+  exists (
+    select 1 from public.households h
+    where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+  )
+  or (
+    public.is_household_coparent(household_id)
+    and visibility <> 'self'
+    and category not in ('shift','private')
+  )
 )
 with check (
-  public.is_household_coparent(household_id)
-  and visibility <> 'self'
-  and category not in ('shift','private')
+  exists (
+    select 1 from public.households h
+    where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+  )
+  or (
+    public.is_household_coparent(household_id)
+    and visibility <> 'self'
+    and category not in ('shift','private')
+  )
 );
-
-create policy event_household_owner_read on public.calendar_events for select to authenticated
-using (exists (
-  select 1 from public.households h
-  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
-));
-create policy event_household_owner_update on public.calendar_events for update to authenticated
-using (exists (
-  select 1 from public.households h
-  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
-))
-with check (exists (
-  select 1 from public.households h
-  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
-));
-create policy event_household_owner_delete on public.calendar_events for delete to authenticated
-using (exists (
-  select 1 from public.households h
-  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
-));
-
 create policy events_delete on public.calendar_events for delete to authenticated
-using (creator_id=(select auth.uid()) and public.is_household_member(household_id));
+using (exists (
+  select 1 from public.households h
+  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+));
 
 -- Backfill for projects created before custody sync metadata was introduced.
 alter table public.calendar_events add column if not exists metadata jsonb not null default '{}'::jsonb;
