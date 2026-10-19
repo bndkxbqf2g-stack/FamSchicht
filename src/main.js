@@ -94,7 +94,7 @@ import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
 import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
 import {userError} from './user-error.js';
-import './styles.css';
+import './styles.css?v=0.3.20';
 
 if ('serviceWorker' in navigator) {
   const appBase = import.meta.env.BASE_URL;
@@ -520,19 +520,22 @@ function render() {
   const displayAction = isWallMode(displayMode)
     ? '<button class="wall-exit" id="exit-wall-mode" type="button">Wandmodus beenden</button>'
     : '';
+  const viewTitle = isWallMode(displayMode) ? 'Schichtzentrale' :
+    (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender');
+  const viewEyebrow = isWallMode(displayMode) ? 'Fokussierte Wandansicht' : 'Gemeinsamer Familienkalender';
   const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog || deleteDialog || confirmationDialog);
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.17</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.20</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
       .join('') +
     '</nav><div class="sidebar-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' +
     h(syncStatusLabel(syncState)) + '</div></aside>' +
-    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">Gemeinsamer Familienkalender</p><h1 id="view-title" tabindex="-1">' +
-    (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender') +
+    '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">' + h(viewEyebrow) + '</p><h1 id="view-title" tabindex="-1">' +
+    h(viewTitle) +
     '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
     '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
@@ -698,6 +701,10 @@ function homeOverviewMarkup(today, displayEntries = entries) {
   upcoming.sort(compareAgendaItems);
   const nextShift = upcoming.find(item => item.entry.type === 'shift');
   const appointments = upcoming.filter(item => item.entry.type !== 'shift' && !isTaskLikeEntry(item.entry)).slice(0, 4);
+  const taskWindowStart = dateKey(shiftCalendarDate(base, 'day', -14));
+  const taskWindowEnd = dateKey(shiftCalendarDate(base, 'day', 21));
+  const openTaskCount = taskOccurrences(displayEntries, taskWindowStart, taskWindowEnd)
+    .filter(occurrence => !occurrence.completed).length;
   const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
     new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
   const nextShiftMarkup = nextShift
@@ -715,11 +722,17 @@ function homeOverviewMarkup(today, displayEntries = entries) {
       '<span class="agenda-marker" aria-hidden="true"></span><span class="agenda-copy"><strong>' + h(item.entry.title) + '</strong>' +
       '<small>' + h(item.entry.type === 'shift' ? (shiftOwnerDisplayName(item.entry, householdMemberNames) || 'Dienst') : 'Familie') + '</small></span><span class="agenda-arrow">›</span></article>').join('')
     : '<div class="home-empty"><span class="home-empty-mark">✓</span><strong>Alles im Blick</strong><span>Es stehen noch keine Termine an.</span></div>';
+  const taskLabel = openTaskCount === 1 ? 'offene Aufgabe' : 'offene Aufgaben';
+  const taskFocusMarkup = '<article class="home-focus-card"><div><span class="home-kicker">Gemeinsam erledigen</span><strong>' +
+    h(openTaskCount + ' ' + taskLabel) + '</strong><p>' +
+    h(openTaskCount ? 'Der nächste kleine Schritt wartet.' : 'Alles erledigt – stark!') +
+    '</p></div><button type="button" data-task-new="true" class="home-focus-button">' +
+    (openTaskCount ? 'Neue Aufgabe' : 'Aufgabe planen') + '</button></article>';
   return '<section class="home-dashboard"><div class="home-welcome"><div><p class="home-kicker">' +
     h(new Date(today + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'})) +
     '</p><h2>Hallo zusammen.</h2><p>Hier ist euer Familienplan auf einen Blick.</p></div>' +
     '<button id="home-add-event" class="home-add-button" type="button"><span>＋</span> Termin</button></div>' +
-    '<div class="home-highlights">' + nextShiftMarkup + '</div>' +
+    '<div class="home-highlights">' + nextShiftMarkup + taskFocusMarkup + '</div>' +
     '<section class="home-agenda"><div class="home-section-heading"><div><span class="home-kicker">Die nächsten Tage</span><h2>Anstehende Termine</h2></div>' +
     '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
     '<div class="home-agenda-list">' + appointmentMarkup + '</div></section>' +
@@ -2570,4 +2583,5 @@ window.addEventListener('famschicht:household-members-changed', () => {
   startCloudConnection();
 });
 window.__famschichtReady?.();
+
 
