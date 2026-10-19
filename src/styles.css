@@ -1357,3 +1357,21 @@ body.settings-open #account-shell{background:var(--home-canvas)}
   .display-wall .day,.display-wall .day.empty{min-height:102px;padding:6px}
   .display-wall .entry{font-size:10px;padding:5px 4px}
 }
+
+/* Keep shift labels on one line in narrow month cells. */
+@media(max-width:820px){
+  .calendar.month-view .entry.shift{
+    width:calc(100% + 6px);
+    margin-inline:-3px;
+    padding-inline:2px;
+    font-size:8px;
+  }
+
+  .calendar.month-view .entry.shift .entry-label{
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    overflow-wrap:normal !important;
+    word-break:normal !important;
+    text-overflow:ellipsis !important;
+  }
+}
