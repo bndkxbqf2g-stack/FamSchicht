@@ -201,6 +201,7 @@ test('calendar days expose semantic keyboard targets', () => {
 test('mobile month cards show full-text entries and one-line shift names', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+  const keyboard = fs.readFileSync(path.join(root, 'src', 'calendar-keyboard.js'), 'utf8');
   const fullTextStyles = styles.slice(styles.lastIndexOf('/* Full-text monthly calendar:'));
   assert.match(main, /class="day-weekday" aria-hidden="true"/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.day\{[\s\S]+height:auto;[\s\S]+overflow:visible/);
@@ -214,25 +215,19 @@ test('mobile month cards show full-text entries and one-line shift names', () =>
   assert.doesNotMatch(fullTextStyles, /\.calendar\.month-view \.entry\.shift \.entry-label\{[^}]*text-overflow:ellipsis/);
   assert.doesNotMatch(main, /entry\.matches\('\.calendar\.month-view \.entry'\)/);
   assert.doesNotMatch(main, /entry\.scrollWidth > entry\.clientWidth/);
-  assert.match(main, /const mobileMonthGrid = calendarMode === 'month' && window\.innerWidth <= 700/);
-  assert.match(main, /offset = mobileMonthGrid \? -2 : -7/);
-  assert.match(main, /offset = mobileMonthGrid \? 2 : 7/);
+  assert.match(main, /calendarKeyboardOffset\(key, date, calendarMode, window\.innerWidth\)/);
+  assert.match(keyboard, /calendarMode === 'month' && viewportWidth <= 700/);
 });
 test('calendar day targets provide roving keyboard navigation', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"/);
   assert.match(main, /tabindex="' \+ \(day === dateKey\(focusedDate\) \? '0' : '-1'\)/);
   assert.match(main, /function moveCalendarDayByKeyboard\(event\)/);
-  assert.match(main, /key === 'ArrowUp'/);
-  assert.match(main, /key === 'ArrowDown'/);
-  assert.match(main, /key === 'Home'/);
-  assert.match(main, /key === 'End'/);
-  assert.match(main, /const boundaryKey = key === 'Home' \|\| key === 'End'/);
-  assert.match(main, /if \(!offset && !boundaryKey\) return/);
+  assert.match(main, /calendarKeyboardOffset\(key, date, calendarMode, window\.innerWidth\)/);
+  assert.match(main, /if \(offset === null\) return/);
   assert.match(main, /event\.preventDefault\(\);\s+if \(!offset\) return/);
   assert.match(main, /selectCalendarDay\(dateKey\(date\), \{restoreFocus: true\}\)/);
 });
-
 test('calendar rerenders preserve a meaningful keyboard context', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   assert.match(main, /id="view-title" tabindex="-1"/);
