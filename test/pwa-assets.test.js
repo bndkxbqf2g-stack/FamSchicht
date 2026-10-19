@@ -198,7 +198,7 @@ test('calendar days expose semantic keyboard targets', () => {
   assert.match(styles, /\.day-select:focus-visible/);
 });
 
-test('month grid shows complete appointment and shift text in expanding day cards', () => {
+test('month grid keeps appointments full-text and shift labels on one line', () => {
   const main = fs.readFileSync(path.join(root, 'src', 'main.js'), 'utf8');
   const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
   const fullTextStyles = styles.slice(styles.lastIndexOf('/* Full-text monthly calendar:'));
@@ -206,6 +206,7 @@ test('month grid shows complete appointment and shift text in expanding day card
   assert.match(fullTextStyles, /\.calendar\.month-view \.entry\{[\s\S]+height:auto !important[\s\S]+white-space:normal !important[\s\S]+overflow:visible !important/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.entry-label\{[\s\S]+white-space:normal !important[\s\S]+overflow-wrap:anywhere/);
   assert.match(fullTextStyles, /\.calendar\.month-view \.entry-time\{[\s\S]+display:block !important/);
+  assert.match(fullTextStyles, /\.calendar\.month-view \.entry\.shift \.entry-label\{[\s\S]+white-space:nowrap !important[\s\S]+overflow:hidden !important[\s\S]+overflow-wrap:normal !important[\s\S]+word-break:normal !important[\s\S]+text-overflow:ellipsis !important/);
   assert.doesNotMatch(fullTextStyles, /\.calendar\.month-view \.entry\{[\s\S]+overflow-x:auto/);
   assert.doesNotMatch(main, /entry\.matches\('\.calendar\.month-view \.entry'\)/);
   assert.doesNotMatch(main, /entry\.scrollWidth > entry\.clientWidth/);
