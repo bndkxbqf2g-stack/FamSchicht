@@ -1,6 +1,6 @@
 # Datenbankstatus
 
-## Live-Prüfung 19.10.2026
+## Live-Prüfung 19.10.2026 – Reaktivierung
 
 - Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
 - Migrationen, Tabellen, Rechte und Advisors wurden nach der Reaktivierung ausschließlich read-only geprüft. Es wurden keine Testkonten, Schema-Migrationen oder Realtime-Schreibaktionen gestartet.
@@ -57,7 +57,7 @@ Damit sind `partner` und `coparent` **noch nicht live freigeschaltet**. Die priv
 
 ## Advisor-Status
 
-Security Advisor: keine RLS-/Tabellenlücke gemeldet. Verbleibend ist nur der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dies dokumentiert, ist aber kein Blocker für den nächsten Einladungsbaustein.
+Security Advisor: kritischer Hinweis, weil `private.household_invitations` live kein RLS aktiviert hat. Die bestätigte Migration ist noch nicht live angewendet; bis zum kontrollierten Smoke-Test bleibt die bestehende private Schema-/Grant-Grenze unverändert. Zusätzlich besteht der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dieser dokumentiert.
 
 Die zuvor gemeldeten vier ungeindexierten Fremdschlüssel sind behoben. Der Performance Advisor kennzeichnet die neu angelegten Indizes derzeit lediglich als noch unbenutzt; bei leerem Datenbestand ist das erwartbar und kein Anlass zur Entfernung.
 
