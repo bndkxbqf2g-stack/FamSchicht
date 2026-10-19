@@ -623,7 +623,7 @@ function render() {
     h(syncStatusLabel(syncState)) + '</div></aside>' +
     '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">' + h(viewEyebrow) + '</p><h1 id="view-title" tabindex="-1">' +
     h(viewTitle) +
-    '</h1></div>' + (canManageSettings() ? '<button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' : '') + displayAction + '<div class="member-legend' aria-label="Haushaltsmitglieder">' +
+    '</h1></div>' + (canManageSettings() ? '<button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' : '') + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
     '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
     appNoticeMarkup() + storageNoticeMarkup() + body + '</section></div>' +
