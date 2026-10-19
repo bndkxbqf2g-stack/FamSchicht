@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, updateOwnerEvent, deleteOwnerEvent, loadOwnerEvents} from '../src/calendar-service.js';
+import {toDatabaseEvent, fromDatabaseEvent, saveOwnerEvents, updateOwnerEvent, deleteOwnerEvent, loadOwnerEvents, isCoparentVisibleEventRow} from '../src/calendar-service.js';
 import {nextShiftCaptureDate, SHIFT_NAMES, shiftTimes, changedShift} from '../src/dates.js';
 
 test('editing one shift keeps identity, date and owner and updates default hours', () => {
@@ -266,6 +266,23 @@ test('loading events is scoped to the active household', async () => {
   assert.deepEqual(filters,[['household_id','house-2']]);
 });
 
+
+test('coparent client filter excludes self, private, and shift rows', async () => {
+  assert.equal(isCoparentVisibleEventRow({category:'family',visibility:'home'}), true);
+  assert.equal(isCoparentVisibleEventRow({category:'family',visibility:'self'}), false);
+  assert.equal(isCoparentVisibleEventRow({category:'private',visibility:'home'}), false);
+  assert.equal(isCoparentVisibleEventRow({category:'shift',visibility:'self'}), false);
+
+  const rows = [
+    {id:'shared',title:'Gemeinsamer Termin',starts_at:'2026-09-25T08:00:00.000Z',ends_at:'2026-09-25T09:00:00.000Z',category:'family',visibility:'home',metadata:{}},
+    {id:'self',title:'Privater Termin',starts_at:'2026-09-25T10:00:00.000Z',ends_at:'2026-09-25T11:00:00.000Z',category:'family',visibility:'self',metadata:{}},
+    {id:'shift',title:'Dienst',starts_at:'2026-09-25T12:00:00.000Z',ends_at:'2026-09-25T13:00:00.000Z',category:'shift',visibility:'self',metadata:{}},
+    {id:'private',title:'Privat',starts_at:'2026-09-25T14:00:00.000Z',ends_at:'2026-09-25T15:00:00.000Z',category:'private',visibility:'home',metadata:{}},
+  ];
+  const query={select(){return this;},eq(){return this;},order(){return Promise.resolve({data:rows,error:null});}};
+  const events=await loadOwnerEvents({from:()=>query},'house-2',{role:'coparent'});
+  assert.deepEqual(events.map(event => event.id), ['shared']);
+});
 
 test('cloud deletion refuses missing household scope', async () => {
   const supabase={from:()=>{throw new Error('database must not be called');}};
