@@ -42,6 +42,21 @@ test('invitation secrets stay outside browser grants and acceptance remains atom
   assert.doesNotMatch(edgeBoundary, /grant execute on function public\.edge_(?:create|accept|revoke)_household_invitation[\s\S]+to authenticated/);
 });
 
+test('private invitation storage has an explicit server-role RLS boundary', () => {
+  const migration = read('supabase/migrations/20261019100000_enable_private_invitation_rls.sql');
+  const schema = read('supabase/schema.sql');
+
+  for (const source of [migration, schema]) {
+    assert.match(source, /alter table private\.household_invitations enable row level security/);
+    assert.match(source, /create policy household_invitations_service_role_only/);
+    assert.match(source, /for all\s+to service_role/);
+    assert.match(source, /using \(true\)\s+with check \(true\)/);
+    const policy = source.match(/create policy household_invitations_service_role_only[\s\S]*?with check \(true\);/);
+    assert.ok(policy);
+    assert.doesNotMatch(policy[0], /to (?:anon|authenticated)/);
+  }
+});
+
 test('client code never contains service-role or secret-key material', () => {
   const sourceFiles = fs.readdirSync(path.join(root, 'src'))
     .filter(file => file.endsWith('.js'))
@@ -61,4 +76,5 @@ test('the deployed invitation edge boundary authenticates users before admin RPC
   assert.match(source, /ctx\.supabaseAdmin\.rpc\(/);
   assert.match(source, /if \(!actorId \|\| !actorEmail\)/);
 });
+
 
