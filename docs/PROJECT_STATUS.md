@@ -4,7 +4,9 @@
 - Die Übersicht übernimmt den neuen Familienruhe-Look mit klarer „Nächster Dienst“-Karte und einem zweiten Fokusfeld für offene Aufgaben; die vorhandenen Aufgabenaktionen und synthetischen Datenflüsse bleiben unverändert.
 - Der reversible read-only-Wandmodus trägt jetzt sichtbar den Titel „Schichtzentrale“ und verwendet eine kontrastreiche Navy-/Mint-Darstellung mit größeren Kalenderkarten; Bearbeitung bleibt im Wandmodus deaktiviert.
 - Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.20`.
-- Die neue Darstellung wurde für Desktop und mobile Reflow-Regeln ergänzt; die vollständige visuelle Abnahme aller Ansichten folgt mit dem Browserlauf dieses Entwicklungsblocks.
+- Die neue Darstellung wurde für Desktop und mobile Reflow-Regeln ergänzt und im Browser bei 1280 CSS-Pixeln sowie 390×844 geprüft. Übersicht und Wandmodus blieben ohne horizontalen Überlauf; der Wandmodus zeigte weiterhin keine Änderungsziele und einen sichtbaren Rückweg.
+- PR #38 ist in `main` gemergt. Der zugehörige GitHub-Actions-Lauf `39190275960` für „CI and Deploy Pages“ ist erfolgreich; der Pages-Deploy wurde für den Main-Push ausgeführt.
+- Die externe Abschlussfreigabe bleibt die getrennte Rollenmatrix. Das Supabase-Projekt meldet am 19.10.2026 weiterhin `INACTIVE`; deshalb wurden keine Testkonten, Migrationen, Mehrbenutzer-RLS oder Realtime-Änderungen vorgenommen.
 
 ## Update 15.10.2026 – PDF-Dienstplanimport
 - Der Dienstplan-Upload akzeptiert jetzt bis zu vier JPEG-/PNG-Fotos oder PDFs mit zusammen maximal 35 MB. Die Vorschau und manuelle Bestätigung bleiben unverändert verpflichtend.

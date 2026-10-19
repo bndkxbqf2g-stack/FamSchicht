@@ -1,6 +1,12 @@
 # ROADMAP
 
-Stand: 14.10.2026
+Stand: 19.10.2026
+
+## Aktueller Release-Gate
+- `main` enthält Release `v0.3.20` einschließlich Familienruhe-Übersicht und read-only-Schichtzentrale.
+- Die neue Darstellung ist auf Desktop (1280 CSS-Pixel) und im mobilen 390×844-Viewport geprüft; Übersicht und Wandmodus bleiben ohne horizontalen Überlauf.
+- Die letzte CI-/Deploy-Prüfung auf `main` ist erfolgreich. Der verbleibende externe Gate ist die getrennte Rollenmatrix für Einladungen und Datenzugriff.
+- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) meldet weiterhin `INACTIVE`. Bis zur Reaktivierung bleiben Live-RLS und Realtime unverändert owner-only.
 
 ## Aktive Reihenfolge
 1. Einladungserzeugung und atomare Einladungsannahme mit separater Einstellungen-UI verifizieren; Widerruf bleibt als Service vorhanden.
@@ -22,9 +28,10 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 
 ## WORK QUEUE
 ### READY
-- Getrennte Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen; danach die Zugriffsmatrix ausführen.
+- Keine sichere Live-Aktion ist aktuell bereit: Für die Rollenmatrix müssen zuerst ein erreichbares Supabase-Projekt und vier getrennte synthetische Testkonten verfügbar sein.
 
 ### WAITING
+- Supabase-Projekt reaktivieren bzw. erreichbar machen und getrennte Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen; danach die in `docs/INVITATION_FLOW.md` definierte Zugriffsmatrix ausführen. Es wurden dafür keine echten Familiendaten verwendet.
 - Nach Abschluss/Merge des Dienstplanimports: Coparent-Kalenderansicht für Anna, ausschließlich lesend und begrenzt auf Umgangszeiten mit den Kindern (`source: custody`), Schule, Hobbys/Sport und Geburtstage bzw. ausdrücklich freigegebene Kinderfeiern. Schichten/Dienstpläne, allgemeine oder private Termine sowie Einstellungen und Verwaltungsfunktionen bleiben verborgen. Umsetzung erst nach Zugriffsmatrix mit getrennten Konten; RLS muss denselben Filter serverseitig erzwingen. Bis dahin bleibt Live owner-only.
 - Repo-weites Architektur-/Security-Audit nach Abschluss der ersten sicheren Mehrbenutzer-Synchronisierung.
 - End-to-End-Mehrbenutzer-Audit mit owner/partner/coparent; Voraussetzung: Einladungsfluss und Kalender-Synchronisierung für mehrere Konten fertig.
@@ -65,4 +72,5 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Zugängliche Live-Fehlermeldungen sowie Fokus-Rückgabe für Termin-, Verschiebe- und Schichtdialoge.
 - Lokales Punkte-/Belohnungsmodul für erledigte Aufgaben und Routinen mit Fortschritt je Kalenderperson.
 - Lokaler Dienstplanfoto-Import mit prüfbarer OCR-Vorschau, Teamübersicht, eigener Kalenderprojektion, Dateigrenzen und gemeinsamer Vorschau-/Speichervalidierung.
+
 
