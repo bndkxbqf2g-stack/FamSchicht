@@ -72,3 +72,6 @@ Die Live-Datenbank bleibt owner-only. Die Policy-Entscheidung ist getroffen; der
 - Danach werden Advisor, Grants und der Edge-Function-Pfad erneut geprüft. Der Rollback ist nur eine Notmaßnahme; er stellt den bekannten kritischen Advisor-Hinweis wieder her und erlaubt keine Mehrbenutzerfreigabe.
 
 Keine echten sensiblen Familiendaten eingeben, bevor die Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
+
+
+
