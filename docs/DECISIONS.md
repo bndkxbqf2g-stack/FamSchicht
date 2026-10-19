@@ -1,6 +1,6 @@
 # DECISIONS
 
-Stand: 25.09.2026
+Stand: 19.10.2026
 
 ## D-001 — Schrittweise Entwicklung
 Änderungen erfolgen in kleinen, abgeschlossenen Paketen. Tests und CI sind Gate vor dem nächsten Paket.
@@ -32,5 +32,7 @@ Kleine/mittlere Pakete bleiben im Projektchat. Repo-weite Audits, große Migrati
 ## D-010 — Einladungen sind serverseitig, gebunden und einmalig
 Der Browser erhält keine freien Schreibrechte auf `memberships`. Einladungen für `partner` und `coparent` werden serverseitig erzeugt und angenommen. Der rohe Einladungstoken wird nur an den Empfänger ausgegeben; gespeichert wird ausschließlich ein Hash. Annahme erfordert ein authentifiziertes Konto mit passender E-Mail und ist atomar, ablaufend, widerrufbar und einmalig. Mehrbenutzer-RLS wird erst nach erfolgreicher Zugriffsmatrix mit getrennten Testkonten aktiviert.
 
-## D-011 — Coparent erhält eine beschränkte Kalenderansicht
-Anna soll als Coparent den Kalender ausschließlich lesend sehen: Umgangszeiten, an denen die Kinder beim Owner sind, sowie Kindertermine der Kategorien Schule, Sport/Hobbys und Geburtstag bzw. ausdrücklich freigegebene Kinderfeiern. Schicht-/Dienstplandaten, sonstige private oder allgemeine Termine und Einstellungen/Verwaltung gehören nicht zu dieser Ansicht. Die Grenze muss sowohl in der UI als auch serverseitig durch RLS gelten. `household_members`-Person Anna ist keine Zugriffsrolle; die Coparent-Rolle wird getrennt über `memberships` und den abgesicherten Einladungsfluss vergeben. Umsetzung erst nach dem Dienstplanimport und erfolgreicher Zugriffsmatrix mit getrennten Testkonten; Live bleibt bis dahin owner-only.
+## D-011 — Coparent erhält gemeinsame Kalender- und Aufgabenrechte
+Anna erhält als authentifizierter Coparent Zugriff auf gemeinsame Kalenderdaten und Aufgaben. Sie darf diese Einträge lesen, anlegen und bearbeiten, solange `visibility` nicht `self` ist und `category` weder `shift` noch `private` ist. Das umfasst auch gemeinsame Einträge, die der Owner erstellt hat, und verhindert den Wechsel eines Events zu einem anderen Haushalt oder Ersteller.
+
+Schichten/Dienstpläne, private Kategorien und `self`-Einträge bleiben für Anna unsichtbar und unveränderbar. Löschen ist nicht Teil der Freigabe und bleibt owner-only. `household_members`, `memberships`, Einladungsdaten sowie Haushalts-, Rollen- und Einstellungenverwaltung bleiben owner-only. Der Client erhält für die Kalenderverbindung nur den serverseitig abgeleiteten Haushaltskontext; die Tabellenrechte werden nicht erweitert. Die Grenze gilt sowohl in der UI als auch durch RLS und wurde mit getrennten synthetischen Owner-/Partner-/Coparent-/Fremdkonten geprüft.
