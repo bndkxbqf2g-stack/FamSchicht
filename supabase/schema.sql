@@ -176,4 +176,3 @@ using (creator_id=(select auth.uid()) and public.is_household_member(household_i
 
 -- Backfill for projects created before custody sync metadata was introduced.
 alter table public.calendar_events add column if not exists metadata jsonb not null default '{}'::jsonb;
-
