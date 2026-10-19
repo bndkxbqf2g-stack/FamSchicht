@@ -73,3 +73,6 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Zugängliche Live-Fehlermeldungen sowie Fokus-Rückgabe für Termin-, Verschiebe- und Schichtdialoge.
 - Lokales Punkte-/Belohnungsmodul für erledigte Aufgaben und Routinen mit Fortschritt je Kalenderperson.
 - Lokaler Dienstplanfoto-Import mit prüfbarer OCR-Vorschau, Teamübersicht, eigener Kalenderprojektion, Dateigrenzen und gemeinsamer Vorschau-/Speichervalidierung.
+
+
+
