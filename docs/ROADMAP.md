@@ -6,12 +6,12 @@ Stand: 19.10.2026
 - `main` enthält Release `v0.3.20` einschließlich Familienruhe-Übersicht und read-only-Schichtzentrale.
 - Die neue Darstellung ist auf Desktop (1280 CSS-Pixel) und im mobilen 390×844-Viewport geprüft; Übersicht und Wandmodus bleiben ohne horizontalen Überlauf.
 - Die letzte CI-/Deploy-Prüfung auf `main` ist erfolgreich. Der verbleibende externe Gate ist die getrennte Rollenmatrix für Einladungen und Datenzugriff.
-- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist wieder `ACTIVE_HEALTHY`. Live-RLS und Realtime bleiben bis zur geprüften Rollenmatrix unverändert owner-only; der Security Advisor meldet noch eine offene RLS-Entscheidung für den privaten Einladungsspeicher.
+- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist `ACTIVE_HEALTHY`. Die private Einladungstabelle ist jetzt zusätzlich per `service_role`-only RLS geschützt; öffentliche Tabellen, Partner-/Coparent-Datenzugriff und Realtime bleiben bis zur Rollenmatrix owner-only.
 
 ## Aktive Reihenfolge
-1. Bestätigte RLS-Policy für `private.household_invitations` als Migration kontrolliert anwenden und den serverseitigen `service_role`-Grenzpfad per Smoke-Test verifizieren.
-2. Einladungserzeugung und atomare Einladungsannahme mit separater Einstellungen-UI verifizieren; Widerruf bleibt als Service vorhanden.
-3. Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten ausführen.
+1. Den serverseitigen `service_role`-Grenzpfad sowie Erzeugung, atomare Annahme und Widerruf von Einladungen per Smoke-Test verifizieren.
+2. Zugriffsmatrix mit den vier getrennten synthetischen Owner-/Partner-/Coparent-/Fremdkonten ausführen.
+3. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
 4. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
 5. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
 6. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
@@ -29,10 +29,10 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 
 ## WORK QUEUE
 ### READY
-- Das Supabase-Projekt ist erreichbar; read-only Migration-, Tabellen-, Rechte- und Advisor-Prüfungen sind abgeschlossen. Die bestätigte `service_role`-only-RLS-Migration und ihr Regressionstest sind im Repository vorbereitet.
+- Das Supabase-Projekt ist erreichbar; Migration-, Tabellen-, Rechte- und Advisor-Prüfungen sind abgeschlossen. Die bestätigte `service_role`-only-RLS-Migration ist live, und vier synthetische Rollen-Konten stehen für die Zugriffsmatrix bereit.
 
 ### WAITING
-- Live-Migration mit Smoke-Test und dokumentiertem Rollback ausführen; anschließend getrennte synthetische Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen und die in `docs/INVITATION_FLOW.md` definierte Zugriffsmatrix ausführen. Es wurden dafür keine echten Familiendaten verwendet.
+- Den Live-Smoke-Test und anschließend die in `docs/INVITATION_FLOW.md` definierte Zugriffsmatrix mit den vier synthetischen Rollen-Konten ausführen. Es wurden dafür keine echten Familiendaten verwendet.
 - Nach Abschluss/Merge des Dienstplanimports: Coparent-Kalenderansicht für Anna, ausschließlich lesend und begrenzt auf Umgangszeiten mit den Kindern (`source: custody`), Schule, Hobbys/Sport und Geburtstage bzw. ausdrücklich freigegebene Kinderfeiern. Schichten/Dienstpläne, allgemeine oder private Termine sowie Einstellungen und Verwaltungsfunktionen bleiben verborgen. Umsetzung erst nach Zugriffsmatrix mit getrennten Konten; RLS muss denselben Filter serverseitig erzwingen. Bis dahin bleibt Live owner-only.
 - Repo-weites Architektur-/Security-Audit nach Abschluss der ersten sicheren Mehrbenutzer-Synchronisierung.
 - End-to-End-Mehrbenutzer-Audit mit owner/partner/coparent; Voraussetzung: Einladungsfluss und Kalender-Synchronisierung für mehrere Konten fertig.
