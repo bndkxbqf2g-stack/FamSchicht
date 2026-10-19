@@ -1,6 +1,12 @@
 # Datenbankstatus
 
-## Live-Prüfung 14.10.2026
+## Live-Prüfung 19.10.2026
+
+- Die Supabase-Management-API meldet das Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) weiterhin als `INACTIVE`.
+- Wegen dieses Projektstatus konnte die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix nicht ausgeführt werden. Es wurden keine Testkonten, Migrationen, RLS-Änderungen oder Realtime-Schreibaktionen gestartet.
+- Der veröffentlichte App-Stand bleibt deshalb bewusst owner-only; die bestehende Einladungs-Edge-Function und die privaten Einladungsdaten werden nicht als Mehrbenutzerfreigabe ausgegeben.
+
+## Vorherige Live-Prüfung 14.10.2026
 
 - Die Supabase-Management-API meldet das Projekt `FamSchicht` als `INACTIVE`.
 - Read-only-Abfragen auf Migrationen und Tabellen liefen wegen eines Verbindungs-Timeouts nicht durch; deshalb wurde keine Zugriffsmatrix gestartet.
@@ -58,4 +64,5 @@ Die zuvor gemeldeten vier ungeindexierten Fremdschlüssel sind behoben. Der Perf
 Die Live-Datenbank bleibt owner-only. Der nächste Schritt ist die serverseitige Erzeugung und atomare Annahme von Einladungen mit getrennten Testkonten. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
 
 Keine echten sensiblen Familiendaten eingeben, bevor die Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
+
 
