@@ -234,6 +234,26 @@ with check (
   and category not in ('shift','private')
 );
 
+create policy event_household_owner_read on public.calendar_events for select to authenticated
+using (exists (
+  select 1 from public.households h
+  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+));
+create policy event_household_owner_update on public.calendar_events for update to authenticated
+using (exists (
+  select 1 from public.households h
+  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+))
+with check (exists (
+  select 1 from public.households h
+  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+));
+create policy event_household_owner_delete on public.calendar_events for delete to authenticated
+using (exists (
+  select 1 from public.households h
+  where h.id=calendar_events.household_id and h.owner_id=(select auth.uid())
+));
+
 create policy events_delete on public.calendar_events for delete to authenticated
 using (creator_id=(select auth.uid()) and public.is_household_member(household_id));
 
