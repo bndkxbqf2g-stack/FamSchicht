@@ -4,6 +4,7 @@
 - Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
 - Migrationen, Tabellen, Grants, Policies und Function-Sicherheitsmerkmale wurden danach ausschließlich read-only geprüft. Die vier öffentlichen Tabellen bleiben RLS-geschützt und owner-only; die Rollenmatrix wurde noch nicht ausgeführt.
 - Der Security Advisor meldet nun konkret, dass `private.household_invitations` live kein RLS aktiviert hat. Die private Schema-/Grant-Grenze und der serverseitige `service_role`-RPC-Grenzpfad bleiben unverändert; eine RLS-Policy wird vor jeder Einladungs-Rollenmatrix explizit entschieden.
+- Die `service_role`-only-Policy ist jetzt fachlich bestätigt und als Migration mit Regressionstest vorbereitet; live bleibt sie bis zur kontrollierten Ausführung mit Smoke-Test und Rollback-Plan unverändert.
 - Es wurden keine Testkonten, produktiven Familieninformationen, Schemaänderungen oder Realtime-Schreibaktionen angelegt.
 
 ## Update 19.10.2026 – Tastatur- und Mobile-Abnahme
@@ -18,7 +19,7 @@
 - Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.20`.
 - Die neue Darstellung wurde für Desktop und mobile Reflow-Regeln ergänzt und im Browser bei 1280 CSS-Pixeln sowie 390×844 geprüft. Übersicht und Wandmodus blieben ohne horizontalen Überlauf; der Wandmodus zeigte weiterhin keine Änderungsziele und einen sichtbaren Rückweg.
 - PR #38 ist in `main` gemergt. Der zugehörige GitHub-Actions-Lauf `39190275960` für „CI and Deploy Pages“ ist erfolgreich; der Pages-Deploy wurde für den Main-Push ausgeführt.
-- Die externe Abschlussfreigabe bleibt die getrennte Rollenmatrix. Der damalige Prüfstand meldete das Supabase-Projekt noch `INACTIVE`; nach der späteren Reaktivierung bleiben die Matrix, die RLS-Policy-Prüfung für private Einladungen und Realtime weiterhin offen.
+- Die externe Abschlussfreigabe bleibt die getrennte Rollenmatrix. Das Supabase-Projekt meldet am 19.10.2026 weiterhin `INACTIVE`; deshalb wurden keine Testkonten, Migrationen, Mehrbenutzer-RLS oder Realtime-Änderungen vorgenommen.
 
 ## Update 15.10.2026 – PDF-Dienstplanimport
 - Der Dienstplan-Upload akzeptiert jetzt bis zu vier JPEG-/PNG-Fotos oder PDFs mit zusammen maximal 35 MB. Die Vorschau und manuelle Bestätigung bleiben unverändert verpflichtend.
