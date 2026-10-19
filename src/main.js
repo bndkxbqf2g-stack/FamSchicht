@@ -125,6 +125,7 @@ let view = 'home';
 let personFilter = 'all';
 let categoryFilter = 'all';
 let cloud = null;
+let accessRole = null;
 let syncState = 'local';
 let cloudConnectionId = 0;
 let settingsReturnFocus = null;
@@ -183,7 +184,34 @@ function applyHouseholdMembers(members) {
   }
 }
 
+function currentAccountRole() {
+  return cloud?.role || accessRole || null;
+}
+
+function isCoparentAccount() {
+  return currentAccountRole() === 'coparent';
+}
+
+function isRestrictedAccount() {
+  const role = currentAccountRole();
+  return Boolean(role && role !== 'owner');
+}
+
+function canManageSettings() {
+  return !isRestrictedAccount();
+}
+
+function canEditCalendar() {
+  const role = currentAccountRole();
+  return !role || role === 'owner' || role === 'coparent';
+}
+
+function canSeeShiftData() {
+  return !isRestrictedAccount();
+}
+
 function openAccountSettings(trigger) {
+  if (!canManageSettings()) return;
   settingsReturnFocus = trigger || document.activeElement;
   view = 'settings';
   render();
@@ -369,8 +397,13 @@ async function connectCloud() {
   render();
   if (navigator.onLine === false) {
     cloud = null;
-    applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = loadLocalEntries();
+    if (isRestrictedAccount()) {
+      entries = [];
+    } else {
+      applyHouseholdMembers(bootstrapHouseholdMembers);
+      entries = loadLocalEntries();
+    }
+    render();
     return;
   }
 
@@ -380,6 +413,7 @@ async function connectCloud() {
   const user = data?.user;
   if (!user) {
     cloud = null;
+    accessRole = null;
     syncState = 'local';
     applyHouseholdMembers(bootstrapHouseholdMembers);
     entries = loadLocalEntries();
@@ -387,40 +421,76 @@ async function connectCloud() {
     return;
   }
 
-  const {data: homes, error} = await supabase
-    .from('households')
-    .select('id')
-    .eq('owner_id', user.id)
-    .limit(1);
-
+  let contextRows = null;
+  let contextError = null;
+  try {
+    const response = await supabase.rpc('get_my_household_context');
+    contextRows = response.data;
+    contextError = response.error;
+  } catch (error) {
+    contextError = error;
+  }
   if (current !== cloudConnectionId) return;
-  if (error || !homes?.length) {
+
+  let context = contextRows?.[0] || null;
+  if (!context) {
+    const {data: homes, error} = await supabase
+      .from('households')
+      .select('id')
+      .eq('owner_id', user.id)
+      .limit(1);
+
+    if (current !== cloudConnectionId) return;
+    if (error || !homes?.length) {
+      if (contextError) console.warn('Cloud-Haushaltskontext konnte nicht geladen werden', contextError);
+      cloud = null;
+      accessRole = null;
+      syncState = error ? 'error' : 'local';
+      applyHouseholdMembers(bootstrapHouseholdMembers);
+      entries = [];
+      render();
+      return;
+    }
+    context = {household_id: homes[0].id, membership_role: 'owner'};
+  }
+
+  accessRole = String(context.membership_role || '');
+  if (!['owner', 'coparent'].includes(accessRole)) {
     cloud = null;
-    syncState = error ? 'error' : 'local';
+    syncState = 'error';
     applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = loadLocalEntries();
+    entries = [];
     render();
     return;
   }
 
-  cloud = {householdId: homes[0].id, userId: user.id};
-  try {
-    const persistedMembers = await ensureOwnerHouseholdMembers(
-      supabase,
-      cloud.householdId,
-    );
-    applyHouseholdMembers(persistedMembers);
-  } catch (err) {
-    console.error('Haushaltsmitglieder konnten nicht synchronisiert werden', err);
-    syncState = 'error';
+  cloud = {
+    householdId: context.household_id,
+    userId: user.id,
+    role: accessRole,
+  };
+  if (accessRole === 'owner') {
+    try {
+      const persistedMembers = await ensureOwnerHouseholdMembers(
+        supabase,
+        cloud.householdId,
+      );
+      applyHouseholdMembers(persistedMembers);
+    } catch (err) {
+      console.error('Haushaltsmitglieder konnten nicht synchronisiert werden', err);
+      syncState = 'error';
+      applyHouseholdMembers(bootstrapHouseholdMembers);
+    }
+  } else {
     applyHouseholdMembers(bootstrapHouseholdMembers);
   }
 
   try {
-    entries = await loadOwnerEvents(supabase, cloud.householdId);
+    entries = await loadOwnerEvents(supabase, cloud.householdId, {role: cloud.role});
   } catch (err) {
     console.error('Kalender konnte nicht synchronisiert werden', err);
     syncState = 'error';
+    entries = [];
     render();
     return;
   }
@@ -430,10 +500,15 @@ async function connectCloud() {
 }
 
 function render() {
+  const coparent = isCoparentAccount();
+  if (!canManageSettings() && view === 'settings') view = 'all';
+  if (!canSeeShiftData() && view === 'shift') view = 'all';
   if (isWallMode(displayMode) && !['all', 'settings'].includes(view)) view = 'all';
   const days = calendarDates(focusedDate, month, calendarMode);
   const today = dateKey(new Date());
-  const displayEntries = [...entries, ...importedRosterCalendarEntries(), ...configuredHolidayEntries()];
+  const displayEntries = canSeeShiftData()
+    ? [...entries, ...importedRosterCalendarEntries(), ...configuredHolidayEntries()]
+    : [...entries.filter(entry => entry.type !== 'shift'), ...configuredHolidayEntries()];
   const visibleEntries = filterCalendarEntries(
     displayEntries.filter(entry => canSee(entry, view)),
     {
@@ -447,7 +522,9 @@ function render() {
   const weekdayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   const calendarHint = isWallMode(displayMode)
     ? 'Wandmodus: Die Kalenderkarten sind read-only. Zum Bearbeiten den Wandmodus beenden.'
-    : 'Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
+    : coparent
+      ? 'Gemeinsame Termine und Aufgaben kannst du bearbeiten. Private Einträge und Dienste bleiben ausgeblendet.'
+      : 'Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
   const calendarMarkup =
     '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
     '<div class="month"><button type="button" id="prev" aria-label="Vorherige ' +
@@ -460,15 +537,17 @@ function render() {
         (calendarMode === mode) + '" class="' + (calendarMode === mode ? 'active' : '') + '">' + label + '</button>')
       .join('') +
     '</div><button type="button" id="go-today">Heute</button>' +
-    (isWallMode(displayMode) ? '' : '<button type="button" id="quick-event" class="primary">+ Termin</button>') +
+    (isWallMode(displayMode) || !canEditCalendar() ? '' : '<button type="button" id="quick-event" class="primary">+ Termin</button>') +
     (view === 'shift' && !isWallMode(displayMode) ? '<button type="button" id="shift-capture">+ Schnell erfassen</button>' : '') + '</div></div>' +
     '<div class="calendar-summary"><span><strong>' + summary.total + '</strong> Einträge</span><span><strong>' + summary.family +
-    '</strong> Familie</span><span><strong>' + summary.shifts + '</strong> Dienste</span></div>' +
+    '</strong> Familie</span>' + (canSeeShiftData() ? '<span><strong>' + summary.shifts + '</strong> Dienste</span>' : '') + '</div>' +
     '<details class="calendar-filter-details"><summary>Filter · Personen und Bereiche</summary><div class="calendar-filters"><div class="filter-block"><span class="filter-heading">Personen</span><div class="filter-group" aria-label="Personenfilter">' +
     memberFilterOptions(householdMembers).map(([id, label]) =>
       '<button type="button" data-person-filter="' + id + '" class="' + (personFilter === id ? 'active' : '') + '" aria-pressed="' + (personFilter === id) + '">' + label + '</button>').join('') +
     '</div></div><div class="filter-block"><span class="filter-heading">Bereich</span><div class="filter-group" aria-label="Kategoriefilter">' +
-    [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']].map(([id, label]) =>
+    (canSeeShiftData()
+      ? [['all', 'Alle'], ['family', 'Familie'], ['shift', 'Dienste'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']]
+      : [['all', 'Alle'], ['family', 'Familie'], ['school', 'Schule'], ['sport', 'Sport'], ['doctor', 'Arzt'], ['holiday', 'Urlaub'], ['task', 'Aufgaben'], ['routine', 'Routinen']]).map(([id, label]) =>
       '<button type="button" data-category-filter="' + id + '" class="' + (categoryFilter === id ? 'active' : '') + '" aria-pressed="' + (categoryFilter === id) + '">' +
       '<span class="filter-dot ' + id + '"></span>' + label + '</button>').join('') +
     '</div></div></div></details>' +
@@ -489,14 +568,14 @@ function render() {
         }) + (day === today ? ' · Heute' : '')) + '">' + Number(day.slice(-2)) + '</button></b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
           .map(e => {
-            const readOnly = isWallMode(displayMode) || isReadOnlyCalendarEntry(e);
+            const readOnly = !canEditCalendar() || isWallMode(displayMode) || isReadOnlyCalendarEntry(e);
             const editMarkup = readOnly
               ? (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span>'
               : '<button type="button" class="entry-edit" data-edit="' + h(e.id) + '" aria-label="' + h(e.title) + ' bearbeiten">' +
                 (e.start ? '<span class="entry-time">' + h(e.start) + '</span>' : '') +
                 '<span class="entry-label">' + h(e.title) + '</span></button>';
-            const removeMarkup = readOnly ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" data-remove-date="' + h(day) + '" aria-label="' + h(e.title + ' löschen') + '">×</button>';
+            const removeMarkup = readOnly || isCoparentAccount() ? '' : '<button type="button" class="entry-remove" data-remove="' + h(e.id) + '" data-remove-date="' + h(day) + '" aria-label="' + h(e.title + ' löschen') + '">×</button>';
             const moveMarkup = readOnly ? '' : '<button type="button" class="entry-move" data-move-open="' + h(e.id) + '" data-move-date="' + h(day) + '" aria-label="' + h(e.title) + ' verschieben">↕</button>';
             return '<div class="entry ' + h(e.type) + ' owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + (e.type === 'shift' ? '' : ' ' + h(e.eventKind || 'event')) + (isTaskCompletedOnDate(e, day) ? ' completed' : '') + '" title="' + h(e.type === 'shift' ? (shiftOwnerDisplayName(e, householdMemberNames) || 'Unbekannt') + ': ' + e.title : e.title) + '"' +
             (readOnly ? '' : ' role="group" data-move-id="' + h(e.id) + '" data-move-date="' + h(day) + '" draggable="true" aria-label="Eintrag: ' + h(e.title) + '. Ziehen zum Verschieben."') + '>' +
@@ -507,7 +586,7 @@ function render() {
       : '<div class="day empty" aria-hidden="true"></div>')
       .join('') +
     '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
-    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => isWallMode(displayMode) || isReadOnlyCalendarEntry(e)
+    (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => !canEditCalendar() || isWallMode(displayMode) || isReadOnlyCalendarEntry(e)
       ? '<span class="selected-day-entry"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</span>'
       : '<button type="button" data-edit="' + h(e.id) + '"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</button>').join('') || '<span>Keine Einträge</span>') + '</div></section>';
 
@@ -524,19 +603,27 @@ function render() {
     (view === 'home' ? 'Übersicht' : view === 'today' ? 'Heute' : view === 'shift' ? 'Dienstplan' : view === 'family' ? 'Familie' : view === 'settings' ? 'Einstellungen' : 'Kalender');
   const viewEyebrow = isWallMode(displayMode) ? 'Fokussierte Wandansicht' : 'Gemeinsamer Familienkalender';
   const dialogOpen = Boolean(dayDialogDate || shiftDialogEventId || moveDialog || deleteDialog || confirmationDialog);
+  const navigationItems = [
+    ['home', '⌂', 'Übersicht'],
+    ['all', '▦', 'Kalender'],
+    ['today', '◷', 'Heute'],
+    ['family', '⌂', 'Familie'],
+    ...(canSeeShiftData() ? [['shift', '↔', 'Dienste']] : []),
+    ...(canManageSettings() ? [['settings', '⚙', 'Einstellungen']] : []),
+  ];
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
     '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.20</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
-    [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
+    navigationItems
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
       .join('') +
     '</nav><div class="sidebar-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' +
     h(syncStatusLabel(syncState)) + '</div></aside>' +
     '<section class="app-workspace"><header class="app-topbar"><div><p class="eyebrow">' + h(viewEyebrow) + '</p><h1 id="view-title" tabindex="-1">' +
     h(viewTitle) +
-    '</h1></div><button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' + displayAction + '<div class="member-legend" aria-label="Haushaltsmitglieder">' +
+    '</h1></div>' + (canManageSettings() ? '<button class="mobile-settings" type="button" data-view="settings" aria-label="Einstellungen öffnen" title="Einstellungen">⚙</button>' : '') + displayAction + '<div class="member-legend' aria-label="Haushaltsmitglieder">' +
     householdMembers.map(member => '<span class="member ' + h(member.colorKey) + '"><span class="member-avatar" aria-hidden="true">' + h(memberInitials(member)) + '</span><span>' + h(member.name) + '</span></span>').join('') +
     '</div><div class="mobile-sync-status" role="status" aria-live="polite"><span class="status-dot ' + syncStatusClass(syncState) + '"></span>' + h(syncStatusLabel(syncState)) + '</div></header>' +
     appNoticeMarkup() + storageNoticeMarkup() + body + '</section></div>' +
@@ -587,8 +674,12 @@ function startCloudConnection() {
     console.warn('Cloud-Synchronisierung nicht verfügbar; lokaler Plan bleibt aktiv.', error);
     syncState = navigator.onLine === false ? 'offline' : 'error';
     cloud = null;
-    applyHouseholdMembers(bootstrapHouseholdMembers);
-    entries = loadLocalEntries();
+    if (isRestrictedAccount()) {
+      entries = [];
+    } else {
+      applyHouseholdMembers(bootstrapHouseholdMembers);
+      entries = loadLocalEntries();
+    }
     render();
   });
 }
@@ -672,13 +763,13 @@ function todayOverviewMarkup(today, displayEntries = entries) {
     '<div class="today-list">' +
     (items.length
       ? items.map(entry => {
-        const readOnly = isReadOnlyCalendarEntry(entry);
+        const readOnly = !canEditCalendar() || isReadOnlyCalendarEntry(entry);
         const content = '<time>' + h(eventTimeLabel(entry)) + '</time><span class="today-item-copy"><strong>' + h(entry.title) + '</strong><small>' +
           h(entry.type === 'shift' ? (shiftOwnerDisplayName(entry, householdMemberNames) || 'Nicht zugeordnet') : 'Familie') + '</small></span>';
         return '<article class="today-item ' + h(entry.type) + ' owner-' + h(entryOwnerStyleKey(entry, householdMemberNames)) + (entry.type === 'shift' ? '' : ' ' + h(entry.eventKind || 'event')) + (isTaskCompletedOnDate(entry, today) ? ' completed' : '') + '"' +
           (readOnly ? '' : ' role="group" aria-label="Eintrag: ' + h(entry.title) + '"') + '>' +
           (readOnly ? content : '<button type="button" class="today-item-edit" data-edit="' + h(entry.id) + '" aria-label="' + h(entry.title) + ' bearbeiten">' + content + '</button>') +
-          (readOnly ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" data-remove-date="' + h(today) + '" aria-label="' + h(entry.title + ' löschen') + '">×</button>') + '</article>';
+          (readOnly || isCoparentAccount() ? '' : '<button type="button" class="today-item-remove" data-remove="' + h(entry.id) + '" data-remove-date="' + h(today) + '" aria-label="' + h(entry.title + ' löschen') + '">×</button>') + '</article>';
       }).join('')
       : '<div class="empty-state"><strong>Heute ist noch nichts eingetragen.</strong><span>Termin direkt hinzufügen.</span></div>') +
     '</div></section>';
@@ -699,7 +790,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
     dayEntries.forEach(entry => upcoming.push({entry, date: key, offset}));
   }
   upcoming.sort(compareAgendaItems);
-  const nextShift = upcoming.find(item => item.entry.type === 'shift');
+  const nextShift = canSeeShiftData() ? upcoming.find(item => item.entry.type === 'shift') : null;
   const appointments = upcoming.filter(item => item.entry.type !== 'shift' && !isTaskLikeEntry(item.entry)).slice(0, 4);
   const taskWindowStart = dateKey(shiftCalendarDate(base, 'day', -14));
   const taskWindowEnd = dateKey(shiftCalendarDate(base, 'day', 21));
@@ -707,7 +798,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
     .filter(occurrence => !occurrence.completed).length;
   const dateLabel = (key, offset) => offset === 0 ? 'Heute' : offset === 1 ? 'Morgen' :
     new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'short'});
-  const nextShiftMarkup = nextShift
+  const nextShiftMarkup = canSeeShiftData() && nextShift
     ? '<article class="next-shift-card owner-' + h(entryOwnerStyleKey(nextShift.entry, householdMemberNames)) + '"' +
       (isReadOnlyCalendarEntry(nextShift.entry) ? '' : ' data-edit="' + h(nextShift.entry.id) + '" role="button" tabindex="0"') + '>' +
       '<div class="next-shift-copy"><span class="home-kicker">Dein nächster Dienst</span><h2>' + h(nextShift.entry.title) + '</h2>' +
@@ -717,7 +808,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
   const appointmentMarkup = appointments.length
     ? appointments.map(item => '<article class="home-agenda-item ' + h(item.entry.type) + ' owner-' + h(entryOwnerStyleKey(item.entry, householdMemberNames)) +
       (item.entry.type === 'shift' ? '' : ' ' + h(item.entry.eventKind || 'event')) + '"' +
-      (isReadOnlyCalendarEntry(item.entry) ? '' : ' data-edit="' + h(item.entry.id) + '" role="button" tabindex="0"') + '>' +
+      (!canEditCalendar() || isReadOnlyCalendarEntry(item.entry) ? '' : ' data-edit="' + h(item.entry.id) + '" role="button" tabindex="0"') + '>' +
       '<time><strong>' + h(dateLabel(item.date, item.offset)) + '</strong><span>' + h(eventTimeLabel(item.entry)) + '</span></time>' +
       '<span class="agenda-marker" aria-hidden="true"></span><span class="agenda-copy"><strong>' + h(item.entry.title) + '</strong>' +
       '<small>' + h(item.entry.type === 'shift' ? (shiftOwnerDisplayName(item.entry, householdMemberNames) || 'Dienst') : 'Familie') + '</small></span><span class="agenda-arrow">›</span></article>').join('')
@@ -731,7 +822,7 @@ function homeOverviewMarkup(today, displayEntries = entries) {
   return '<section class="home-dashboard"><div class="home-welcome"><div><p class="home-kicker">' +
     h(new Date(today + 'T12:00:00').toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'})) +
     '</p><h2>Hallo zusammen.</h2><p>Hier ist euer Familienplan auf einen Blick.</p></div>' +
-    '<button id="home-add-event" class="home-add-button" type="button"><span>＋</span> Termin</button></div>' +
+    (canEditCalendar() ? '<button id="home-add-event" class="home-add-button" type="button"><span>＋</span> Termin</button>' : '') + '</div>' +
     '<div class="home-highlights">' + nextShiftMarkup + taskFocusMarkup + '</div>' +
     '<section class="home-agenda"><div class="home-section-heading"><div><span class="home-kicker">Die nächsten Tage</span><h2>Anstehende Termine</h2></div>' +
     '<button type="button" data-view="all" class="home-text-button">Kalender ansehen <span>›</span></button></div>' +
@@ -770,7 +861,7 @@ function taskOverviewMarkup(today, displayEntries = entries) {
     }).join('')
     : '<div class="home-task-empty"><strong>Keine offenen Aufgaben</strong><span>Aufgaben erscheinen hier, sobald du sie im Termineditor anlegst.</span></div>';
   return '<section class="home-tasks"><div class="home-section-heading"><div><span class="home-kicker">Gemeinsam erledigen</span><h2>Aufgaben & Routinen</h2></div>' +
-    '<button type="button" data-task-new="true" class="home-text-button">＋ Aufgabe <span>›</span></button></div>' +
+    (canEditCalendar() ? '<button type="button" data-task-new="true" class="home-text-button">＋ Aufgabe <span>›</span></button>' : '') + '</div>' +
     '<div class="home-task-list">' + content + '</div></section>';
 }
 
@@ -798,7 +889,8 @@ function rewardsOverviewMarkup(displayEntries = entries) {
       : '';
 
   return '<section class="home-rewards" aria-label="Punkte und Belohnungen"><div class="home-section-heading"><div><span class="home-kicker">Motivation</span><h2>Punkte & Belohnungen</h2></div>' +
-    '<button type="button" data-view="settings" class="home-text-button">Verwalten <span>›</span></button></div>' + pointsMarkup + goalMarkup + '</section>';
+    (canManageSettings() ? '<button type="button" data-view="settings" class="home-text-button">Verwalten <span>›</span></button>' : '') +
+    '</div>' + pointsMarkup + goalMarkup + '</section>';
 }
 
 function shiftRosterMarkup(today) {
@@ -2112,6 +2204,7 @@ function downloadFile(name, content, type) {
 }
 
 function openDayDialog(date, eventId = null, trigger = document.activeElement) {
+  if (!canEditCalendar()) return;
   dialogReturnFocus = rememberDialogFocus(trigger);
   dayDialogDate = date;
   dayDialogEventId = eventId;
@@ -2145,7 +2238,7 @@ function closeMoveDialog() {
 
 function openDeleteDialog(id, trigger = document.activeElement) {
   const item = entries.find(entry => entry.id === id);
-  if (!item || isReadOnlyCalendarEntry(item)) return;
+  if (!canEditCalendar() || isCoparentAccount() || !item || isReadOnlyCalendarEntry(item)) return;
   dialogReturnFocus = rememberDialogFocus(trigger);
   deleteDialog = {id, busy: false};
   render();
@@ -2227,7 +2320,7 @@ async function handleDeleteDialogSubmit(event) {
   event.preventDefault();
   const current = deleteDialog;
   const item = entries.find(entry => entry.id === current?.id);
-  if (!current || current.busy || !item) return;
+  if (!canEditCalendar() || isCoparentAccount() || !current || current.busy || !item) return;
   const nextEntries = entries.filter(entry => entry.id !== item.id);
   deleteDialog = {...current, busy: true};
   render();
@@ -2380,6 +2473,7 @@ function handleDayDialogSubmit(event) {
 }
 
 function startShiftCapture() {
+  if (!canSeeShiftData()) return;
   const today = new Date();
   const isCurrentMonth = today.getFullYear() === month.getFullYear() && today.getMonth() === month.getMonth();
   shiftCaptureDate = dateKey(isCurrentMonth
@@ -2419,6 +2513,7 @@ function shiftCaptureMarkup() {
 let shiftSavePending = false;
 
 function handleShiftChoice(choice, {skipCollision = false, preserveFocus = true} = {}) {
+  if (!canSeeShiftData()) return;
   if (choice === 'close') {
     shiftCaptureDate = null;
     shiftConflict = null;
