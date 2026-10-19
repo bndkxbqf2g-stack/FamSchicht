@@ -3,8 +3,8 @@
 Stand: 19.10.2026
 
 ## Aktueller Release-Gate
-- `main` enthält Release `v0.3.20` einschließlich Familienruhe-Übersicht und read-only-Schichtzentrale.
-- Die neue Darstellung ist auf Desktop (1280 CSS-Pixel) und im mobilen 390×844-Viewport geprüft; Übersicht und Wandmodus bleiben ohne horizontalen Überlauf.
+- Der offene UI-Branch führt Release `v0.3.21` mit Familienruhe-Übersicht, read-only-Schichtzentrale und einer Volltext-Monatsansicht für Termine und Schichten.
+- Die Volltext-Monatsansicht wird auf Desktop (1280 CSS-Pixel) und im mobilen 390×844-Viewport geprüft; Tagesfelder wachsen mit dem Inhalt und verzichten auf Ellipsis/horizontales Einzeilen-Scrolling.
 - Die letzte CI-/Deploy-Prüfung auf `main` ist erfolgreich. Der verbleibende externe Gate ist die getrennte Rollenmatrix für Einladungen und Datenzugriff.
 - Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist wieder `ACTIVE_HEALTHY`. Live-RLS und Realtime bleiben bis zur geprüften Rollenmatrix unverändert owner-only; der Security Advisor meldet noch eine offene RLS-Entscheidung für den privaten Einladungsspeicher.
 
@@ -73,6 +73,3 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Zugängliche Live-Fehlermeldungen sowie Fokus-Rückgabe für Termin-, Verschiebe- und Schichtdialoge.
 - Lokales Punkte-/Belohnungsmodul für erledigte Aufgaben und Routinen mit Fortschritt je Kalenderperson.
 - Lokaler Dienstplanfoto-Import mit prüfbarer OCR-Vorschau, Teamübersicht, eigener Kalenderprojektion, Dateigrenzen und gemeinsamer Vorschau-/Speichervalidierung.
-
-
-

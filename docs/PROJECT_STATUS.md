@@ -1,5 +1,11 @@
 # PROJECT STATUS
 
+## Update 19.10.2026 – Volltext-Monatskalender
+- Die Monatsansicht zeigt Termine und Schichten im jeweiligen Tagesfeld mit vollständigem Titel und Uhrzeit. Tageskarten wachsen mit dem Inhalt; Ellipsis und horizontales Einzeilen-Scrolling sind für die Monatsansicht entfernt.
+- Die Darstellung bleibt auf kleinen Viewports lesbar: kompakte Schrift, farbliche Bereichs-/Schichtkarten und automatische Zeilenhöhe; Verschieben per Touch bleibt vom Textlayout getrennt.
+- Paketversion, Modul-Cache-Bust und Service-Worker-Shell-Cache stehen auf `v0.3.21`.
+- 238 Regressionstests, die statische Syntaxprüfung (83 Dateien), der Vite-Produktions-Build und das Asset-Budget bestehen. Die Vorschau wurde auf 714 CSS-Pixel Breite sichtbar geprüft; Desktop-1280, 390×844 und GitHub-CI bleiben vor dem Merge offen.
+
 ## Update 19.10.2026 – Supabase reaktiviert, Live-Sicherheitsprüfung
 - Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
 - Migrationen, Tabellen, Grants, Policies und Function-Sicherheitsmerkmale wurden danach ausschließlich read-only geprüft. Die vier öffentlichen Tabellen bleiben RLS-geschützt und owner-only; die Rollenmatrix wurde noch nicht ausgeführt.
@@ -27,7 +33,7 @@
 - Seitlich gescannte PDF- oder Bildseiten werden vor der OCR automatisch in die erwartete Querformat-Ausrichtung gedreht; damit werden Rasterzeilen nicht mehr überwiegend vertikal gelesen.
 - PDF- und OCR-Dateien werden nach der Verarbeitung verworfen. Bestätigte Zeilen bleiben ausschließlich lokal; unbekannte oder mehrdeutige Werte werden nicht geschätzt.
 
-## Update 15.10.2026 – Kompakte horizontale Monatskarten
+## Historischer Zwischenstand 15.10.2026 – Kompakte horizontale Monatskarten
 - Die mobile Monatsansicht zeigt Dienst- und Kalendereinträge jetzt kompakt einzeilig mit kleinerer Schrift; die frühere Zeichen-für-Zeichen-Umbruchdarstellung ist entfernt.
 - Vollständige Titel bleiben ohne Kürzel oder Ellipsis erhalten und können bei engen Tagesfeldern horizontal gelesen werden; mehrere Einträge bleiben im Tagesfeld vertikal scrollbar.
 - Die horizontale Titelbewegung wird bei Touch-Eingabe nicht als Verschieben des Kalendereintrags fehlinterpretiert; Desktop- und Tastaturbedienung bleiben unverändert.
@@ -345,6 +351,3 @@ Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Dan
 - Personen- und Bereichsfilter werden auch in der Heute-Ansicht angewendet.
 - Der mobile Termineditor ist ein einspaltiges, scrollbares Bottom-Sheet und bleibt oberhalb der mobilen Navigation bedienbar.
 - Der Synchronisationsstatus ist auf mobilen Geräten sichtbar.
-
-
-

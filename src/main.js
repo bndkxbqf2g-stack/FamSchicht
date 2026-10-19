@@ -94,7 +94,7 @@ import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
 import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
 import {userError} from './user-error.js';
-import './styles.css?v=0.3.20';
+import './styles.css?v=0.3.21';
 
 if ('serviceWorker' in navigator) {
   const appBase = import.meta.env.BASE_URL;
@@ -447,7 +447,7 @@ function render() {
   const weekdayLabels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
   const calendarHint = isWallMode(displayMode)
     ? 'Wandmodus: Die Kalenderkarten sind read-only. Zum Bearbeiten den Wandmodus beenden.'
-    : 'Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen. Für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
+    : 'Termine und Schichten werden im Tagesfeld vollständig angezeigt. Termine kannst du mit Maus oder Touch auf einen anderen Tag ziehen; für Tastaturbedienung den Eintrag öffnen und das Datum ändern.';
   const calendarMarkup =
     '<section class="panel calendar-panel"><div class="calendar-toolbar">' +
     '<div class="month"><button type="button" id="prev" aria-label="Vorherige ' +
@@ -527,7 +527,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.20</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.21</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -1163,13 +1163,6 @@ function bindMoveControls() {
       const deltaY = event.clientY - pointerState.startY;
       const distance = Math.hypot(deltaX, deltaY);
       if (!pointerState.moved && distance < 8) return;
-      if (!pointerState.moved && event.pointerType !== 'mouse' &&
-        entry.matches('.calendar.month-view .entry') &&
-        Math.abs(deltaX) > Math.abs(deltaY) && entry.scrollWidth > entry.clientWidth) {
-        pointerState = null;
-        entry.releasePointerCapture?.(event.pointerId);
-        return;
-      }
       if (!pointerState.moved) {
         pointerState.moved = true;
         entry.classList.add('moving');
@@ -2583,5 +2576,3 @@ window.addEventListener('famschicht:household-members-changed', () => {
   startCloudConnection();
 });
 window.__famschichtReady?.();
-
-
