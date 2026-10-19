@@ -100,3 +100,12 @@ test('coparent calendar access is shared but excludes private, self, and shift d
   assert.match(schema, /create policy households_read[\s\S]+public\.is_household_owner\(id\)/);
   assert.match(schema, /create policy memberships_read[\s\S]+public\.is_household_owner\(household_id\)/);
 });
+
+test('owner round-trip remains available for coparent-created shared events', () => {
+  const migration = read('supabase/migrations/20261019114500_complete_owner_event_scope_for_coparent_writes.sql');
+  assert.match(migration, /create policy event_household_owner_read/);
+  assert.match(migration, /create policy event_household_owner_update/);
+  assert.match(migration, /create policy event_household_owner_delete/);
+  assert.match(migration, /h\.owner_id = \(select auth\.uid\(\)\)/);
+});
+
