@@ -92,9 +92,10 @@ import {
 } from './rewards.js';
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
+import {calendarKeyboardOffset} from './calendar-keyboard.js';
 import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
 import {userError} from './user-error.js';
-import './styles.css?v=0.3.21';
+import './styles.css?v=0.3.22';
 
 if ('serviceWorker' in navigator) {
   const appBase = import.meta.env.BASE_URL;
@@ -481,10 +482,13 @@ function render() {
         return '<b>' + weekdayLabels[(date.getDay() + 6) % 7] +
           (calendarMode === 'week' ? ' ' + date.getDate() : '') + '</b>';
       }).join('')) +
-    days.map(day => day
-      ? '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><b><button type="button" class="day-select' +
+    days.map(day => {
+      if (!day) return '<div class="day empty" aria-hidden="true"></div>';
+      const date = new Date(day + 'T12:00:00');
+      return '<div class="day ' + (day === today ? 'today' : '') + '" data-day="' + day + '"><span class="day-weekday" aria-hidden="true">' +
+        weekdayLabels[(date.getDay() + 6) % 7] + '</span><b><button type="button" class="day-select' +
         (day === dateKey(focusedDate) ? ' selected' : '') + '" data-day-select="' + day + '"' +
-        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' tabindex="' + (day === dateKey(focusedDate) ? '0' : '-1') + '" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End" aria-label="' + h(new Date(day + 'T12:00:00').toLocaleDateString('de-DE', {
+        (day === dateKey(focusedDate) ? ' aria-current="date"' : '') + ' tabindex="' + (day === dateKey(focusedDate) ? '0' : '-1') + '" aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End" aria-label="' + h(date.toLocaleDateString('de-DE', {
           weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
         }) + (day === today ? ' · Heute' : '')) + '">' + Number(day.slice(-2)) + '</button></b>' +
         visibleEntries.filter(e => entryOccursOnDate(e, day))
@@ -503,9 +507,8 @@ function render() {
             editMarkup + moveMarkup + removeMarkup + '</div>';
           })
           .join('') +
-        '</div>'
-      : '<div class="day empty" aria-hidden="true"></div>')
-      .join('') +
+        '</div>';
+    }).join('') +
     '</div><div class="selected-day"><strong>' + h(focusedDate.toLocaleDateString('de-DE', {weekday:'long',day:'2-digit',month:'long'})) + '</strong>' +
     (visibleEntriesForDay(visibleEntries, dateKey(focusedDate)).map(e => isWallMode(displayMode) || isReadOnlyCalendarEntry(e)
       ? '<span class="selected-day-entry"><span class="day-dot owner-' + h(entryOwnerStyleKey(e, householdMemberNames)) + '"></span>' + h(e.title) + (e.start ? ' · ' + h(e.start) : '') + '</span>'
@@ -527,7 +530,7 @@ function render() {
   app.innerHTML =
     '<div class="familycal-shell view-' + view + ' display-' + h(displayMode) + '">' +
     '<div id="app-content">' +
-    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.21</small></div></div>' +
+    '<aside class="app-sidebar" aria-label="Seitennavigation"><div class="brand"><span class="brand-mark">F</span><div><strong>FamSchicht</strong><small>Familienplaner · v0.3.22</small></div></div>' +
     '<nav class="side-nav" aria-label="Hauptbereiche">' +
     [['home', '⌂', 'Übersicht'], ['all', '▦', 'Kalender'], ['today', '◷', 'Heute'], ['family', '⌂', 'Familie'], ['shift', '↔', 'Dienste'], ['settings', '⚙', 'Einstellungen']]
       .map(([id, icon, label]) => '<button type="button" data-view="' + id + '" class="' + (view === id ? 'active' : '') + '"' + (view === id ? ' aria-current="page"' : '') + '><span aria-hidden="true">' + icon + '</span>' + label + '</button>')
@@ -1212,29 +1215,13 @@ function moveCalendarDayByKeyboard(event) {
   if (!day) return;
   const key = event.key;
   const date = new Date(day + 'T12:00:00');
-  const boundaryKey = key === 'Home' || key === 'End';
-  let offset = 0;
-  if (calendarMode === 'day') {
-    if (key === 'ArrowLeft' || key === 'ArrowUp') offset = -1;
-    if (key === 'ArrowRight' || key === 'ArrowDown') offset = 1;
-  } else {
-    if (key === 'ArrowLeft') offset = -1;
-    if (key === 'ArrowRight') offset = 1;
-    if (key === 'ArrowUp') offset = -7;
-    if (key === 'ArrowDown') offset = 7;
-  }
-  if (key === 'Home') {
-    offset = -((date.getDay() + 6) % 7);
-  } else if (key === 'End') {
-    offset = 6 - ((date.getDay() + 6) % 7);
-  }
-  if (!offset && !boundaryKey) return;
+  const offset = calendarKeyboardOffset(key, date, calendarMode, window.innerWidth);
+  if (offset === null) return;
   event.preventDefault();
   if (!offset) return;
   date.setDate(date.getDate() + offset);
   selectCalendarDay(dateKey(date), {restoreFocus: true});
 }
-
 function bindControls() {
   app.querySelectorAll('#roster-upload, #roster-replace').forEach(button => {
     button.addEventListener('click', () => app.querySelector('#roster-files')?.click());

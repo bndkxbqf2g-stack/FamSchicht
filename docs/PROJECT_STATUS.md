@@ -1,5 +1,11 @@
 # PROJECT STATUS
 
+## Update 19.10.2026 – Mobile Tageskarten im Monatskalender
+- Die mobile Monatsansicht stellt Tage zweispaltig als Karten mit Wochentag und Datum dar; die Desktop-Ansicht bleibt im Sieben-Spalten-Raster.
+- Termintexte bleiben vollständig und umbrechbar. Schichtnamen wie Frühdienst, Nachtdienst und Zwischendienst werden mobil in einer Zeile ohne Ellipsis angezeigt; Pfeilnavigation folgt dem zweispaltigen Raster.
+- Paketversion, Modul-Cache-Bust und Service-Worker-Shell-Cache sind auf `v0.3.22` angehoben, damit die Layoutänderung nach Veröffentlichung nicht am alten Shell-Cache hängen bleibt.
+- 240 Regressionstests und die Syntaxprüfung für 85 Dateien bestehen. Sichtprüfung mit einer Browser-Vorschau aus Stylesheet und synthetischen Kalenderdaten: 390×844, 320×844 und Desktop 1280×900. Pull Request #46; GitHub Actions Run 39215173534 ist mit Syntax, Tests, Vite-Build und Asset-Budget grün; Deploy ist für den PR übersprungen. Der lokale Build bleibt wegen fehlender installierter Abhängigkeiten und blockiertem Paketabruf nicht ausführbar. Änderung ist noch nicht gemergt oder live.
+
 ## Update 19.10.2026 – Volltext-Monatskalender
 - Die Monatsansicht zeigt Termine und Schichten im jeweiligen Tagesfeld mit vollständigem Titel und Uhrzeit. Tageskarten wachsen mit dem Inhalt; Ellipsis und horizontales Einzeilen-Scrolling sind für die Monatsansicht entfernt.
 - Die Darstellung bleibt auf kleinen Viewports lesbar: kompakte Schrift, farbliche Bereichs-/Schichtkarten und automatische Zeilenhöhe; Verschieben per Touch bleibt vom Textlayout getrennt.
