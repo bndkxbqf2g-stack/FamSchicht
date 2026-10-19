@@ -9,7 +9,7 @@ Stand: 19.10.2026
 - Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist wieder `ACTIVE_HEALTHY`. Live-RLS und Realtime bleiben bis zur geprüften Rollenmatrix unverändert owner-only; der Security Advisor meldet noch eine offene RLS-Entscheidung für den privaten Einladungsspeicher.
 
 ## Aktive Reihenfolge
-1. RLS-Policy für `private.household_invitations` explizit festlegen und live verifizieren; der bestehende serverseitige `service_role`-Grenzpfad bleibt dabei unverändert.
+1. Bestätigte RLS-Policy für `private.household_invitations` als Migration kontrolliert anwenden und den serverseitigen `service_role`-Grenzpfad per Smoke-Test verifizieren.
 2. Einladungserzeugung und atomare Einladungsannahme mit separater Einstellungen-UI verifizieren; Widerruf bleibt als Service vorhanden.
 3. Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten ausführen.
 4. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
@@ -29,10 +29,10 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 
 ## WORK QUEUE
 ### READY
-- Das Supabase-Projekt ist erreichbar; read-only Migration-, Tabellen-, Rechte- und Advisor-Prüfungen sind abgeschlossen. Vor der Rollenmatrix steht die explizite RLS-Policy-Entscheidung für `private.household_invitations`.
+- Das Supabase-Projekt ist erreichbar; read-only Migration-, Tabellen-, Rechte- und Advisor-Prüfungen sind abgeschlossen. Die bestätigte `service_role`-only-RLS-Migration und ihr Regressionstest sind im Repository vorbereitet.
 
 ### WAITING
-- RLS-Policy für `private.household_invitations` entscheiden und getrennte synthetische Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen; danach die in `docs/INVITATION_FLOW.md` definierte Zugriffsmatrix ausführen. Es wurden dafür keine echten Familiendaten verwendet.
+- Live-Migration mit Smoke-Test und dokumentiertem Rollback ausführen; anschließend getrennte synthetische Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen und die in `docs/INVITATION_FLOW.md` definierte Zugriffsmatrix ausführen. Es wurden dafür keine echten Familiendaten verwendet.
 - Nach Abschluss/Merge des Dienstplanimports: Coparent-Kalenderansicht für Anna, ausschließlich lesend und begrenzt auf Umgangszeiten mit den Kindern (`source: custody`), Schule, Hobbys/Sport und Geburtstage bzw. ausdrücklich freigegebene Kinderfeiern. Schichten/Dienstpläne, allgemeine oder private Termine sowie Einstellungen und Verwaltungsfunktionen bleiben verborgen. Umsetzung erst nach Zugriffsmatrix mit getrennten Konten; RLS muss denselben Filter serverseitig erzwingen. Bis dahin bleibt Live owner-only.
 - Repo-weites Architektur-/Security-Audit nach Abschluss der ersten sicheren Mehrbenutzer-Synchronisierung.
 - End-to-End-Mehrbenutzer-Audit mit owner/partner/coparent; Voraussetzung: Einladungsfluss und Kalender-Synchronisierung für mehrere Konten fertig.
