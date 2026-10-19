@@ -1,10 +1,11 @@
 # Datenbankstatus
 
-## Live-Prüfung 19.10.2026
+## Live-Prüfung 19.10.2026 – Reaktivierung
 
-- Die Supabase-Management-API meldet das Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) weiterhin als `INACTIVE`.
-- Wegen dieses Projektstatus konnte die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix nicht ausgeführt werden. Es wurden keine Testkonten, Migrationen, RLS-Änderungen oder Realtime-Schreibaktionen gestartet.
-- Der veröffentlichte App-Stand bleibt deshalb bewusst owner-only; die bestehende Einladungs-Edge-Function und die privaten Einladungsdaten werden nicht als Mehrbenutzerfreigabe ausgegeben.
+- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
+- Migrationen, Tabellen, Rechte und Advisors wurden nach der Reaktivierung ausschließlich read-only geprüft. Es wurden keine Testkonten, Schema-Migrationen oder Realtime-Schreibaktionen gestartet.
+- Der veröffentlichte App-Stand bleibt bewusst owner-only; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist noch nicht ausgeführt.
+- `private.household_invitations` ist live weiterhin nicht RLS-geschützt. `anon` und `authenticated` haben weder Schema-Usage noch Tabellen-Select; `service_role` bleibt der einzige vorgesehene serverseitige Zugriff. Vor der Rollenmatrix muss eine explizite RLS-Policy für diese private Tabelle entschieden und geprüft werden.
 
 ## Vorherige Live-Prüfung 14.10.2026
 
@@ -55,14 +56,15 @@ Damit sind `partner` und `coparent` **noch nicht live freigeschaltet**. Die priv
 
 ## Advisor-Status
 
-Security Advisor: keine RLS-/Tabellenlücke gemeldet. Verbleibend ist nur der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dies dokumentiert, ist aber kein Blocker für den nächsten Einladungsbaustein.
+Security Advisor: kritischer Hinweis, weil `private.household_invitations` live kein RLS aktiviert hat. Die empfohlene Aktivierung darf nicht ohne passende Policy eingespielt werden; die bestehende private Schema-/Grant-Grenze bleibt bis zur Entscheidung unverändert. Zusätzlich besteht der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dieser dokumentiert.
 
 Die zuvor gemeldeten vier ungeindexierten Fremdschlüssel sind behoben. Der Performance Advisor kennzeichnet die neu angelegten Indizes derzeit lediglich als noch unbenutzt; bei leerem Datenbestand ist das erwartbar und kein Anlass zur Entfernung.
 
 ## Konsequenz
 
-Die Live-Datenbank bleibt owner-only. Der nächste Schritt ist die serverseitige Erzeugung und atomare Annahme von Einladungen mit getrennten Testkonten. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
+Die Live-Datenbank bleibt owner-only. Der nächste sichere Schritt ist die geprüfte RLS-Entscheidung für den privaten Einladungsspeicher; danach können getrennte synthetische Testkonten die serverseitige Erzeugung und atomare Annahme von Einladungen prüfen. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
 
 Keine echten sensiblen Familiendaten eingeben, bevor die Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
+
 
 
