@@ -77,3 +77,49 @@ test('the deployed invitation edge boundary authenticates users before admin RPC
   assert.match(source, /if \(!actorId \|\| !actorEmail\)/);
 });
 
+
+test('coparent calendar access is shared but excludes private, self, and shift data', () => {
+  const migration = read('supabase/migrations/20261019110000_enable_coparent_shared_calendar_rls.sql');
+  const schema = read('supabase/schema.sql');
+
+  for (const source of [migration, schema]) {
+    assert.match(source, /create or replace function public\.is_household_coparent/);
+    assert.match(source, /m\.role\s*=\s*'coparent'/);
+    assert.match(source, /create or replace function public\.get_my_household_context/);
+    assert.match(source, /visibility <> 'self'/);
+    assert.match(source, /category not in \('shift', ?'private'\)/);
+  }
+
+  for (const policy of ['read', 'insert', 'update']) {
+    assert.match(migration, new RegExp('create policy event_coparent_' + policy));
+  }
+  assert.match(schema, /create policy events_read/);
+  assert.match(schema, /create policy events_insert/);
+  assert.match(schema, /create policy events_update/);
+  assert.match(migration, /create trigger trg_calendar_event_identity/);
+  assert.match(migration, /new\.household_id is distinct from old\.household_id/);
+  assert.match(migration, /new\.creator_id is distinct from old\.creator_id/);
+  assert.doesNotMatch(migration, /create policy event_coparent_delete/);
+  assert.match(schema, /create policy households_read[\s\S]+public\.is_household_owner\(id\)/);
+  assert.match(schema, /create policy memberships_read[\s\S]+public\.is_household_owner\(household_id\)/);
+});
+
+test('owner round-trip remains available for coparent-created shared events', () => {
+  const migration = read('supabase/migrations/20261019114500_complete_owner_event_scope_for_coparent_writes.sql');
+  assert.match(migration, /create policy event_household_owner_read/);
+  assert.match(migration, /create policy event_household_owner_update/);
+  assert.match(migration, /create policy event_household_owner_delete/);
+  assert.match(migration, /h\.owner_id = \(select auth\.uid\(\)\)/);
+});
+
+test('calendar event RLS is consolidated to one policy per operation', () => {
+  const migration = read('supabase/migrations/20261019120000_consolidate_calendar_event_rls.sql');
+  for (const action of ['read', 'insert', 'update', 'delete']) {
+    assert.match(migration, new RegExp('create policy event_' + action));
+  }
+  assert.match(migration, /drop policy if exists event_coparent_read/);
+  assert.match(migration, /public\.is_household_coparent/);
+  assert.match(migration, /category not in \('shift', ?'private'\)/);
+  assert.doesNotMatch(migration, /create policy event_coparent_(?:read|insert|update|delete)/);
+});
+

@@ -29,15 +29,15 @@ FamSchicht ist ein Familien- und Schichtkalender für gemeinsame Familientermine
 - Neue Schichten speichern neben dem Anzeigenamen eine stabile `ownerId`; ältere Einträge mit nur `owner` bleiben lesbar.
 - Supabase Magic-Link-Authentifizierung und owner-only Haushalt.
 - Für angemeldete Owner werden `calendar_events` über Supabase geladen, angelegt, geändert und gelöscht.
-- RLS und eingeschränkte Data-API-Grants schützen den aktuellen Live-Stand weiterhin owner-only.
+- RLS und eingeschränkte Data-API-Grants schützen den Live-Stand: Owner verwaltet den Haushalt; Coparent darf gemeinsame Kalenderdaten und Aufgaben lesen, anlegen und bearbeiten, aber keine self/private/Schichtdaten sehen oder löschen.
 
 ## Noch nicht freigegeben
 
-- Der Einladungsfluss für Partner/coparent ist technisch vorbereitet, aber noch nicht für Mehrbenutzer-RLS freigegeben.
-- Keine Erweiterung der Live-RLS auf mehrere Haushaltsmitglieder.
-- Keine Realtime-Synchronisierung zwischen getrennten Konten.
+- Partnerzugriff auf den Kalender ist noch nicht freigegeben.
+- Realtime-Synchronisierung zwischen getrennten Konten ist noch offen.
+- Coparent-Löschen bleibt bewusst gesperrt; Bearbeiten gemeinsamer Kalenderdaten und Aufgaben ist live.
 - Eine Löschaktion für Kalenderpersonen ist bewusst noch nicht angeboten, solange die sichere Umhängung bestehender `ownerId`-Referenzen nicht festgelegt ist.
-- Keine Nutzung echter sensibler Familiendaten, bevor Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
+- Keine Nutzung echter sensibler Familiendaten, bevor der Browser-Smoke-Test und das Mehrbenutzer-Audit abgeschlossen sind.
 
 ## Entwicklung
 
@@ -56,6 +56,6 @@ Details zu OCR, Kürzeln, lokaler Speicherung und manueller Prüfung: [`docs/SHI
 
 ## Aktueller Release 0.3.20
 
-Die helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht. Der aktuelle Release führt den Familienruhe-Look als Standard und die kontrastreiche Schichtzentrale im reversiblen Wandmodus ein. Neutrale Startup-Recovery, sichere Nutzerfehler-Fallbacks und owner-only RLS bleiben unverändert.
+Die helle Kalender-Startseite wird über den Pages-Workflow veröffentlicht. Der aktuelle Release führt den Familienruhe-Look als Standard und die kontrastreiche Schichtzentrale im reversiblen Wandmodus ein. Neutrale Startup-Recovery, sichere Nutzerfehler-Fallbacks und die geprüfte Owner-/Coparent-RLS-Grenze bleiben unverändert.
 
 

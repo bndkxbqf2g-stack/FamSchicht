@@ -5,44 +5,44 @@ Stand: 19.10.2026
 ## Aktueller Release-Gate
 - `main` enthält Release `v0.3.20` einschließlich Familienruhe-Übersicht und read-only-Schichtzentrale.
 - Die neue Darstellung ist auf Desktop (1280 CSS-Pixel) und im mobilen 390×844-Viewport geprüft; Übersicht und Wandmodus bleiben ohne horizontalen Überlauf.
-- Die letzte CI-/Deploy-Prüfung auf `main` ist erfolgreich. Der verbleibende externe Gate ist die getrennte Rollenmatrix für Einladungen und Datenzugriff.
-- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist wieder `ACTIVE_HEALTHY`. Live-RLS und Realtime bleiben bis zur geprüften Rollenmatrix unverändert owner-only; der Security Advisor meldet noch eine offene RLS-Entscheidung für den privaten Einladungsspeicher.
+- CI/Deploy für den Coparent-RLS-Branch ist erfolgreich (Lauf 547).
+- Supabase `FamSchicht` (`kryxhpklrugceiwlrofm`) ist `ACTIVE_HEALTHY`. Der gemeinsame Coparent-Kalenderumfang ist live; Rollen-/Haushaltsverwaltung, Partnerzugriff und Realtime bleiben geschlossen.
 
 ## Aktive Reihenfolge
-1. Bestätigte RLS-Policy für `private.household_invitations` als Migration kontrolliert anwenden und den serverseitigen `service_role`-Grenzpfad per Smoke-Test verifizieren.
-2. Einladungserzeugung und atomare Einladungsannahme mit separater Einstellungen-UI verifizieren; Widerruf bleibt als Service vorhanden.
-3. Zugriffsmatrix mit getrennten Owner-/Partner-/Coparent-/Fremdkonten ausführen.
-4. Erst nach erfolgreicher Matrix Live-RLS für die konkret benötigten Rollen erweitern.
-5. Realtime-Synchronisierung nach stabiler Rechtebasis ergänzen.
-6. Google-/Outlook-/ICS-Integration anschließend modular anbinden.
-7. UI/UX weiter ausbauen; Terminverschiebung ist für Desktop/Touch mit zugänglichem Fallback umgesetzt.
+1. Einladungsannahme und die dazugehörige UI mit den synthetischen Konten als nächstes per Browser-Smoke-Test prüfen.
+2. Realtime nach stabiler Mehrbenutzer-Synchronisierung ergänzen.
+3. Danach weitere Rollen nur mit eigener Zugriffsmatrix freigeben.
+4. Google-/Outlook-/ICS-Integration modular anbinden.
+5. UI/UX weiter ausbauen; Terminverschiebung ist für Desktop/Touch mit zugänglichem Fallback umgesetzt.
 
 ## Qualitäts-Gates
 Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature-Reihenfolge.
 
 ## Sicherheitsgrenze
-- Live bleibt derzeit owner-only.
+- Owner verwaltet Haushalt, Rollen, Einladungen, Kalenderpersonen und Einstellungen.
+- Coparent erhält ausschließlich den gemeinsamen Kalender-/Aufgabenumfang: kein `self`, keine Schichten, keine privaten Kategorien; Löschen bleibt owner-only.
+- Partner und Fremdkonto sind nicht für den Kalender freigeschaltet.
 - Keine freien Membership-Schreibrechte aus dem Browser.
 - Einladungs-Tokens werden nur gehasht gespeichert; der rohe Token ist ein Bearer-Geheimnis.
-- Repository-Zielentwürfe für Mehrbenutzer-RLS nicht ungeprüft auf Produktion anwenden.
-- Keine echten sensiblen Familiendaten vor abgeschlossener Mehrbenutzer-/RLS-Testmatrix.
+- Realtime bleibt bis zur separaten Synchronisationsprüfung deaktiviert.
+- Keine echten sensiblen Familiendaten vor abgeschlossenem Produkt-/Rollen-Audit.
 
 ## WORK QUEUE
 ### READY
-- Das Supabase-Projekt ist erreichbar; read-only Migration-, Tabellen-, Rechte- und Advisor-Prüfungen sind abgeschlossen. Die bestätigte `service_role`-only-RLS-Migration und ihr Regressionstest sind im Repository vorbereitet.
+- Das Supabase-Projekt ist erreichbar; private Einladungstabelle und Coparent-Kalender-RLS sind live.
+- Die vier synthetischen Konten wurden in einer transaktionalen Zugriffsmatrix geprüft; die Testdaten wurden zurückgerollt.
 
 ### WAITING
-- Live-Migration mit Smoke-Test und dokumentiertem Rollback ausführen; anschließend getrennte synthetische Testkonten für Owner, Partner, Coparent und Fremdkonto bereitstellen und die in `docs/INVITATION_FLOW.md` definierte Zugriffsmatrix ausführen. Es wurden dafür keine echten Familiendaten verwendet.
-- Nach Abschluss/Merge des Dienstplanimports: Coparent-Kalenderansicht für Anna, ausschließlich lesend und begrenzt auf Umgangszeiten mit den Kindern (`source: custody`), Schule, Hobbys/Sport und Geburtstage bzw. ausdrücklich freigegebene Kinderfeiern. Schichten/Dienstpläne, allgemeine oder private Termine sowie Einstellungen und Verwaltungsfunktionen bleiben verborgen. Umsetzung erst nach Zugriffsmatrix mit getrennten Konten; RLS muss denselben Filter serverseitig erzwingen. Bis dahin bleibt Live owner-only.
+- Browser-Smoke-Test mit den vier synthetischen Konten gegen die veröffentlichte App.
+- Realtime-Synchronisierung nach stabiler Rechtebasis.
 - Repo-weites Architektur-/Security-Audit nach Abschluss der ersten sicheren Mehrbenutzer-Synchronisierung.
-- End-to-End-Mehrbenutzer-Audit mit owner/partner/coparent; Voraussetzung: Einladungsfluss und Kalender-Synchronisierung für mehrere Konten fertig.
-- Meilenstein-Audit vor Nutzung echter Familiendaten; Voraussetzung: RLS-Testmatrix vollständig.
+- Meilenstein-Audit vor Nutzung echter Familiendaten.
 
 ### DONE
 - Basis-App auf GitHub Pages lauffähig.
 - Magic-Link-Auth.
 - Owner-only Haushalts-Setup im Client.
-- Owner-only Supabase-Persistenz für `calendar_events`.
+- Supabase-Persistenz für `calendar_events` mit owner-only Verwaltung und freigegebenem Coparent-Lese-/Anlege-/Änderungsumfang.
 - Data-API-Grants gehärtet.
 - Zentrales Haushaltsmitglieder-Domänenmodell.
 - Owner-only Supabase-Persistenz für Kalender-Personen über `household_members`.
@@ -51,6 +51,7 @@ Jedes Paket: Tests -> Build -> Deployment/CI prüfen. Fehler stoppen die Feature
 - Sicherer Einladungs-/Beitrittsfluss fachlich dokumentiert und serverseitig umgesetzt.
 - Getesteter Client-Domänenvertrag für E-Mail, Rolle und opaken Token.
 - Privater Einladungsspeicher live installiert; Browserrollen haben keinen Zugriff.
+- Coparent-Kalender-/Aufgaben-RLS live geprüft: gemeinsame Einträge lesbar/anlegbar/änderbar; `self`, private Kategorien, Schichten sowie Admin-Tabellen ausgeschlossen.
 - Einladungs-UI im ausgelagerten Einstellungen-Bereich mit Magic-Link-Rückkehr und Regressionstest.
 - Fehlende FK-Indizes live ergänzt und im Repository gespiegelt.
 - Lokale Dienstplan-Monatsübersicht pro schichtberechtigter Person mit getrennten angerechneten/OZ-Stunden.

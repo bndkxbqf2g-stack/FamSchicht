@@ -67,14 +67,22 @@ export function fromDatabaseEvent(row) {
   return event;
 }
 
-export async function loadOwnerEvents(supabase, householdId) {
+export function isCoparentVisibleEventRow(row) {
+  return row?.visibility !== 'self' &&
+    !['shift', 'private'].includes(row?.category);
+}
+
+export async function loadOwnerEvents(supabase, householdId, {role = 'owner'} = {}) {
   if (!householdId) throw new Error('householdId is required for cloud loading');
   const {data, error} = await supabase.from('calendar_events')
     .select('id,title,starts_at,ends_at,category,visibility,metadata')
     .eq('household_id', householdId)
     .order('starts_at');
   if (error) throw error;
-  return (data || []).map(fromDatabaseEvent);
+  const rows = role === 'coparent'
+    ? (data || []).filter(isCoparentVisibleEventRow)
+    : (data || []);
+  return rows.map(fromDatabaseEvent);
 }
 
 export async function saveOwnerEvents(supabase, events, householdId, userId) {

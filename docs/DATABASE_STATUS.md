@@ -1,12 +1,18 @@
 # Datenbankstatus
 
-## Live-Prüfung 19.10.2026 – Reaktivierung
+## Live-Prüfung 19.10.2026 – Coparent-RLS und synthetische Rollenmatrix
 
-- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
-- Migrationen, Tabellen, Rechte und Advisors wurden nach der Reaktivierung ausschließlich read-only geprüft. Es wurden keine Testkonten, Schema-Migrationen oder Realtime-Schreibaktionen gestartet.
-- Der veröffentlichte App-Stand bleibt bewusst owner-only; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist noch nicht ausgeführt.
-- `private.household_invitations` ist live weiterhin nicht RLS-geschützt. `anon` und `authenticated` haben weder Schema-Usage noch Tabellen-Select; `service_role` bleibt der einzige vorgesehene serverseitige Zugriff. Vor der Rollenmatrix muss eine explizite RLS-Policy für diese private Tabelle entschieden und geprüft werden.
-- Die bestätigte Minimal-Policy ist als `20261019100000_enable_private_invitation_rls.sql` im Repository vorbereitet, aber noch nicht live angewendet. Die Live-Prüfung bleibt deshalb bis zum kontrollierten Smoke-Test unverändert.
+- Supabase `FamSchicht` (`kryxhpklrugceiwlrofm`) meldet `ACTIVE_HEALTHY`.
+- Live-Migrationen:
+  - `20261019031859 enable_private_invitation_rls`
+  - `20261019033509 enable_coparent_shared_calendar_rls`
+  - `20261019033639 complete_owner_event_scope_for_coparent_writes`
+  - `20261019034531 consolidate_calendar_event_rls`
+- Anna erhält als Coparent nur gemeinsame Kalenderdaten und Aufgaben: SELECT/INSERT/UPDATE für `visibility <> 'self'` und `category not in ('shift','private')`. DELETE bleibt owner-only.
+- Owner-Policies decken den vollständigen eigenen Haushalt ab, damit Coparent-Erstellungen im Owner-Kalender roundtrip-sicher erscheinen.
+- `households`, `memberships`, `household_members` und private Einladungsdaten bleiben für Coparent/Partner/Fremdkonto nicht direkt lesbar; der Client erhält nur den eigenen Haushaltskontext über eine abgesicherte Funktion.
+- Matrix-Ergebnis: Owner sieht alle vier Fixture-Events und anschließend den Coparent-Insert; Coparent sieht nur Shared-Event(s), kann bearbeiten/anlegen, scheitert bei self/private/shift und Identity-Wechsel; Partner/Fremdkonto sehen keine Events/Admindaten. Die gesamte Fixture-Transaktion wurde zurückgerollt.
+- Vier synthetische Auth-Konten sind vorhanden; echte Familieninformationen wurden nicht verwendet.
 
 ## Vorherige Live-Prüfung 14.10.2026
 
@@ -44,26 +50,23 @@ Zusätzlich existiert `private.household_invitations`. Diese Tabelle ist bewusst
 
 Die Data-API-Grants bleiben minimal:
 - `anon`: keine direkten Tabellenrechte.
-- `authenticated`: nur die für den owner-only Client benötigten Operationen auf den öffentlichen Tabellen.
-- `memberships`: weiterhin kein Browser-Schreibpfad.
+- `authenticated`: nur die vorgesehenen SELECT/INSERT/UPDATE/DELETE-Operationen; Memberships und Kalenderpersonen bleiben ohne Browser-Schreibpfad.
+- Private Einladungsdaten bleiben außerhalb der Browser-Data-API.
 
-Die aktuell installierten Live-Policies sind bewusst Owner-only:
-- `households`: nur der jeweilige Owner darf lesen/anlegen/ändern.
-- `memberships`: nur der Haushalts-Owner darf Mitgliedschaften lesen.
-- `calendar_events`: nur der Owner/Ersteller des zugehörigen Haushalts darf lesen/anlegen/ändern/löschen.
-- `household_members`: ausschließlich der Haushalts-Owner darf lesen/anlegen/ändern/löschen.
-
-Damit sind `partner` und `coparent` **noch nicht live freigeschaltet**. Die private Einladungstabelle bereitet nur den sicheren serverseitigen Annahmepfad vor.
+Policies:
+- `households`, `memberships`, `household_members`: owner-only.
+- `calendar_events`: eine konsolidierte Policy je Aktion; Owner voller eigener Haushalt, Coparent gemeinsamer Nicht-`self`-Kalender ohne Schichten/private Kategorien, Partner/Fremdkonto ohne Zugriff.
+- Identity-Trigger verhindert Änderungen an `household_id` und `creator_id`.
 
 ## Advisor-Status
 
-Security Advisor: kritischer Hinweis, weil `private.household_invitations` live kein RLS aktiviert hat. Die bestätigte Migration ist noch nicht live angewendet; bis zum kontrollierten Smoke-Test bleibt die bestehende private Schema-/Grant-Grenze unverändert. Zusätzlich besteht der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dieser dokumentiert.
-
-Die zuvor gemeldeten vier ungeindexierten Fremdschlüssel sind behoben. Der Performance Advisor kennzeichnet die neu angelegten Indizes derzeit lediglich als noch unbenutzt; bei leerem Datenbestand ist das erwartbar und kein Anlass zur Entfernung.
+- Security Advisor: die beiden SECURITY-DEFINER-Funktionen für RLS-/Haushaltskontext sind absichtlich nur für `authenticated` ausführbar, verwenden `search_path = ''` und vollständig qualifizierte Tabellen. Zusätzlich besteht der bestehende Hinweis zur deaktivierten Leaked-Password-Protection.
+- Performance Advisor: nur erwartbare Hinweise zu bislang unbenutzten Indizes; die Warnung zu mehrfach permissive Policies ist nach der Konsolidierung entfernt.
+- Es wurden keine Service-Role- oder Secret-Schlüssel in Client/Repository gebracht.
 
 ## Konsequenz
 
-Die Live-Datenbank bleibt owner-only. Die Policy-Entscheidung ist getroffen; der nächste sichere Schritt ist die kontrollierte Migration mit Smoke-Test und anschließend die Zugriffsmatrix mit getrennten synthetischen Testkonten. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
+Der live freigegebene Umfang ist bewusst kleiner als eine allgemeine Mehrbenutzerverwaltung: Anna arbeitet im gemeinsamen Kalender-/Aufgabenbereich; Rollen, Haushaltseinstellungen, Kalenderpersonen, Einladungen, Schichten und private/self-Daten bleiben geschützt. Partnerzugriff und Realtime brauchen eigene Folgeentscheidungen und Tests.
 
 ## Rollback-Plan für die private Einladungstabelle
 
@@ -75,3 +78,10 @@ Keine echten sensiblen Familiendaten eingeben, bevor die Mehrbenutzerrechte mit 
 
 
 
+
+
+## Rollback-Plan für den Coparent-Kalenderumfang
+
+- Bei einem Fehler wird zuerst die konsolidierte `calendar_events`-Policy auf den bekannten Owner-only-Stand zurückgeführt; danach werden die Coparent-Policies, der Identity-Trigger und die Kontext-/RLS-Helfer entfernt.
+- Die private Einladungstabelle bleibt bei diesem Rollback unverändert service_role-only.
+- Anschließend werden Policy-Snapshot, synthetische Matrix und Advisor erneut geprüft. Keine echten Familiendaten verwenden.
