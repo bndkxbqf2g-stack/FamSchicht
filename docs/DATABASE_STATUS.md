@@ -1,12 +1,13 @@
 # Datenbankstatus
 
-## Live-Prüfung 19.10.2026 – Reaktivierung
+## Live-Prüfung 19.10.2026 – RLS und synthetische Rollen-Konten
 
-- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
-- Migrationen, Tabellen, Rechte und Advisors wurden nach der Reaktivierung ausschließlich read-only geprüft. Es wurden keine Testkonten, Schema-Migrationen oder Realtime-Schreibaktionen gestartet.
-- Der veröffentlichte App-Stand bleibt bewusst owner-only; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist noch nicht ausgeführt.
-- `private.household_invitations` ist live weiterhin nicht RLS-geschützt. `anon` und `authenticated` haben weder Schema-Usage noch Tabellen-Select; `service_role` bleibt der einzige vorgesehene serverseitige Zugriff. Vor der Rollenmatrix muss eine explizite RLS-Policy für diese private Tabelle entschieden und geprüft werden.
-- Die bestätigte Minimal-Policy ist als `20261019100000_enable_private_invitation_rls.sql` im Repository vorbereitet, aber noch nicht live angewendet. Die Live-Prüfung bleibt deshalb bis zum kontrollierten Smoke-Test unverändert.
+- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) meldet `ACTIVE_HEALTHY`.
+- Die Live-Migration `20261019031859 enable_private_invitation_rls` wurde erfolgreich angewendet. Sie aktiviert RLS auf `private.household_invitations` und setzt genau eine permissive `service_role`-only-Policy.
+- Die Repository-Migration `20261019100000_enable_private_invitation_rls.sql` enthält denselben SQL-Vertrag; die Live-History verwendet die vom Management-Tool vergebene Versionsnummer.
+- Read-only-Verifikation: `rls_enabled=true`, eine Policy vorhanden, `anon` und `authenticated` ohne Schema-Usage und Tabellen-Select, `service_role` mit vorgesehenem Zugriff.
+- Vier getrennte synthetische Auth-Konten für Owner, Partner, Coparent und Fremdkonto wurden im Supabase-Auth-Dashboard mit Auto-Bestätigung angelegt. Es wurden keine echten Familieninformationen verwendet.
+- Die öffentlichen Tabellen bleiben owner-only. Die getrennte Einladung-/Datenzugriffsmatrix ist noch nicht ausgeführt; Partner-/Coparent-Datenzugriff und Realtime sind weiterhin nicht freigegeben.
 
 ## Vorherige Live-Prüfung 14.10.2026
 
