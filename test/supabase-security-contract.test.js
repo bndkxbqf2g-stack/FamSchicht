@@ -109,3 +109,14 @@ test('owner round-trip remains available for coparent-created shared events', ()
   assert.match(migration, /h\.owner_id = \(select auth\.uid\(\)\)/);
 });
 
+test('calendar event RLS is consolidated to one policy per operation', () => {
+  const migration = read('supabase/migrations/20261019120000_consolidate_calendar_event_rls.sql');
+  for (const action of ['read', 'insert', 'update', 'delete']) {
+    assert.match(migration, new RegExp('create policy event_' + action));
+  }
+  assert.match(migration, /drop policy if exists event_coparent_read/);
+  assert.match(migration, /public\.is_household_coparent/);
+  assert.match(migration, /category not in \('shift', ?'private'\)/);
+  assert.doesNotMatch(migration, /create policy event_coparent_(?:read|insert|update|delete)/);
+});
+
