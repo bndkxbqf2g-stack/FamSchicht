@@ -76,3 +76,4 @@ test('the deployed invitation edge boundary authenticates users before admin RPC
   assert.match(source, /ctx\.supabaseAdmin\.rpc\(/);
   assert.match(source, /if \(!actorId \|\| !actorEmail\)/);
 });
+
