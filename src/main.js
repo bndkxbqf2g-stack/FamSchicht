@@ -92,6 +92,7 @@ import {
 } from './rewards.js';
 import {syncStatusClass, syncStatusLabel} from './sync-status.js';
 import {moveCalendarEntry} from './event-move.js';
+import {calendarKeyboardOffset} from './calendar-keyboard.js';
 import {getPwaInstallState, initPwaInstall, promptPwaInstall} from './pwa-install.js';
 import {userError} from './user-error.js';
 import './styles.css?v=0.3.22';
@@ -1214,32 +1215,13 @@ function moveCalendarDayByKeyboard(event) {
   if (!day) return;
   const key = event.key;
   const date = new Date(day + 'T12:00:00');
-  const boundaryKey = key === 'Home' || key === 'End';
-  const mobileMonthGrid = calendarMode === 'month' && window.innerWidth <= 700;
-  let offset = 0;
-  if (calendarMode === 'day') {
-    if (key === 'ArrowLeft' || key === 'ArrowUp') offset = -1;
-    if (key === 'ArrowRight' || key === 'ArrowDown') offset = 1;
-  } else {
-    if (key === 'ArrowLeft') offset = -1;
-    if (key === 'ArrowRight') offset = 1;
-    if (key === 'ArrowUp') offset = mobileMonthGrid ? -2 : -7;
-    if (key === 'ArrowDown') offset = mobileMonthGrid ? 2 : 7;
-  }
-  if (key === 'Home') {
-    offset = mobileMonthGrid ? -((date.getDate() - 1) % 2) : -((date.getDay() + 6) % 7);
-  } else if (key === 'End') {
-    offset = mobileMonthGrid
-      ? Math.min(1 - ((date.getDate() - 1) % 2), new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() - date.getDate())
-      : 6 - ((date.getDay() + 6) % 7);
-  }
-  if (!offset && !boundaryKey) return;
+  const offset = calendarKeyboardOffset(key, date, calendarMode, window.innerWidth);
+  if (offset === null) return;
   event.preventDefault();
   if (!offset) return;
   date.setDate(date.getDate() + offset);
   selectCalendarDay(dateKey(date), {restoreFocus: true});
 }
-
 function bindControls() {
   app.querySelectorAll('#roster-upload, #roster-replace').forEach(button => {
     button.addEventListener('click', () => app.querySelector('#roster-files')?.click());
