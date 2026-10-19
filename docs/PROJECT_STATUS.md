@@ -1,5 +1,11 @@
 # PROJECT STATUS
 
+## Update 19.10.2026 – Familienruhe und Schichtzentrale
+- Die Übersicht übernimmt den neuen Familienruhe-Look mit klarer „Nächster Dienst“-Karte und einem zweiten Fokusfeld für offene Aufgaben; die vorhandenen Aufgabenaktionen und synthetischen Datenflüsse bleiben unverändert.
+- Der reversible read-only-Wandmodus trägt jetzt sichtbar den Titel „Schichtzentrale“ und verwendet eine kontrastreiche Navy-/Mint-Darstellung mit größeren Kalenderkarten; Bearbeitung bleibt im Wandmodus deaktiviert.
+- Paketversion, Modul-Cache-Bust, sichtbare Versionsanzeige und Service-Worker-Shell-Cache stehen konsistent auf `v0.3.20`.
+- Die neue Darstellung wurde für Desktop und mobile Reflow-Regeln ergänzt; die vollständige visuelle Abnahme aller Ansichten folgt mit dem Browserlauf dieses Entwicklungsblocks.
+
 ## Update 15.10.2026 – PDF-Dienstplanimport
 - Der Dienstplan-Upload akzeptiert jetzt bis zu vier JPEG-/PNG-Fotos oder PDFs mit zusammen maximal 35 MB. Die Vorschau und manuelle Bestätigung bleiben unverändert verpflichtend.
 - PDFs werden mehrseitig und mit erhaltenen Seitenumbrüchen verarbeitet: Die Textebene wird zuerst sicher auf Schichtzeilen geprüft; nur nicht zuordenbare Seiten werden im Browser gerendert und per deutscher OCR nachbearbeitet.
@@ -324,4 +330,5 @@ Einladungsannahme und die UI-Regressionen mit getrennten Testkonten prüfen. Dan
 - Personen- und Bereichsfilter werden auch in der Heute-Ansicht angewendet.
 - Der mobile Termineditor ist ein einspaltiges, scrollbares Bottom-Sheet und bleibt oberhalb der mobilen Navigation bedienbar.
 - Der Synchronisationsstatus ist auf mobilen Geräten sichtbar.
+
 
