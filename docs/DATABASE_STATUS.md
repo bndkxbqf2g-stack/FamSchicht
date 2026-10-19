@@ -1,11 +1,12 @@
 # Datenbankstatus
 
-## Live-Prüfung 19.10.2026 – Reaktivierung
+## Live-Prüfung 19.10.2026
 
 - Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
 - Migrationen, Tabellen, Rechte und Advisors wurden nach der Reaktivierung ausschließlich read-only geprüft. Es wurden keine Testkonten, Schema-Migrationen oder Realtime-Schreibaktionen gestartet.
 - Der veröffentlichte App-Stand bleibt bewusst owner-only; die getrennte Owner-/Partner-/Coparent-/Fremdkonto-Matrix ist noch nicht ausgeführt.
 - `private.household_invitations` ist live weiterhin nicht RLS-geschützt. `anon` und `authenticated` haben weder Schema-Usage noch Tabellen-Select; `service_role` bleibt der einzige vorgesehene serverseitige Zugriff. Vor der Rollenmatrix muss eine explizite RLS-Policy für diese private Tabelle entschieden und geprüft werden.
+- Die bestätigte Minimal-Policy ist als `20261019100000_enable_private_invitation_rls.sql` im Repository vorbereitet, aber noch nicht live angewendet. Die Live-Prüfung bleibt deshalb bis zum kontrollierten Smoke-Test unverändert.
 
 ## Vorherige Live-Prüfung 14.10.2026
 
@@ -56,13 +57,19 @@ Damit sind `partner` und `coparent` **noch nicht live freigeschaltet**. Die priv
 
 ## Advisor-Status
 
-Security Advisor: kritischer Hinweis, weil `private.household_invitations` live kein RLS aktiviert hat. Die empfohlene Aktivierung darf nicht ohne passende Policy eingespielt werden; die bestehende private Schema-/Grant-Grenze bleibt bis zur Entscheidung unverändert. Zusätzlich besteht der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dieser dokumentiert.
+Security Advisor: keine RLS-/Tabellenlücke gemeldet. Verbleibend ist nur der Warnhinweis zur deaktivierten Leaked-Password-Protection. Da FamSchicht aktuell Magic Links statt Passwort-Login verwendet, bleibt dies dokumentiert, ist aber kein Blocker für den nächsten Einladungsbaustein.
 
 Die zuvor gemeldeten vier ungeindexierten Fremdschlüssel sind behoben. Der Performance Advisor kennzeichnet die neu angelegten Indizes derzeit lediglich als noch unbenutzt; bei leerem Datenbestand ist das erwartbar und kein Anlass zur Entfernung.
 
 ## Konsequenz
 
-Die Live-Datenbank bleibt owner-only. Der nächste sichere Schritt ist die geprüfte RLS-Entscheidung für den privaten Einladungsspeicher; danach können getrennte synthetische Testkonten die serverseitige Erzeugung und atomare Annahme von Einladungen prüfen. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
+Die Live-Datenbank bleibt owner-only. Die Policy-Entscheidung ist getroffen; der nächste sichere Schritt ist die kontrollierte Migration mit Smoke-Test und anschließend die Zugriffsmatrix mit getrennten synthetischen Testkonten. Erst nach erfolgreicher Zugriffsmatrix werden Mehrbenutzer-RLS und anschließend Realtime erweitert.
+
+## Rollback-Plan für die private Einladungstabelle
+
+- Vor der Live-Ausführung werden RLS-Status, Policies und `service_role`-Grants read-only aufgezeichnet.
+- Wenn der serverseitige Einladungs-Smoke-Test fehlschlägt, wird ausschließlich diese Migration zurückgenommen: Policy entfernen und RLS für `private.household_invitations` deaktivieren. Die bestehenden Schema-/Tabellen-Grants bleiben auf `service_role` begrenzt.
+- Danach werden Advisor, Grants und der Edge-Function-Pfad erneut geprüft. Der Rollback ist nur eine Notmaßnahme; er stellt den bekannten kritischen Advisor-Hinweis wieder her und erlaubt keine Mehrbenutzerfreigabe.
 
 Keine echten sensiblen Familiendaten eingeben, bevor die Mehrbenutzerrechte mit getrennten Testkonten geprüft sind.
 
