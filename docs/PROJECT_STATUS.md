@@ -1,11 +1,10 @@
 # PROJECT STATUS
 
-## Update 19.10.2026 – Supabase reaktiviert, Live-Sicherheitsprüfung
-- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) wurde erfolgreich reaktiviert und meldet `ACTIVE_HEALTHY`.
-- Migrationen, Tabellen, Grants, Policies und Function-Sicherheitsmerkmale wurden danach ausschließlich read-only geprüft. Die vier öffentlichen Tabellen bleiben RLS-geschützt und owner-only; die Rollenmatrix wurde noch nicht ausgeführt.
-- Der Security Advisor meldet nun konkret, dass `private.household_invitations` live kein RLS aktiviert hat. Die private Schema-/Grant-Grenze und der serverseitige `service_role`-RPC-Grenzpfad bleiben unverändert; eine RLS-Policy wird vor jeder Einladungs-Rollenmatrix explizit entschieden.
-- Die `service_role`-only-Policy ist jetzt fachlich bestätigt und als Migration mit Regressionstest vorbereitet; live bleibt sie bis zur kontrollierten Ausführung mit Smoke-Test und Rollback-Plan unverändert.
-- Es wurden keine Testkonten, produktiven Familieninformationen, Schemaänderungen oder Realtime-Schreibaktionen angelegt.
+## Update 19.10.2026 – Live-RLS-Schutz und synthetische Rollen-Konten
+- Das Supabase-Projekt `FamSchicht` (`kryxhpklrugceiwlrofm`) ist reaktiviert und meldet `ACTIVE_HEALTHY`.
+- Die Migration `20261019031859 enable_private_invitation_rls` ist live. `private.household_invitations` hat RLS aktiviert und eine einzige permissive `service_role`-only-Policy; `anon` und `authenticated` behalten weder Schema-Usage noch Tabellen-Select.
+- Vier getrennte synthetische Auth-Konten für Owner, Partner, Coparent und Fremdkonto wurden mit Auto-Bestätigung angelegt. Es wurden keine echten Familieninformationen verwendet.
+- Die vier öffentlichen Tabellen bleiben owner-only. Die Einladung-/Datenzugriffsmatrix ist noch nicht ausgeführt; Partner-/Coparent-RLS und Realtime bleiben bis zu ihrem erfolgreichen Abschluss deaktiviert.
 
 ## Update 19.10.2026 – Tastatur- und Mobile-Abnahme
 - Die sechs Hauptansichten Übersicht, Kalender, Heute, Familie, Dienste und Einstellungen wurden im laufenden Browser mit synthetischen lokalen Daten per Tastatur geprüft. Ansichtswechsel setzen den Fokus in den neuen Kontext; der Kalender verwendet roving Tagesziele mit Pfeilnavigation.
